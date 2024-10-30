@@ -10,11 +10,13 @@ class MyBot(BotAI):
         #if not rndwrk.is_gathering:
         #    await self.do(rndwrk.gather(closestMineral))
         BB = BaseBuilder()
-        cur, rem = BB.CalculateAllCurrentAndRemainingMinerals(self)
-        BB.TestCalculations(cur, rem)
+        cur, rem = BB.CalculateAllCurrentAndRemainingMinerals(self, [])
 
-        #print(self.state.mineral_field.closest_distance_to(self.start_location))
-        #print(self.state.mineral_field.furthest_distance_to(self.start_location))
+        BB.TestCalculations(cur, rem)
+        #cur, rem = BB.CalculateAllCurrentAndRemainingMinerals(self)
+        #BB.TestCalculations(cur, rem)
+        #BB.FindOptimalNewBase(self)
+
 
 
 

@@ -1,4 +1,5 @@
 from sc2.bot_ai import BotAI
+from sc2.ids.unit_typeid import UnitTypeId
 # Base = Command center
 # Bases should be in proximity of minerals, but no more than 1 for each cluster of minerals
 # This is what we should do:
@@ -16,18 +17,24 @@ from sc2.bot_ai import BotAI
 # Find all minerals and keep them in a set
 
 class BaseBuilder():
-    def FindOptimalNewBase(self):
-        
+    #def FindOptimalNewBase(self, botai):
+        #print(UnitTypeId.COMMANDCENTER)
 
+    # Only for base rn, but change it to iterate through all the bases (IMPORTANT TO KEEP UP WITH ITERATIONS)
+    # Should also be changed to select the minerals in a radius, rather than from base. This method is highly specific
+    # (Second part could be done by taking the closest, and doing the "closer than" on it)
+    def CalculateAllCurrentAndRemainingMinerals(self, botai, oldCurrentMinerals):
+        if oldCurrentMinerals == []:
+            closestMinerals = botai.state.mineral_field.closest_distance_to(botai.start_location)
+            currentMinerals = botai.state.mineral_field.closer_than(closestMinerals + 2, botai.start_location)
+        else:
+            closestMinerals = botai.state.mineral_field.closest_distance_to(oldCurrentMinerals[0])
+            currentMinerals = botai.state.mineral_field.closer_than(closestMinerals + 2, oldCurrentMinerals[0])
 
-    # Only for base rn, but change it to iterate through all the bases
-    def CalculateAllCurrentAndRemainingMinerals(self, botai):
-        closestMinerals = botai.state.mineral_field.closest_distance_to(botai.start_location)
-        currentMinerals = botai.state.mineral_field.closer_than(closestMinerals + 2, botai.start_location)
         allMinerals = botai.state.mineral_field
-        remainingMinerals = []
+        remainingMinerals = oldCurrentMinerals + []
         for mineral in allMinerals:
-            if mineral not in currentMinerals:
+            if mineral not in currentMinerals or oldCurrentMinerals:
                 remainingMinerals.append(mineral)
 
         return currentMinerals, remainingMinerals
