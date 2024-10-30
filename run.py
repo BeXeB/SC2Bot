@@ -6,7 +6,7 @@ from testbot import MyBot
 
 
 run_game(
-    maps.get("CollectMineralsAndGas"),
-    [Bot(Race.Zerg, MyBot()), Computer(Race.Zerg, Difficulty.Hard)],
-    realtime=False,
+    maps.get("Simple64"),
+    [Bot(Race.Terran, MyBot()), Computer(Race.Terran, Difficulty.VeryEasy)],
+    realtime=True,
 )
