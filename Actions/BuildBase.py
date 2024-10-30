@@ -7,3 +7,13 @@
 # 4. The parametrized worker should then move to that spot and build a base there.
 
 # 1.
+
+
+
+
+# Different ideas:
+# Either we cluster the mineral fields together based
+# on whether 2 or more minerals are close to each other
+# or we sort it based on which minerals are not currently
+# being mined (or are in the vicinity of a base) and
+# are closest to us. (sorted_by_distance_to())
