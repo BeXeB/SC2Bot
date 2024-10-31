@@ -8,5 +8,5 @@ from testbot import MyBot
 run_game(
     maps.get("Simple64"),
     [Bot(Race.Terran, MyBot()), Computer(Race.Terran, Difficulty.VeryEasy)],
-    realtime=True,
+    realtime=False,
 )
