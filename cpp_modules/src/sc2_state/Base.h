@@ -6,17 +6,17 @@
 #include <vector>
 
 namespace Sc2 {
-    struct Base{
+    struct Base {
         int id = 0;
         int amountOfWorkers = 0;
         int workerLimit = 0;
         std::vector<int> position;
 
-        Base(const int id, const int amountOfWorkers, const int workerLimit ,std::vector<int> position) :
-            id(id),
+        Base(const int id, const int amountOfWorkers, const int workerLimit, std::vector<int> position) : id(id),
             amountOfWorkers(amountOfWorkers),
             workerLimit(workerLimit),
-            position(std::move(position)) {}
+            position(std::move(position)) {
+        }
     };
 }
 
