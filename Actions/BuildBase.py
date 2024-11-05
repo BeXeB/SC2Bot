@@ -7,7 +7,7 @@ class BaseBuilder():
     # Initialize the basebuilder to keep track of the occupied clusters, such that we can find the new ones
     def __init__(self, bot) -> None:
         self.bot = bot
-        self.occupied_clusters: List[MineralCluster] = []  # List to keep track of occupied mineral clusters
+        self.occupied_clusters: List[MineralCluster] = []
 
     async def find_next_base_location(self) -> Optional[Point2]:
         # Search map for the closest mineral cluster
@@ -17,7 +17,7 @@ class BaseBuilder():
         # Find clusters of minerals with no base
         mineral_clusters = self.group_minerals_into_clusters(all_mineral_fields)
 
-        # Gather unoccupied clusters while ensuring they're not too close to existing bases
+        # Gather unoccupied clusters while ensuring they're not too close to existing bases (Arbitrary number of 15)
         unoccupied_clusters = [
             cluster for cluster in mineral_clusters
             if cluster not in self.occupied_clusters and not any(
@@ -33,11 +33,13 @@ class BaseBuilder():
             closest_cluster = min(unoccupied_clusters, key=lambda cluster: closest_base.distance_to(cluster.center))
 
             # Calculate the average position of minerals in the chosen cluster
+            # First we find the positions of all minerals in the cluster
             cluster_positions = [mineral.position for mineral in closest_cluster.minerals]
+            # Then we take the average position of all the minerals in a cluster
             average_position = Point2((sum(pos.x for pos in cluster_positions) / len(cluster_positions),
                                        sum(pos.y for pos in cluster_positions) / len(cluster_positions)))
 
-            # Define the position to place the base
+            # Define the position to place the base with an x-value offset
             next_build_position = average_position.offset((1, 0))  # You can adjust this offset
 
             # Check if the proposed build position is valid
@@ -73,7 +75,7 @@ class BaseBuilder():
 
             if not found_cluster:
                 # Create a new cluster with this mineral
-                clusters.append(MineralCluster(mineral))  # Create a new MineralCluster object
+                clusters.append(MineralCluster(mineral))
 
         return clusters
 
