@@ -5,10 +5,10 @@ from Actions.BuildBase import BaseBuilder
 
 class MyBot(BotAI):
     # Initializing our bot with the BaseBuilder, such that we don't initialize a new BaseBuilder instance on every step.
-    def __init__(self):
+    def __init__(self) -> None:
         self.base_builder = BaseBuilder(self)
 
-    async def on_step(self, iteration: int):
+    async def on_step(self, iteration: int) -> None:
         print(f"iteration: {iteration}")
         # Temporary code to make workers gather minerals
         for worker in self.workers.idle:
@@ -30,7 +30,7 @@ class MyBot(BotAI):
 
 
 class PeacefulBot(BotAI):
-    async def on_step(self, iteration: int):
+    async def on_step(self, iteration: int) -> None:
         # Gather minerals
         for worker in self.workers.idle:
             closest_minerals = self.mineral_field.closest_to(worker)
