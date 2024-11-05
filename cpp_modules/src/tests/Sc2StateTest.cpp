@@ -38,6 +38,20 @@ TEST_CASE("Check that the correct resources are gathered whenever an action is t
 	}
 	state->wait(50);
 	SUBCASE(
+		"Check that build base takes resources as cost, "
+		"and gives resources as time passes, "
+		"and occupies a worker") {
+		currentMinerals = state->getMinerals();
+		currentVespene = state->getVespene();
+		state->buildBase();
+		currentMinerals = currentMinerals - state->getBuildBaseCost().minerals + (activeWorkers) * 1;
+		CHECK(state->getMinerals() == currentMinerals);
+
+		currentVespene = currentVespene - state->getBuildBaseCost().vespene + (activeWorkers) * 1;
+		CHECK(state->getVespene() == currentVespene);
+	}
+	state->wait(50);
+	SUBCASE(
 		"Check build worker takes resources, "
 		"And gives resources as time passes, ") {
 		currentMinerals = state->getMinerals();
@@ -81,6 +95,18 @@ TEST_CASE("Test that anything in the build queue will eventually be built") {
 
 		CHECK(state->getPopulationLimit() == limit + 8);
 	}
+	SUBCASE("Check that the population cap increase after a delay when bases are built") {
+		auto limit = state->getPopulationLimit();
+		state->buildBase();
+
+		// check that the population limit is not increased before the build time is over
+		for (int i = 0; i < state->getBuildBaseCost().buildTime; i++) {
+			CHECK(state->getPopulationLimit() == limit);
+			state->wait();
+		}
+
+		CHECK(state->getPopulationLimit() == limit + 15);
+	}
 }
 
 TEST_CASE("Test that you can not build more workers than the population cap") {
@@ -109,6 +135,7 @@ TEST_CASE("Test deep copy of states") {
 	CHECK(state1->getMinerals() == state2->getMinerals());
 	CHECK(state1->getVespene() == state2->getVespene());
 	CHECK(state1->getIncomingPopulation() == state2->getIncomingPopulation());
+	CHECK(state1->getBases().size() == state2->getBases().size());
 }
 
 TEST_CASE("Test that copies of a state does not share any part of the state") {
@@ -117,23 +144,31 @@ TEST_CASE("Test that copies of a state does not share any part of the state") {
 	state1->wait(10);
 	state1->buildHouse();
 	state1->buildWorker();
+	state1->buildBase();
 
 	const auto state2 = Sc2::State::DeepCopy(*state1);
+	state1->id = 0;
+	state2->id = 1;
 	state1->wait(50);
 	SUBCASE("Check that state 1 is different from state2") {
 		CHECK(state1->getPopulationLimit() != state2->getPopulationLimit());
+		CHECK(state1->getOccupiedPopulation() != state2->getOccupiedPopulation());
 		CHECK(state1->getPopulation() != state2->getPopulation());
 		CHECK(state1->getMinerals() != state2->getMinerals());
 		CHECK(state1->getVespene() != state2->getVespene());
 		CHECK(state1->getIncomingPopulation() != state2->getIncomingPopulation());
+		CHECK(state1->getBases().size() != state2->getBases().size());
+		std::cout << *state1 << std::endl;
 	}
 	state2->wait(50);
 	SUBCASE("Check that if the same actions are taken they will become identical") {
 		CHECK(state1->getPopulationLimit() == state2->getPopulationLimit());
+		CHECK(state1->getOccupiedPopulation() == state2->getOccupiedPopulation());
 		CHECK(state1->getPopulation() == state2->getPopulation());
 		CHECK(state1->getMinerals() == state2->getMinerals());
 		CHECK(state1->getVespene() == state2->getVespene());
 		CHECK(state1->getIncomingPopulation() == state2->getIncomingPopulation());
+		CHECK(state1->getBases().size() == state2->getBases().size());
 	}
 }
 

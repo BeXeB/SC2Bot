@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-// #include "Base.h"
+#include "Base.h"
 #include "Construction.h"
 
 namespace Sc2 {
@@ -12,7 +12,7 @@ namespace Sc2 {
         int _population = 5;
         int _incomingPopulation = 0;
         int _populationLimit = 15;
-        // std::vector<Base> _bases = std::vector<Base>{Base()}; // (maybe) Replace with list
+        std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
         std::vector<Construction> _constructions{}; // Replace with list
 
         std::vector<int> _occupiedWorkerTimers{};
@@ -48,6 +48,7 @@ namespace Sc2 {
 
         void addBase() {
             _populationLimit += 15;
+            _bases.emplace_back();
         }
 
         void addWorker() {
@@ -73,6 +74,7 @@ namespace Sc2 {
         int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
         // std::vector<Base> getBases() { return _bases; }
         std::vector<Construction> getConstructions() const { return _constructions; }
+        std::vector<Base> getBases() const { return _bases; }
         ActionCost getBuildWorkerCost() const { return buildWorkerCost; }
         ActionCost getBuildBaseCost() const { return buildBaseCost; }
         ActionCost getBuildHouseCost() const { return buildHouseCost; }
@@ -91,6 +93,7 @@ namespace Sc2 {
 
         void wait(int amount);
 
+
         static std::shared_ptr<State> DeepCopy(const State &state);
 
         State(const State &state) : enable_shared_from_this(state) {
@@ -105,9 +108,9 @@ namespace Sc2 {
             buildHouseCost = state.buildHouseCost;
             buildVespeneCollectorCost = state.buildVespeneCollectorCost;
 
-            // _bases = std::vector<Base>();
+            _bases = std::vector<Base>();
             _constructions = std::vector<Construction>();
-            _occupiedWorkerTimers = std::vector<int>();
+            _occupiedWorkerTimers = state._occupiedWorkerTimers;
         };
 
         State() = default;
@@ -122,6 +125,7 @@ namespace Sc2 {
                 << "population: " << state.getPopulation() << std::endl
                 << "incomingPopulation: " << state.getIncomingPopulation() << std::endl
                 << "populationLimit: " << state.getPopulationLimit() << std::endl
+                << "number of bases: " << state.getBases().size() << std::endl
                 << "}" << std::endl;
         return os;
     }

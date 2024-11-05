@@ -59,6 +59,11 @@ std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state) {
         copyState->_constructions.emplace_back(
             stateConstruction._timeLeft, copyState, stateConstruction._constructionFunction);
     }
+    auto stateBases = state.getBases();
+
+    for (const auto &base: stateBases) {
+        copyState->_bases.emplace_back(base);
+    }
 
     return copyState;
 }
