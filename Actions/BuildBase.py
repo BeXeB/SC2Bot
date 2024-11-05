@@ -1,59 +1,192 @@
-from sc2.bot_ai import BotAI
+from sc2.position import Point2
 from sc2.ids.unit_typeid import UnitTypeId
 
-# Base = Command center
-# Bases should be in proximity of minerals, but no more than 1 for each cluster of minerals
-# This is what we should do:
-# 1. Search the map for clusters of minerals
-#   Find all minerals and keep them in a set
-#   Create a subset from the closest mineral and the minerals in a radius of like 10 of the mineral
-# 2. Implicitly "select" the optimal one (Either closest one to current units, or current base?)
-#   Find the closest mineral cluster to current base, which is not in the subset of this base's minerals
-# 3. Calculate the optimal spot in between the minerals in the cluster to place the base
-#   Figure out the optimal placement/math for this
-# 4. The parametrized worker should then move to that spot and build a base there.
-#   Can possibly simply use the build method to move there and build
 
 class BaseBuilder():
-    def FindOptimalNewBase(self, botai):
-        print("deez")
-        # Brug remaining fra CalculateAllCurrent... til at finde tætteste cluster til næste base
-        # Udregn det optimale center i midten af clusteret
-        # Byg COMMANDCENTER
+    # Initialize the basebuilder to keep track of the occupied clusters, such that we can find the new ones
+    def __init__(self, bot):
+        self.bot = bot
+        self.occupied_clusters = []  # List to keep track of occupied mineral clusters
+
+    async def find_next_base_location(self):
+        # Search map for the closest mineral cluster
+        all_mineral_fields = self.bot.mineral_field
+        existing_bases = self.bot.townhalls
+
+        # Find clusters of minerals with no base
+        mineral_clusters = self.group_minerals_into_clusters(all_mineral_fields)
+
+        # Gather unoccupied clusters while ensuring they're not too close to existing bases
+        unoccupied_clusters = [
+            cluster for cluster in mineral_clusters
+            if cluster not in self.occupied_clusters and not any(
+                base.distance_to(cluster.center) < 15 for base in existing_bases
+            )
+        ]
+
+        # If any valid unoccupied clusters exist, choose one for a new base
+        if unoccupied_clusters:
+            closest_base = self.bot.townhalls.closest_to(self.bot.start_location)
+
+            # Choose the closest cluster to the closest base
+            closest_cluster = min(unoccupied_clusters, key=lambda cluster: closest_base.distance_to(cluster.center))
+
+            # Calculate the average position of minerals in the chosen cluster
+            cluster_positions = [mineral.position for mineral in closest_cluster.minerals]
+            average_position = Point2((sum(pos.x for pos in cluster_positions) / len(cluster_positions),
+                                       sum(pos.y for pos in cluster_positions) / len(cluster_positions)))
+
+            # Define the position to place the base
+            next_build_position = average_position.offset((1, 0))  # You can adjust this offset
+
+            # Check if the proposed build position is valid
+            if await self.is_valid_build_position(next_build_position, existing_bases):
+                # Find valid location
+                next_build_location = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, next_build_position)
+
+                if next_build_location:
+                    self.occupied_clusters.append(closest_cluster)  # Mark this cluster as occupied
+                    return next_build_location
+
+        # If there are no valid unoccupied mineral clusters, return None
+        return None
+
+    async def is_valid_build_position(self, position, existing_bases):
+        # Ensure the position is not too close to existing bases
+        if any(base.distance_to(position) < 10 for base in existing_bases):
+            return False
+
+        # Check if the position is valid for building
+        valid_build = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, position)
+        return valid_build is not None
+
+    def group_minerals_into_clusters(self, minerals):
+        clusters = []
+        for mineral in minerals:
+            found_cluster = False
+            for cluster in clusters:
+                if cluster.center.distance_to(mineral.position) < 10:  # Use the center to check distance
+                    cluster.add(mineral)  # Add mineral to the existing cluster
+                    found_cluster = True
+                    break
+
+            if not found_cluster:
+                # Create a new cluster with this mineral
+                clusters.append(MineralCluster(mineral))  # Create a new MineralCluster object
+
+        return clusters
 
 
-        # Måske hav lokal variabel til oldCurrentMinerals, og kald disse explicit i testbot, samt herover og -under.
+class MineralCluster:
+    def __init__(self, mineral):
+        self.minerals = [mineral]  # Start with the first mineral
+        self.center = mineral.position  # Initially, the center is the mineral's position
+
+    def add(self, mineral):
+        self.minerals.append(mineral)
+        self.update_center()  # Update the center of the cluster
+
+    def update_center(self):
+        # Calculate the center position of the cluster based on its minerals
+        x = sum(mineral.position.x for mineral in self.minerals) / len(self.minerals)
+        y = sum(mineral.position.y for mineral in self.minerals) / len(self.minerals)
+        self.center = Point2((x, y))
 
 
-    # Only for base rn, but change it to iterate through all the bases (IMPORTANT TO KEEP UP WITH ITERATIONS)
-    # Should also be changed to select the minerals in a radius, rather than from base. This method is highly specific
-    # (Second part could be done by taking the closest, and doing the "closer than" on it)
-    def CalculateAllCurrentAndRemainingMinerals(self, botai, oldCurrentMinerals):
-        if oldCurrentMinerals == []:
-            closestMinerals = botai.state.mineral_field.closest_distance_to(botai.start_location)
-            currentMinerals = botai.state.mineral_field.closer_than(closestMinerals + 2, botai.start_location)
-        else:
-            closestMinerals = botai.state.mineral_field.closest_distance_to(oldCurrentMinerals[0])
-            currentMinerals = botai.state.mineral_field.closer_than(closestMinerals + 2, oldCurrentMinerals[0])
-
-        allMinerals = botai.state.mineral_field
-        remainingMinerals = oldCurrentMinerals + []
-        for mineral in allMinerals:
-            if mineral not in currentMinerals or oldCurrentMinerals:
-                remainingMinerals.append(mineral)
 
 
-        return currentMinerals, remainingMinerals
 
-    def TestCalculations(self, current, remaining):
-        print("1-------------------------------------------------------------")
-        for mineral in current:
-            print(mineral)
 
-        print("2-------------------------------------------------------------")
+'''from sc2.position import Point2
+from sc2.ids.unit_typeid import UnitTypeId
 
-        for mineral in remaining:
-            print(mineral)
 
-# Todo:
-#
+class BaseBuilder():
+    def __init__(self, bot):
+        self.bot = bot
+        self.occupied_clusters = []  # List to keep track of occupied mineral clusters
+
+    async def find_next_base_location(self):
+        # Search map for the closest mineral cluster
+        all_mineral_fields = self.bot.mineral_field
+        existing_bases = self.bot.townhalls
+
+        # Find clusters of minerals with no base
+        mineral_clusters = self.group_minerals_into_clusters(all_mineral_fields)
+
+        # Gather unoccupied clusters while ensuring they're not too close to existing bases
+        unoccupied_clusters = [
+            cluster for cluster in mineral_clusters
+            if cluster not in self.occupied_clusters and not any(
+                base.distance_to(cluster.center) < 15 for base in existing_bases
+            )
+        ]
+
+        # If any valid unoccupied clusters exist, choose one for a new base
+        if unoccupied_clusters:
+            closest_base = self.bot.townhalls.closest_to(self.bot.start_location)
+
+            # Choose the closest cluster to the closest base
+            closest_cluster = min(unoccupied_clusters, key=lambda cluster: closest_base.distance_to(cluster.center))
+
+            # Calculate the average position of minerals in the chosen cluster
+            cluster_positions = [mineral.position for mineral in closest_cluster.minerals]
+            average_position = Point2((sum(pos.x for pos in cluster_positions) / len(cluster_positions),
+                                       sum(pos.y for pos in cluster_positions) / len(cluster_positions)))
+
+            # Define the position to place the base
+            next_build_position = average_position.offset((3, 0))  # You can adjust this offset
+
+            # Check if the proposed build position is valid
+            if await self.is_valid_build_position(next_build_position, existing_bases):
+                # Find valid location
+                next_build_location = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, next_build_position)
+
+                if next_build_location:
+                    self.occupied_clusters.append(closest_cluster)  # Mark this cluster as occupied
+                    return next_build_location
+
+        # If there are no valid unoccupied mineral clusters, return None
+        return None
+
+    async def is_valid_build_position(self, position, existing_bases):
+        # Ensure the position is not too close to existing bases
+        if any(base.distance_to(position) < 10 for base in existing_bases):
+            return False
+
+        # Check if the position is valid for building
+        valid_build = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, position)
+        return valid_build is not None
+
+    def group_minerals_into_clusters(self, minerals):
+        clusters = []
+        # For example, you can use a simple proximity check
+        for mineral in minerals:
+            found_cluster = False
+            for cluster in clusters:
+                if cluster.center.distance_to(mineral.position) < 10:  # Use the center to check distance
+                    cluster.add(mineral)  # Add mineral to the existing cluster
+                    found_cluster = True
+                    break
+
+            if not found_cluster:
+                # Create a new cluster with this mineral
+                clusters.append(MineralCluster(mineral))  # Create a new MineralCluster object
+
+        return clusters
+
+
+class MineralCluster:
+    def __init__(self, mineral):
+        self.minerals = [mineral]  # Start with the first mineral
+        self.center = mineral.position  # Initially, the center is the mineral's position
+
+    def add(self, mineral):
+        self.minerals.append(mineral)
+        self.update_center()  # Update the center of the cluster
+
+    def update_center(self):
+        # Calculate the center position of the cluster based on its minerals
+        x = sum(mineral.position.x for mineral in self.minerals) / len(self.minerals)
+        y = sum(mineral.position.y for mineral in self.minerals) / len(self.minerals)
+        self.center = Point2((x, y))'''
