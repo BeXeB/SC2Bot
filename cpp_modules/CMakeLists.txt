@@ -10,6 +10,9 @@ set(EXTERNALS "${PROJECT_SOURCE_DIR}/externals")
 # pybind11
 add_subdirectory(${EXTERNALS}/pybind11)
 
+# doctests
+add_subdirectory(${PROJECT_SOURCE_DIR}/Doctest_tests)
+
 # module
 pybind11_add_module(
         pybind11module
