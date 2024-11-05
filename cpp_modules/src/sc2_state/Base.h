@@ -6,18 +6,20 @@
 #include <vector>
 
 namespace Sc2 {
-    struct Base {
-        int id = 0;
-        int amountOfWorkers = 0;
-        int workerLimit = 0;
-        std::vector<int> position;
+	class Collector;
 
-        Base(const int id, const int amountOfWorkers, const int workerLimit, std::vector<int> position) : id(id),
-            amountOfWorkers(amountOfWorkers),
-            workerLimit(workerLimit),
-            position(std::move(position)) {
-        }
-    };
+	struct Base {
+		int id = 0;
+		// int amountOfWorkers = 0;
+		int workerLimit = 15;
+		std::vector<Collector> _vespeneCollectors{};
+		// 		std::vector<int> position;
+
+		Base(const int id, const int workerLimit) : id(id), workerLimit(workerLimit) {
+		}
+
+		Base() = default;
+	};
 }
 
 #endif //BASE_H
