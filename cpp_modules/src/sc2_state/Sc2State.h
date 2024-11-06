@@ -29,10 +29,10 @@ namespace Sc2 {
             }
         };
 
-        ActionCost buildWorkerCost = ActionCost(1, 2, 3);
-        ActionCost buildBaseCost = ActionCost(1, 2, 3);
-        ActionCost buildHouseCost = ActionCost(1, 2, 3);
-        ActionCost buildVespeneCollectorCost = ActionCost(1, 0, 3);
+        ActionCost buildWorkerCost = ActionCost(50, 0, 12);
+        ActionCost buildBaseCost = ActionCost(400, 0, 71);
+        ActionCost buildHouseCost = ActionCost(100, 0, 21);
+        ActionCost buildVespeneCollectorCost = ActionCost(75, 0, 21);
 
 
         void advanceConstructions();
