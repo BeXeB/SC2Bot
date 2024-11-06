@@ -98,7 +98,7 @@ TEST_CASE("Check that the correct resources are gathered whenever an action is t
 
 TEST_CASE("Test that anything in the build queue will eventually be built") {
 	const auto state = std::make_shared<Sc2::State>();
-	state->wait(100);
+	state->wait(200);
 
 	SUBCASE("Check that workers can gather vespene after a delay when vespene collectors are built") {
 		CHECK(state->getVespeneWorkers() == 0);
@@ -194,9 +194,9 @@ TEST_CASE("Test deep copy of states") {
 TEST_CASE("Test that copies of a state does not share any part of the state") {
 	const auto state1 = std::make_shared<Sc2::State>();
 
-	state1->wait(50);
+	state1->wait(500);
 	state1->buildVespeneCollector();
-	state1->wait(50);
+	state1->wait(100);
 	state1->buildHouse();
 	state1->buildWorker();
 	state1->buildBase();
@@ -204,7 +204,7 @@ TEST_CASE("Test that copies of a state does not share any part of the state") {
 	const auto state2 = Sc2::State::DeepCopy(*state1);
 	state1->id = 0;
 	state2->id = 1;
-	state1->wait(50);
+	state1->wait(100);
 	SUBCASE("Check that state 1 is different from state2") {
 		CHECK(state1->getPopulationLimit() != state2->getPopulationLimit());
 		CHECK(state1->getOccupiedPopulation() != state2->getOccupiedPopulation());
@@ -214,7 +214,7 @@ TEST_CASE("Test that copies of a state does not share any part of the state") {
 		CHECK(state1->getIncomingPopulation() != state2->getIncomingPopulation());
 		CHECK(state1->getBases().size() != state2->getBases().size());
 	}
-	state2->wait(50);
+	state2->wait(100);
 	SUBCASE("Check that if the same actions are taken they will become identical") {
 		CHECK(state1->getPopulationLimit() == state2->getPopulationLimit());
 		CHECK(state1->getOccupiedPopulation() == state2->getOccupiedPopulation());

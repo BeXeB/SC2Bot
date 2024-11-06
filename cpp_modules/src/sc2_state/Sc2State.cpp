@@ -123,14 +123,14 @@ void Sc2::State::buildWorker() {
 }
 
 void Sc2::State::buildHouse() {
-    if (hasEnoughMinerals(buildWorkerCost.minerals)
+    if (hasEnoughMinerals(buildHouseCost.minerals)
         && hasEnoughVespene(buildHouseCost.vespene)
         && hasUnoccupiedWorker()) {
         _minerals -= buildHouseCost.minerals;
         _vespene -= buildHouseCost.vespene;
         advanceTime(1);
-        _occupiedWorkerTimers.emplace_back(buildWorkerCost.buildTime);
-        _constructions.emplace_back(buildWorkerCost.buildTime, shared_from_this(), &State::addHouse);
+        _occupiedWorkerTimers.emplace_back(buildHouseCost.buildTime);
+        _constructions.emplace_back(buildHouseCost.buildTime, shared_from_this(), &State::addHouse);
     } else {
         advanceTime(1);
     }
