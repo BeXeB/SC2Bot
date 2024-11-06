@@ -12,7 +12,7 @@
   - Then open the generated sc2modules.sln in your IDE
 - The module can then be built by running the ALL_BUILD configuration
 - If you built the project with a Release profile
-  - there will be a file called pybind11module.{your system specs}.pyd
+  - there will be a file called sc2_mcts.{your system specs}.pyd
   - This file can be imported into python with:
-    - `import pybind11module`
+    - `import sc2_mcts`
   - An example of using the module can be seen in /cppmodules/module_test.py
