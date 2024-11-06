@@ -25,13 +25,13 @@ target_include_directories(
 
 # module
 pybind11_add_module(
-        pybind11module
+        sc2_mcts
         ${MODULE_SOURCE}/Module.cpp
         ${STATE_SOURCE}/Sc2State.cpp
 )
 
 target_include_directories(
-        pybind11module
+        sc2_mcts
         PRIVATE ${MODULE_SOURCE}
         PRIVATE ${STATE_SOURCE}
 )

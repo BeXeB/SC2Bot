@@ -4,9 +4,9 @@ import os
 sys.path.append(os.path.abspath('vsstudio/Release'))
 
 # noinspection PyUnresolvedReferences
-import pybind11module as pm
+import sc2_mcts
 
-state = pm.sc2_state()
+state = sc2_mcts.sc2_state()
 state.id = 5
 
 print(state.to_string())
