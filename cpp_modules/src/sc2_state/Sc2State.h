@@ -34,65 +34,18 @@ namespace Sc2 {
         ActionCost buildHouseCost = ActionCost(100, 0, 21);
         ActionCost buildVespeneCollectorCost = ActionCost(75, 0, 21);
 
-
         void advanceConstructions();
-
         void advanceResources();
-
         void advanceOccupiedWorkers();
-
-
         void advanceTime(int amount);
 
         bool hasEnoughMinerals(const int cost) const { return _minerals >= cost; };
         bool hasEnoughVespene(const int cost) const { return _vespene >= cost; }
         bool hasUnoccupiedWorker() const { return _population - _occupiedWorkerTimers.size() > 0; }
 
-
         void occupyWorker(int time) {
             _occupiedWorkerTimers.emplace_back(time);
         };
-
-    public:
-        int id = 0;
-        [[nodiscard]] int getMinerals() const { return _minerals; }
-        [[nodiscard]] int getVespene() const { return _vespene; }
-        [[nodiscard]] int getIncomingPopulation() const { return _incomingPopulation; }
-        [[nodiscard]] int getPopulationLimit() const { return _populationLimit; }
-        [[nodiscard]] int getPopulation() const { return _population; }
-        int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
-        // std::vector<Base> getBases() { return _bases; }
-        std::vector<Construction> getConstructions() const { return _constructions; }
-        std::vector<Base> getBases() const { return _bases; }
-        ActionCost getBuildWorkerCost() const { return buildWorkerCost; }
-        ActionCost getBuildBaseCost() const { return buildBaseCost; }
-        ActionCost getBuildHouseCost() const { return buildHouseCost; }
-        ActionCost getBuildVespeneCollectorCost() const { return buildVespeneCollectorCost; }
-
-        int mineralGainedPerTimestep() const;
-
-        int vespeneGainedPerTimestep() const;
-
-        int getMineralWorkers() const;
-
-        int getVespeneWorkers() const;
-
-        void buildWorker();
-
-        void buildHouse();
-
-        void buildBase();
-
-
-        bool hasUnoccupiedGeyser() const;
-
-        void buildVespeneCollector();
-
-        void wait();
-
-        void wait(int amount);
-
-        void addIncomingCollector() { incomingVespeneCollectors++; }
 
         void addVespeneCollector();
 
@@ -109,6 +62,46 @@ namespace Sc2 {
         void addHouse() {
             _populationLimit += 8;
         }
+
+    public:
+        int id = 0;
+        [[nodiscard]] int getMinerals() const { return _minerals; }
+        [[nodiscard]] int getVespene() const { return _vespene; }
+        [[nodiscard]] int getIncomingPopulation() const { return _incomingPopulation; }
+        [[nodiscard]] int getPopulationLimit() const { return _populationLimit; }
+        [[nodiscard]] int getPopulation() const { return _population; }
+        int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
+        // std::vector<Base> getBases() { return _bases; }
+        std::vector<Construction> getConstructions() const { return _constructions; }
+        std::vector<Base> getBases() const { return _bases; }
+
+        ActionCost getBuildWorkerCost() const { return buildWorkerCost; }
+        ActionCost getBuildBaseCost() const { return buildBaseCost; }
+        ActionCost getBuildHouseCost() const { return buildHouseCost; }
+        ActionCost getBuildVespeneCollectorCost() const { return buildVespeneCollectorCost; }
+
+        int mineralGainedPerTimestep() const;
+
+        int vespeneGainedPerTimestep() const;
+
+        int getMineralWorkers() const;
+
+        int getVespeneWorkers() const;
+
+        bool hasUnoccupiedGeyser() const;
+
+        void buildWorker();
+
+        void buildHouse();
+
+        void buildBase();
+
+        void buildVespeneCollector();
+
+        void wait();
+
+        void wait(int amount);
+
 
         static std::shared_ptr<State> DeepCopy(const State &state);
 
