@@ -9,9 +9,7 @@
 
 TEST_CASE("Check that the correct resources are gathered whenever an action is taken") {
 	const auto state = std::make_shared<Sc2::State>();
-	state->wait(50);
-	state->addVespeneCollector();
-	state->wait(50);
+	state->wait(100);
 
 	SUBCASE("Check that wait gives resources") {
 		auto currentVespene = state->getVespene();
@@ -200,6 +198,7 @@ TEST_CASE("Test that copies of a state does not share any part of the state") {
 	state1->buildHouse();
 	state1->buildWorker();
 	state1->buildBase();
+	state1->buildVespeneCollector();
 
 	const auto state2 = Sc2::State::DeepCopy(*state1);
 	state1->id = 0;
@@ -213,6 +212,7 @@ TEST_CASE("Test that copies of a state does not share any part of the state") {
 		CHECK(state1->getVespene() != state2->getVespene());
 		CHECK(state1->getIncomingPopulation() != state2->getIncomingPopulation());
 		CHECK(state1->getBases().size() != state2->getBases().size());
+		CHECK(state1->getVespeneWorkers() != state2->getVespeneWorkers());
 	}
 	state2->wait(100);
 	SUBCASE("Check that if the same actions are taken they will become identical") {
@@ -223,6 +223,7 @@ TEST_CASE("Test that copies of a state does not share any part of the state") {
 		CHECK(state1->getVespene() == state2->getVespene());
 		CHECK(state1->getIncomingPopulation() == state2->getIncomingPopulation());
 		CHECK(state1->getBases().size() == state2->getBases().size());
+		CHECK(state1->getVespeneWorkers() == state2->getVespeneWorkers());
 	}
 }
 
