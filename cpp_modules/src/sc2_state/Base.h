@@ -3,19 +3,26 @@
 //
 #ifndef BASE_H
 #define BASE_H
-#include <vector>
+#include "Sc2Constants.h"
 
 namespace Sc2 {
-	// class Collector;
-
 	struct Base {
 		int id = 0;
-		// int amountOfWorkers = 0;
-		int workerLimit = 15;
-		// std::vector<Collector> _vespeneCollectors{};
-		// 		std::vector<int> position;
+		int mineralFields = 8;
+		int vespeneGeysers = 2;
+		int vespeneCollectors = 0;
 
-		Base(const int id, const int workerLimit) : id(id), workerLimit(workerLimit) {
+
+		[[nodiscard]] int getUnoccupiedGeysers() const { return vespeneGeysers - vespeneCollectors; }
+		[[nodiscard]] int getMineralWorkerLimit() const { return mineralFields * WORKER_PER_MINERAL_FIELD; }
+		[[nodiscard]] int getVespeneWorkerLimit() const { return vespeneCollectors * WORKER_PER_MINERAL_FIELD; }
+
+		void addVespeneCollector() { if (vespeneCollectors < vespeneGeysers) vespeneCollectors++; }
+
+		Base(const int id, const int mineralFields, const int vespeneGeysers, const int vespeneCollectors) : id(id),
+			mineralFields(mineralFields),
+			vespeneGeysers(vespeneGeysers),
+			vespeneCollectors(vespeneCollectors) {
 		}
 
 		Base() = default;

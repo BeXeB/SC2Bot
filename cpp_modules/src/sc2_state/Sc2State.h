@@ -11,6 +11,7 @@ namespace Sc2 {
         int _vespene = 0;
         int _population = 5;
         int _incomingPopulation = 0;
+        int incomingVespeneCollectors = 0;
         int _populationLimit = 15;
         std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
         std::vector<Construction> _constructions{}; // Replace with list
@@ -31,14 +32,15 @@ namespace Sc2 {
         ActionCost buildWorkerCost = ActionCost(1, 2, 3);
         ActionCost buildBaseCost = ActionCost(1, 2, 3);
         ActionCost buildHouseCost = ActionCost(1, 2, 3);
-        ActionCost buildVespeneCollectorCost = ActionCost(1, 2, 3);
+        ActionCost buildVespeneCollectorCost = ActionCost(1, 0, 3);
 
 
-        void advanceConstructions(int amount);
+        void advanceConstructions();
 
-        void advanceResources(int amount);
+        void advanceResources();
 
-        void advanceOccupiedWorkers(int amount);
+        void advanceOccupiedWorkers();
+
 
         void advanceTime(int amount);
 
@@ -46,19 +48,6 @@ namespace Sc2 {
         bool hasEnoughVespene(const int cost) const { return _vespene >= cost; }
         bool hasUnoccupiedWorker() const { return _population - _occupiedWorkerTimers.size() > 0; }
 
-        void addBase() {
-            _populationLimit += 15;
-            _bases.emplace_back();
-        }
-
-        void addWorker() {
-            _population += 1;
-            _incomingPopulation -= 1;
-        }
-
-        void addHouse() {
-            _populationLimit += 8;
-        }
 
         void occupyWorker(int time) {
             _occupiedWorkerTimers.emplace_back(time);
@@ -80,6 +69,13 @@ namespace Sc2 {
         ActionCost getBuildHouseCost() const { return buildHouseCost; }
         ActionCost getBuildVespeneCollectorCost() const { return buildVespeneCollectorCost; }
 
+        int mineralGainedPerTimestep() const;
+
+        int vespeneGainedPerTimestep() const;
+
+        int getMineralWorkers() const;
+
+        int getVespeneWorkers() const;
 
         void buildWorker();
 
@@ -87,12 +83,32 @@ namespace Sc2 {
 
         void buildBase();
 
+
+        bool hasUnoccupiedGeyser() const;
+
         void buildVespeneCollector();
 
         void wait();
 
         void wait(int amount);
 
+        void addIncomingCollector() { incomingVespeneCollectors++; }
+
+        void addVespeneCollector();
+
+        void addBase() {
+            _populationLimit += 15;
+            _bases.emplace_back();
+        }
+
+        void addWorker() {
+            _population += 1;
+            _incomingPopulation -= 1;
+        }
+
+        void addHouse() {
+            _populationLimit += 8;
+        }
 
         static std::shared_ptr<State> DeepCopy(const State &state);
 
@@ -122,6 +138,7 @@ namespace Sc2 {
                 << "minerals: " << state.getMinerals() << std::endl
                 << "vespene: " << state.getVespene() << std::endl
                 << "Constructions: " << state.getConstructions().size() << std::endl
+                << "Occupied workers: " << state.getOccupiedPopulation() << std::endl
                 << "population: " << state.getPopulation() << std::endl
                 << "incomingPopulation: " << state.getIncomingPopulation() << std::endl
                 << "populationLimit: " << state.getPopulationLimit() << std::endl
