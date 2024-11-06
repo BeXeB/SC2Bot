@@ -36,19 +36,19 @@ target_include_directories(
         PRIVATE ${STATE_SOURCE}
 )
 
-# executables
-add_executable(
-        sc2State
-        ${STATE_SOURCE}/Sc2State.cpp
-)
-
-target_include_directories(
-        sc2State
-        PRIVATE ${APP_SOURCE}
-)
-
-target_link_libraries(
-        sc2State
-        PRIVATE pybind11::embed
-)
+## executables
+#add_executable(
+#        sc2State
+#        ${STATE_SOURCE}/Sc2State.cpp
+#)
+#
+#target_include_directories(
+#        sc2State
+#        PRIVATE ${APP_SOURCE}
+#)
+#
+#target_link_libraries(
+#        sc2State
+#        PRIVATE pybind11::embed
+#)
 

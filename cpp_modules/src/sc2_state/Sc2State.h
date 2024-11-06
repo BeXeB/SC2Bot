@@ -1,4 +1,5 @@
 #pragma once
+#include <format>
 #include <iostream>
 #include <vector>
 
@@ -117,15 +118,20 @@ namespace Sc2 {
 
         std::string toString() const {
             std::string str;
-            str += "State: " + std::to_string(id) + " {\n";
-            str += "    Minerals: " + std::to_string(_minerals) + "\n";
-            str += "    Vespene: " + std::to_string(_vespene) + "\n";
-            str += "    Constructions: " + std::to_string(_constructions.size()) + "\n";
-            str += "    Occupied workers: " + std::to_string(_occupiedWorkerTimers.size()) + "\n";
-            str += "    Population: " + std::to_string(_population) + "\n";
-            str += "    PopulationLimit: " + std::to_string(_populationLimit) + "\n";
-            str += "    numberOfBases: " + std::to_string(_bases.size()) + "\n";
-            str += "}";
+            str += std::format("State: {} ", id) + "{ \n";
+            str += std::format("    Minerals: {} \n", _minerals);
+            str += std::format("    Vespene: {} \n", _vespene);
+            str += std::format("    Constructions: {} \n", _constructions.size());
+            str += std::format("    Occupied workers: {} \n", _occupiedWorkerTimers.size());
+            str += std::format("    Population: {} \n", _population);
+            str += std::format("    PopulationLimit: {} \n", _populationLimit);
+            str += std::format("    IncomingPopulation: {} \n", _incomingPopulation);
+            str += std::format("    Number of bases: {} \n", _bases.size());
+            str += "}\n";
+            // str += "    Population: " + std::to_string(_population) + "\n";
+            // str += "    PopulationLimit: " + std::to_string(_populationLimit) + "\n";
+            // str += "    numberOfBases: " + std::to_string(_bases.size()) + "\n";
+            // str += "}";
 
             return str;
         }

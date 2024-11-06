@@ -11,6 +11,8 @@ TEST_CASE("Check that the correct resources are gathered whenever an action is t
 	const auto state = std::make_shared<Sc2::State>();
 	state->wait(100);
 
+	std::cout << state->toString();
+
 	SUBCASE("Check that wait gives resources") {
 		auto currentVespene = state->getVespene();
 		auto currentMinerals = state->getMinerals();
