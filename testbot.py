@@ -1,7 +1,6 @@
 from sc2.bot_ai import BotAI
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
-from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 from worker_manager import WorkerManager, WorkerRole
@@ -23,11 +22,35 @@ class MyBot(BotAI):
         if iteration == 0:
             for worker in self.workers:
                 worker(AbilityId.STOP_STOP)
-            self.worker_manager.distribute_idle_workers(0)
+            for townhall in self.townhalls:
+                townhall(AbilityId.RALLY_WORKERS, self.start_location)
+        self.worker_manager.distribute_workers()
         self.worker_manager.speed_mine()
 
-        if iteration == 100:
-            th = self.townhalls.first
-            pos_above_th = th.position + Point2((0, 15))
-            worker = self.worker_manager.select_worker(pos_above_th, WorkerRole.BUILD)
-            worker.move(pos_above_th)
+
+        if self.can_afford(UnitTypeId.SCV) and self.supply_left > 0:
+            self.train(UnitTypeId.SCV)
+
+        if self.can_afford(UnitTypeId.COMMANDCENTER) and self.townhalls.amount < 2:
+            build_location = None
+            for el in self.expansion_locations_list:
+                if self.start_location.distance_to(el) < 5:
+                    continue
+                if build_location is None:
+                    build_location = el
+                elif self.start_location.distance_to(el) < self.start_location.distance_to(build_location):
+                    build_location = el
+            worker = self.worker_manager.select_worker(build_location, WorkerRole.BUILD)
+            if worker:
+                worker.build(UnitTypeId.COMMANDCENTER, build_location)
+
+    async def on_unit_created(self, unit: Unit):
+        if unit.type_id == UnitTypeId.SCV:
+            self.worker_manager.add_worker(unit, WorkerRole.IDLE)
+
+    async def on_unit_destroyed(self, unit_tag: int) -> None:
+        self.worker_manager.remove_worker(unit_tag)
+
+    async def on_building_construction_started(self, unit: Unit):
+        if unit.type_id == UnitTypeId.COMMANDCENTER:
+            self.worker_manager.add_townhall(unit)

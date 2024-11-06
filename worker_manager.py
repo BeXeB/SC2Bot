@@ -1,6 +1,7 @@
 from __future__ import annotations
 import typing
 from enum import Enum
+
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
 from sc2.unit import Unit
@@ -25,7 +26,6 @@ class WorkerRole(Enum):
 class TownhallData:
     def __init__(self) -> None:
         self.assigned_workers: int = 0
-        self.assigned_workers_per_mineral_patch: dict[int, int] = {}
 
 
 class GasBuildingData:
@@ -53,68 +53,130 @@ class WorkerManager:
         self.bot = bot
         for townhall in bot.townhalls:
             self.townhall_data.update({townhall.tag: TownhallData()})
-            for mineral_patch in bot.mineral_field.closer_than(10, townhall):
-                self.townhall_data[townhall.tag].assigned_workers_per_mineral_patch.update({mineral_patch.tag: 0})
         for gas_building in bot.gas_buildings:
             self.gas_building_data.update({gas_building.tag: GasBuildingData()})
         for worker in bot.workers:
             self.worker_data.update({worker.tag: WorkerData(WorkerRole.IDLE)})
 
-    def distribute_idle_workers(self, ratio: float) -> None:
+    def add_worker(self, worker: Unit, role: WorkerRole) -> None:
+        self.worker_data.update({worker.tag: WorkerData(role)})
+
+    def remove_worker(self, tag: int) -> None:
+        worker_data = self.worker_data[tag]
+        if worker_data.role == WorkerRole.MINERALS:
+            th_tag = worker_data.assigned_to_tag
+            self.townhall_data[th_tag].assigned_workers -= 1
+
+        if worker_data.role == WorkerRole.GAS:
+            gas_building_tag = worker_data.assigned_to_tag
+            self.gas_building_data[gas_building_tag].assigned_workers -= 1
+
+        self.worker_data.pop(tag)
+
+    def add_townhall(self, townhall: Unit) -> None:
+        self.townhall_data.update({townhall.tag: TownhallData()})
+
+    def distribute_workers(self) -> None:
         for worker in self.bot.workers:
             worker_data = self.worker_data[worker.tag]
             if worker_data.role == WorkerRole.IDLE:
-                # Check if we need more workers on minerals or gas
-                # Change this so it makes sense, we should be able to distribute workers based on a ratio of minerals to gas
-                # Maybe find the number of workers on minerals and gas and compare that to the ratio
-                # Also check if there is a base that needs workers
-                # If there is a base that needs workers, send a worker to that base
-                # Check if gas is full, if it is, send a worker to minerals
-                # Check how many workers are on each patch, assign a worker to the patch with the least workers
-                if 1 > ratio:
-                    # select closes townhall that has empty capacity
-                    th_tag: int | None = None
-                    th: Unit | None = None
-                    townhalls_in_order_of_distance = sorted(
-                        self.bot.townhalls,
-                        key=lambda th: th.distance_to(worker),
-                    )
-                    for townhall in townhalls_in_order_of_distance:
-                        if self.townhall_data[townhall.tag].assigned_workers < townhall.ideal_harvesters:
-                            th_tag = townhall.tag
-                            th = townhall
-                            break
-                    # select the mineral field that has the least workers, that are close to the townhall
-                    # this is too complicated and barely works
-                    mf_tag: int | None = None
-                    mf: Unit | None = None
-                    least_assigned_mf_worker_count: int = 100
-                    mineral_fields_in_order_of_distance = sorted(
-                        self.bot.mineral_field.filter(lambda mf: mf.distance_to(th) < 10),
-                        key=lambda mf: mf.distance_to(th),
-                    )
+                # if there is a gas building that needs workers, assign a worker to it
+                gas_building_tag: int | None = None
+                gas_building: Unit | None = None
 
-                    for mineral_field in mineral_fields_in_order_of_distance:
-                        if self.townhall_data[th_tag].assigned_workers_per_mineral_patch[
-                            mineral_field.tag] < least_assigned_mf_worker_count:
-                            mf_tag = mineral_field.tag
-                            mf = mineral_field
-                            least_assigned_mf_worker_count = \
-                            self.townhall_data[th_tag].assigned_workers_per_mineral_patch[mineral_field.tag]
+                gas_buildings_in_order_of_distance = sorted(
+                    self.bot.gas_buildings,
+                    key=lambda gb: gb.distance_to(worker),
+                )
 
-                    if th_tag is not None and mf_tag is not None:
+                for gas_building in gas_buildings_in_order_of_distance:
+                    if self.gas_building_data[gas_building.tag].assigned_workers < gas_building.ideal_harvesters:
+                        gas_building_tag = gas_building.tag
+                        gas_building = gas_building
+                        break
+
+                if gas_building is not None:
+                    worker(AbilityId.SMART, gas_building, True)
+                    self.worker_data[worker.tag].change_assignment(gas_building_tag, WorkerRole.GAS)
+                    self.gas_building_data[gas_building_tag].assigned_workers += 1
+                    continue
+
+                # if there is a base that needs workers, assign a worker to it
+                th_tag: int | None = None
+                th: Unit | None = None
+
+                townhalls_in_order_of_distance = sorted(
+                    self.bot.townhalls,
+                    key=lambda th: th.distance_to(worker),
+                )
+
+                for townhall in townhalls_in_order_of_distance:
+                    if self.townhall_data[townhall.tag].assigned_workers < townhall.ideal_harvesters:
+                        th_tag = townhall.tag
+                        th = townhall
+                        break
+
+                # select a field randomly
+                if th is not None:
+                    mfs = self.bot.mineral_field.closer_than(10, th)
+                    mf = mfs.random
+                    worker(AbilityId.SMART, mf, True)
+                    self.worker_data[worker.tag].change_assignment(th_tag, WorkerRole.MINERALS)
+                    self.townhall_data[th_tag].assigned_workers += 1
+            if worker_data.role == WorkerRole.MINERALS and worker.is_idle:
+                # if a mineral worker is idle, send it to mine in the closest townhall
+                townhalls_in_order_of_distance = sorted(
+                    self.bot.townhalls,
+                    key=lambda th: th.distance_to(worker),
+                )
+
+                for townhall in townhalls_in_order_of_distance:
+                    if self.townhall_data[townhall.tag].assigned_workers < townhall.ideal_harvesters:
+                        mfs = self.bot.mineral_field.closer_than(10, townhall)
+                        mf = mfs.random
                         worker(AbilityId.SMART, mf, True)
-                        self.worker_data[worker.tag].change_assignment(mf_tag, WorkerRole.MINERALS)
-                        self.townhall_data[th_tag].assigned_workers += 1
-                        self.townhall_data[th_tag].assigned_workers_per_mineral_patch[mf_tag] += 1
+                        self.worker_data[worker.tag].change_assignment(townhall.tag, WorkerRole.MINERALS)
+                        self.townhall_data[townhall.tag].assigned_workers += 1
+                        break
+            if worker_data.role == WorkerRole.GAS and worker.is_idle:
+                # if a gas worker is idle, find a gas building to mine
+                gas_buildings_in_order_of_distance = sorted(
+                    self.bot.gas_buildings,
+                    key=lambda gb: gb.distance_to(worker),
+                )
+                for gas_building in gas_buildings_in_order_of_distance:
+                    if self.gas_building_data[gas_building.tag].assigned_workers < gas_building.ideal_harvesters:
+                        worker(AbilityId.SMART, gas_building, True)
+                        self.worker_data[worker.tag].change_assignment(gas_building.tag, WorkerRole.GAS)
+                        self.gas_building_data[gas_building.tag].assigned_workers += 1
+                        break
 
-                else:
-                    target = self.bot.vespene_geyser.closest_to(self.bot.start_location)
-                    worker(AbilityId.SMART, target, True)
-                    self.worker_data[worker.tag].change_assignment(target.tag, WorkerRole.GAS)
+        # if a base has more workers than it needs, reassign them
+        for townhall in self.bot.townhalls:
+            th_data = self.townhall_data[townhall.tag]
+            if th_data.assigned_workers > townhall.ideal_harvesters:
+                for worker in self.bot.workers.closer_than(10, townhall):
+                    if th_data.assigned_workers <= townhall.ideal_harvesters:
+                        break
+                    if self.worker_data[worker.tag].role == WorkerRole.MINERALS and self.worker_data[worker.tag].assigned_to_tag == townhall.tag:
+                        townhalls_in_order_of_distance = sorted(
+                            self.bot.townhalls,
+                            key=lambda th: th.distance_to(worker),
+                        )
+                        for other_townhall in townhalls_in_order_of_distance:
+                            if self.townhall_data[other_townhall.tag].assigned_workers < other_townhall.ideal_harvesters:
+                                mfs = self.bot.mineral_field.closer_than(10, other_townhall)
+                                mf = mfs.random
+                                worker(AbilityId.SMART, mf, True)
+                                self.worker_data[worker.tag].change_assignment(other_townhall.tag, WorkerRole.MINERALS)
+                                self.townhall_data[other_townhall.tag].assigned_workers += 1
+                                th_data.assigned_workers -= 1
+                                break
 
     def find_mineral_workers(self) -> Units:
         def mineral_worker_filter(unit: Unit) -> bool:
+            if unit.tag not in self.worker_data:
+                return False
             worker_data = self.worker_data[unit.tag]
             return worker_data is not None and worker_data.role == WorkerRole.MINERALS
 
@@ -127,7 +189,18 @@ class WorkerManager:
             self.speed_mine_worker(worker)
 
     def speed_mine_worker(self, worker: Unit) -> None:
-        th = self.bot.townhalls.closest_to(worker)
+        worker_data = self.worker_data[worker.tag]
+        if worker_data.assigned_to_tag is None:
+            return None
+        th = self.bot.townhalls.by_tag(worker_data.assigned_to_tag)
+
+        if len(worker.orders) == 0:
+            mf = self.bot.mineral_field.closest_to(th)
+            target: Point2 = mf.position
+            target = target.towards(th.position, MINING_RADIUS)
+            worker.move(target)
+            worker(AbilityId.SMART, mf, True)
+            return None
 
         if worker.is_returning and len(worker.orders) == 1:
             target: Point2 = th.position
