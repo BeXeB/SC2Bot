@@ -71,7 +71,6 @@ namespace Sc2 {
         [[nodiscard]] int getPopulationLimit() const { return _populationLimit; }
         [[nodiscard]] int getPopulation() const { return _population; }
         int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
-        // std::vector<Base> getBases() { return _bases; }
         std::vector<Construction> getConstructions() const { return _constructions; }
         std::vector<Base> getBases() const { return _bases; }
 
@@ -81,27 +80,19 @@ namespace Sc2 {
         ActionCost getBuildVespeneCollectorCost() const { return buildVespeneCollectorCost; }
 
         int mineralGainedPerTimestep() const;
-
         int vespeneGainedPerTimestep() const;
 
         int getMineralWorkers() const;
-
         int getVespeneWorkers() const;
 
         bool hasUnoccupiedGeyser() const;
 
         void buildWorker();
-
         void buildHouse();
-
         void buildBase();
-
         void buildVespeneCollector();
-
         void wait();
-
         void wait(int amount);
-
 
         static std::shared_ptr<State> DeepCopy(const State &state);
 
@@ -123,20 +114,25 @@ namespace Sc2 {
         };
 
         State() = default;
+
+        std::string toString() const {
+            std::string str;
+            str += "State: " + std::to_string(id) + " {\n";
+            str += "    Minerals: " + std::to_string(_minerals) + "\n";
+            str += "    Vespene: " + std::to_string(_vespene) + "\n";
+            str += "    Constructions: " + std::to_string(_constructions.size()) + "\n";
+            str += "    Occupied workers: " + std::to_string(_occupiedWorkerTimers.size()) + "\n";
+            str += "    Population: " + std::to_string(_population) + "\n";
+            str += "    PopulationLimit: " + std::to_string(_populationLimit) + "\n";
+            str += "    numberOfBases: " + std::to_string(_bases.size()) + "\n";
+            str += "}";
+
+            return str;
+        }
     };
 
     inline std::ostream &operator<<(std::ostream &os, const State &state) {
-        os
-                << "State: " << state.id << " {" << std::endl
-                << "minerals: " << state.getMinerals() << std::endl
-                << "vespene: " << state.getVespene() << std::endl
-                << "Constructions: " << state.getConstructions().size() << std::endl
-                << "Occupied workers: " << state.getOccupiedPopulation() << std::endl
-                << "population: " << state.getPopulation() << std::endl
-                << "incomingPopulation: " << state.getIncomingPopulation() << std::endl
-                << "populationLimit: " << state.getPopulationLimit() << std::endl
-                << "number of bases: " << state.getBases().size() << std::endl
-                << "}" << std::endl;
+        os << state.toString();
         return os;
     }
 }
