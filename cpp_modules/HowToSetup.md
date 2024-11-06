@@ -1,7 +1,7 @@
 ### Requirements
 
 - cmake
-- visual studio build tools
+- visual studio build tools 2022
 - visual studio or rider
 - python
 
