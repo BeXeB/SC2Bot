@@ -40,6 +40,8 @@ TEST_SUITE("Test MCTS") {
 		std::cout << *node2.first << std::endl;
 		std::cout << *mcts->getRootNode() << std::endl;
 
+		mcts->search(2);
+
 
 	}
 }

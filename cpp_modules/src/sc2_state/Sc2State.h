@@ -120,6 +120,8 @@ namespace Sc2 {
 
         std::vector<Action> getLegalActions() const;
 
+        int getValue() const { return mineralGainedPerTimestep() + vespeneGainedPerTimestep(); }
+
         static std::shared_ptr<State> DeepCopy(const State &state);
 
         State(const State &state) : enable_shared_from_this(state) {

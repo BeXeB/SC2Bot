@@ -24,6 +24,8 @@ namespace Sc2::Mcts {
 		int _nodeCount = 0;
 		int _numberOfRollouts = 0;
 
+		const int MAX_DEPTH = 100;
+
 		static double maxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes);
 
 		static std::vector<std::shared_ptr<Node> > getMaxNodes(
@@ -38,9 +40,8 @@ namespace Sc2::Mcts {
 
 		NodeStatePair selectNode();
 		static void expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state);
-		int rollout(std::shared_ptr<State> state);
-		void backPropagate(std::shared_ptr<Node> node, int outcome);
-
+		int rollout(const std::shared_ptr<State> &state);
+		static void backPropagate(std::shared_ptr<Node> node, int outcome);
 
 		void search(int timeLimit);
 

@@ -5,6 +5,7 @@
 #include "Mcts.h"
 
 #include <algorithm>
+#include <chrono>
 #include <random>
 
 #include "Sc2State.h"
@@ -22,7 +23,7 @@ double Mcts::maxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes)
 }
 
 std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children,
-                                                      double maxValue) {
+                                                      const double maxValue) {
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &[action, child]: children) {
@@ -79,4 +80,39 @@ Mcts::NodeStatePair Mcts::selectNode() {
 void Mcts::expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state) {
 	const std::vector<Action> actions = state->getLegalActions();
 	node->addChildren(actions);
+}
+
+int Mcts::rollout(const std::shared_ptr<State> &state) {
+	for (int i = 0; i <= MAX_DEPTH; i++) {
+		auto legalActions = state->getLegalActions();
+
+		// get random index
+		std::uniform_int_distribution<std::mt19937::result_type> dist(0, legalActions.size() - 1);
+		const auto actionIndex = dist(_rng);
+
+		state->performAction(legalActions[actionIndex]);
+	}
+
+	return state->getValue();
+}
+
+void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
+
+	while (node != nullptr) {
+		node->N += 1;
+		node->Q += outcome;
+		node = node->getParent();
+	}
+}
+
+void Mcts::search(int timeLimit) {
+	// auto startTime = std::chrono::steady_clock::now();
+	const auto endTime = std::chrono::steady_clock::now() + std::chrono::seconds(timeLimit);
+	int numberOfRollouts = 0;
+	while (std::chrono::steady_clock::now() < endTime) {
+		auto [node, state] = selectNode();
+		auto outcome = rollout(state);
+		backPropagate(node, outcome);
+		numberOfRollouts++;
+	}
 }

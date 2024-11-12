@@ -19,6 +19,7 @@ namespace Sc2::Mcts {
 	class Node : public std::enable_shared_from_this<Node> {
 		Action action;
 		std::shared_ptr<Node> parent;
+		int depth = 0;
 
 		// Upper confidence bound applied to trees
 		// Q/N + C * (sqrt(log(parent.N)
@@ -50,6 +51,7 @@ namespace Sc2::Mcts {
 		void addChildren(const std::vector<Action> &childActions) {
 			for (const auto &childAction: childActions) {
 				const auto childNode = std::make_shared<Node>(Node(childAction, shared_from_this()));;
+				childNode->depth = this->depth + 1;
 				children[childNode->action] = childNode;
 			}
 		}
