@@ -34,7 +34,7 @@ namespace Sc2::Mcts {
 		std::shared_ptr<State> getRootState() { return _rootState; }
 
 		std::shared_ptr<Node> RandomChoice(const std::vector<std::shared_ptr<Node> > &nodes);
-		std::shared_ptr<Node> RandomChoice(const std::map<Action, std::shared_ptr<Node> > &map);
+		std::shared_ptr<Node> RandomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes);
 
 		NodeStatePair selectNode();
 		static void expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state);
