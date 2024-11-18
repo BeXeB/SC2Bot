@@ -7,6 +7,8 @@ from Actions.VespeneExtractor import VespeneBuilder
 
 class MyBot(BotAI):
     # Initializing our bot with the BaseBuilder, such that we don't initialize a new BaseBuilder instance on every step.
+    # Furthermore, we initialize the vespene_builder
+    # Completed_bases is used to keep track of processed vespene extractors
     def __init__(self) -> None:
         self.base_builder = BaseBuilder(self)
         self.vespene_builder = VespeneBuilder(self)

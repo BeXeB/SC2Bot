@@ -9,7 +9,7 @@ class VespeneBuilder:
 
     async def build_vespene_extractor(self, base_position):
         # Find geysers close to the base position
-        geysers = self.bot.vespene_geyser.closer_than(10, base_position)  # Adjust range if needed
+        geysers = self.bot.vespene_geyser.closer_than(10, base_position)
 
         for geyser in geysers:
             # Skip geysers that are already processed
@@ -21,7 +21,7 @@ class VespeneBuilder:
                 self.processed_geysers.add(geyser.tag)
                 continue
 
-            # Build refinery if affordable
+            # Build refinery if can_afford
             if self.bot.can_afford(UnitTypeId.REFINERY):
                 worker = self.bot.workers.closest_to(geyser)
                 worker.build(UnitTypeId.REFINERY, geyser)
