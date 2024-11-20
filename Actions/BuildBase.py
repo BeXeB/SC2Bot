@@ -1,3 +1,4 @@
+from sc2.bot_ai import BotAI
 from sc2.position import Point2
 from sc2.ids.unit_typeid import UnitTypeId
 from typing import List, Optional
@@ -5,7 +6,7 @@ from typing import List, Optional
 
 class BaseBuilder():
     # Initialize the basebuilder to keep track of the occupied clusters, such that we can find the new ones
-    def __init__(self, bot) -> None:
+    def __init__(self, bot: BotAI) -> None:
         self.bot = bot
         self.occupied_clusters: List[MineralCluster] = []
 
@@ -15,7 +16,7 @@ class BaseBuilder():
         existing_bases = self.bot.townhalls
 
         # Find clusters of minerals with no base
-        mineral_clusters = self.group_minerals_into_clusters(all_mineral_fields)
+        mineral_clusters = self.__group_minerals_into_clusters(all_mineral_fields)
 
         # Gather unoccupied clusters while ensuring they're not too close to existing bases (Arbitrary number of 15)
         unoccupied_clusters = [
@@ -43,7 +44,7 @@ class BaseBuilder():
             next_build_position = average_position.offset((1, 0))
 
             # Check if the proposed build position is valid
-            if await self.is_valid_build_position(next_build_position, existing_bases):
+            if await self.__is_valid_build_position(next_build_position, existing_bases):
                 # Find valid location
                 next_build_location = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, next_build_position)
 
@@ -55,7 +56,7 @@ class BaseBuilder():
         # If there are no valid unoccupied mineral clusters, return None
         return None
 
-    async def is_valid_build_position(self, position: Point2, existing_bases: List[UnitTypeId]) -> bool:
+    async def __is_valid_build_position(self, position: Point2, existing_bases: List[UnitTypeId]) -> bool:
         # Ensure the position is not too close to existing bases
         if any(base.distance_to(position) < 10 for base in existing_bases):
             return False
@@ -64,7 +65,7 @@ class BaseBuilder():
         valid_build = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, position)
         return valid_build is not None
 
-    def group_minerals_into_clusters(self, minerals: List[UnitTypeId]) -> List['MineralCluster']:
+    def __group_minerals_into_clusters(self, minerals: List[UnitTypeId]) -> List['MineralCluster']:
         clusters = []
         for mineral in minerals:
             found_cluster = False

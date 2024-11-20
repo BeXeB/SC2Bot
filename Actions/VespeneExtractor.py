@@ -18,7 +18,7 @@ class VespeneBuilder:
                 continue
 
             # Check if a refinery is already built on the geyser
-            if self.is_vespene_extractor_built(geyser):
+            if self.__is_vespene_extractor_built(geyser):
                 self.processed_geysers.add(geyser.tag)
                 continue
 
@@ -30,7 +30,7 @@ class VespeneBuilder:
                 self.processed_geysers.add(geyser.tag)
                 return
 
-    def is_vespene_extractor_built(self, geyser):
+    def __is_vespene_extractor_built(self, geyser):
         for structure in self.bot.structures:
             if structure.position == geyser.position and structure.type_id == UnitTypeId.REFINERY:
                 return True
