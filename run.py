@@ -7,6 +7,11 @@ from testbot import MyBot, PeacefulBot
 run_game(
     maps.get("KingsCoveLE"),
     [Bot(Race.Terran, MyBot()), Bot(Race.Zerg, PeacefulBot())],
+
+
+run_game(
+    maps.get("Simple64"),
+    [Bot(Race.Terran, MyBot()), Bot(Race.Terran, PeacefulBot())],
     realtime=False,
 )
 
