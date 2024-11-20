@@ -40,7 +40,7 @@ class BaseBuilder():
                                        sum(pos.y for pos in cluster_positions) / len(cluster_positions)))
 
             # Define the position to place the base with an x-value offset
-            next_build_position = average_position.offset((1, 0))  # You can adjust this offset
+            next_build_position = average_position.offset((1, 0))
 
             # Check if the proposed build position is valid
             if await self.is_valid_build_position(next_build_position, existing_bases):
@@ -48,7 +48,8 @@ class BaseBuilder():
                 next_build_location = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, next_build_position)
 
                 if next_build_location:
-                    self.occupied_clusters.append(closest_cluster)  # Mark this cluster as occupied
+                    # Mark this cluster as occupied
+                    self.occupied_clusters.append(closest_cluster)
                     return next_build_location
 
         # If there are no valid unoccupied mineral clusters, return None
@@ -68,8 +69,10 @@ class BaseBuilder():
         for mineral in minerals:
             found_cluster = False
             for cluster in clusters:
-                if cluster.center.distance_to(mineral.position) < 10:  # Use the center to check distance
-                    cluster.add(mineral)  # Add mineral to the existing cluster
+                # Use the center to check distance
+                if cluster.center.distance_to(mineral.position) < 10:
+                    # Add mineral to the existing cluster
+                    cluster.add(mineral)
                     found_cluster = True
                     break
 
@@ -82,12 +85,15 @@ class BaseBuilder():
 
 class MineralCluster:
     def __init__(self, mineral: UnitTypeId) -> None:
-        self.minerals = [mineral]  # Start with the first mineral
-        self.center = mineral.position  # Initially, the center is the mineral's position
+        # Start with the first mineral
+        self.minerals = [mineral]
+        # Initially, the center is the mineral's position
+        self.center = mineral.position
 
     def add(self, mineral: UnitTypeId) -> None:
         self.minerals.append(mineral)
-        self.update_center()  # Update the center of the cluster
+        # Update the center of the cluster
+        self.update_center()
 
     def update_center(self) -> None:
         # Calculate the center position of the cluster based on its minerals
