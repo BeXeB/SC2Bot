@@ -6,14 +6,14 @@ from sc2.position import Point2
 class SupplyBuilder:
     def __init__(self, bot: BotAI):
         self.bot = bot
-        up_or_down = -1 if bot.start_location.y < self.bot.game_info.map_size.x/2 else 1
+        left_or_right = -1 if bot.start_location.x > self.bot.game_info.map_size.x/2 else 1
         start_location = self.bot.start_location
-        first_supply_position = Point2((start_location.x + 2  * up_or_down, start_location.y - 6))
+        first_supply_position = Point2((start_location.x + 2  * left_or_right, start_location.y - 6))
         self.possible_supply_positions = []
         for i in range(1, 6):
             for j in range(1, 6):
                 self.possible_supply_positions.append(
-                    Point2((first_supply_position.x + i * 2 * up_or_down, first_supply_position.y + j * 2))
+                    Point2((first_supply_position.x + i * 2 * left_or_right, first_supply_position.y + j * 2))
                 )
 
         print(self.possible_supply_positions)
