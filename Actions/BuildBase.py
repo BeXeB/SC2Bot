@@ -33,12 +33,9 @@ class BaseBuilder():
             # Choose the closest cluster to the closest base
             closest_cluster = min(unoccupied_clusters, key=lambda cluster: closest_base.distance_to(cluster.center))
 
-            # Calculate the average position of minerals in the chosen cluster
-            # First we find the positions of all minerals in the cluster
-            cluster_positions = [mineral.position for mineral in closest_cluster.minerals]
-            # Then we take the average position of all the minerals in a cluster
-            average_position = Point2((sum(pos.x for pos in cluster_positions) / len(cluster_positions),
-                                       sum(pos.y for pos in cluster_positions) / len(cluster_positions)))
+            # Average position
+            average_position = closest_cluster.center
+
 
             # Define the position to place the base with an x-value offset
             next_build_position = average_position.offset((1, 0))
