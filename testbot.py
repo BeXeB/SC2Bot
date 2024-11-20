@@ -3,11 +3,15 @@ from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
 from sc2.units import Units
+
+from Actions.build_supply import SupplyBuilder
 from worker_manager import WorkerManager, WorkerRole, TownhallData, GasBuildingData
+
 
 
 class MyBot(BotAI):
     worker_manager = None
+    supply_builder = None
 
     def get_units(self, unit_type: UnitTypeId) -> Units:
         return self.units.filter(lambda u: u.type_id == unit_type)
@@ -17,6 +21,7 @@ class MyBot(BotAI):
 
     async def on_start(self) -> None:
         self.worker_manager = WorkerManager(self)
+        self.supply_builder = SupplyBuilder(self)
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
@@ -30,6 +35,9 @@ class MyBot(BotAI):
 
         if self.can_afford(UnitTypeId.SCV) and self.supply_left > 0:
             self.train(UnitTypeId.SCV)
+
+        if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_cap < 200:
+            await self.supply_builder.build_supply()
 
         if self.can_afford(UnitTypeId.COMMANDCENTER) and self.townhalls.amount < 2:
             build_location = None
@@ -59,8 +67,9 @@ class MyBot(BotAI):
         if unit.type_id == UnitTypeId.COMMANDCENTER:
             self.worker_manager.th_data.update({unit.tag: TownhallData()})
         if unit.type_id == UnitTypeId.REFINERY:
-
             self.worker_manager.gas_data.update({unit.tag: GasBuildingData()})
+        if unit.type_id == UnitTypeId.SUPPLYDEPOT:
+            unit(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
