@@ -52,12 +52,9 @@ namespace Sc2::Mcts {
 
 		void search(int timeLimit);
 
-		Action getBestAction();
+		void performAction(Action action);
 
-		unsigned int getRandomNum() {
-			std::uniform_int_distribution<std::mt19937::result_type> dist(0, 10);
-			return dist(_rng);
-		}
+		Action getBestAction();
 
 		explicit Mcts(const std::shared_ptr<State> &rootState) : _rng(std::random_device{}()),
 		                                                         _rootState(State::DeepCopy(*rootState)),

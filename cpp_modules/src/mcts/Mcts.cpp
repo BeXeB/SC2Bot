@@ -121,6 +121,21 @@ void Mcts::search(const int timeLimit) {
 	}
 }
 
+void Mcts::performAction(Action action) {
+	// Check if the action matches any explored nodes
+	for (const auto childAction: _rootNode->children | std::views::keys) {
+		if (childAction == action) {
+			_rootState->performAction(action);
+			_rootNode = _rootNode->children[action];
+			return;
+		}
+	}
+
+	// If the action is not explored it will still be performed, but the root node will be reset.
+	_rootState->performAction(action);
+	_rootNode = std::make_shared<Node>(Action::none, nullptr);
+}
+
 Action Mcts::getBestAction() {
 	const auto maxValue = getMaxNodeValue(_rootNode->children);
 	const auto maxNodes = getMaxNodes(_rootNode->children, maxValue);
