@@ -6,7 +6,6 @@
 #define NODE_H
 #include <cmath>
 #include <format>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <utility>
