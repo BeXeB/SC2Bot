@@ -7,41 +7,17 @@
 #include <algorithm>
 #include <chrono>
 #include <random>
+#include <ranges>
 
 #include "Sc2State.h"
 using namespace Sc2::Mcts;
 
-//Find the highest value of the nodes
-double Mcts::maxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) {
-	auto [action, node] = *std::max_element(nodes.begin(), nodes.end(),
-	                                        [](const std::pair<Action, std::shared_ptr<Node> > &a,
-	                                           const std::pair<Action, std::shared_ptr<Node> > &b) {
-		                                        return a.second->value() > b.second->value();
-	                                        });
 
-	return node->value();
-}
-
-std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children,
-                                                      const double maxValue) {
-	std::vector<std::shared_ptr<Node> > maxNodes = {};
-
-	for (const auto &[action, child]: children) {
-		if (child->value() == maxValue) {
-			maxNodes.emplace_back(child);
-		}
-
+std::shared_ptr<Node> Mcts::randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes) {
+	if (nodes.empty()) {
+		throw std::runtime_error("Cannot select a random element from an empty container.");
 	}
-	return maxNodes;
-}
 
-std::shared_ptr<Node> Mcts::RandomChoice(const std::vector<std::shared_ptr<Node> > &nodes) {
-	std::uniform_int_distribution<std::mt19937::result_type> dist(0, nodes.size() - 1);
-
-	return nodes[dist(_rng)];
-}
-
-std::shared_ptr<Node> Mcts::RandomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes) {
 	std::uniform_int_distribution<std::mt19937::result_type> dist(0, nodes.size() - 1);
 
 	auto iter = nodes.begin();
@@ -51,18 +27,56 @@ std::shared_ptr<Node> Mcts::RandomChoice(const std::map<Action, std::shared_ptr<
 	return iter->second;
 }
 
+template<typename Container>
+auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(container)) {
+	if (container.empty()) {
+		throw std::runtime_error("Cannot select a random element from an empty container.");
+	}
+
+	// Get a random index
+	std::uniform_int_distribution<std::mt19937::result_type> dist(
+		0, std::distance(container.begin(), container.end()) - 1);
+
+	// Advance the iterator to the random index
+	auto it = container.begin();
+	std::advance(it, dist(_rng));
+	return *it;
+}
+
+//Find the highest value of the nodes
+double Mcts::getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) {
+	auto [action, node] = *std::ranges::max_element(nodes,
+	                                                [](const std::pair<Action, std::shared_ptr<Node> > &a,
+	                                                   const std::pair<Action, std::shared_ptr<Node> > &b) {
+		                                                return a.second->value() > b.second->value();
+	                                                });
+
+	return node->value();
+}
+
+std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children,
+                                                      const double maxValue) {
+	std::vector<std::shared_ptr<Node> > maxNodes = {};
+
+	for (const auto &child: std::ranges::views::values(children)) {
+		if (child->value() == maxValue) {
+			maxNodes.emplace_back(child);
+		}
+	}
+	return maxNodes;
+}
+
 
 Mcts::NodeStatePair Mcts::selectNode() {
 	auto state = State::DeepCopy(*_rootState);
 	auto node = _rootNode;
 
 	while (!node->children.empty()) {
-
-		const double maxValue = maxNodeValue(node->children);
+		const double maxValue = getMaxNodeValue(node->children);
 
 		std::vector<std::shared_ptr<Node> > maxNodes = getMaxNodes(node->children, maxValue);
 
-		node = RandomChoice(maxNodes);
+		node = randomChoice(maxNodes);
 		state->performAction(node->getAction());
 
 		if (node->N == 0) {
@@ -71,33 +85,25 @@ Mcts::NodeStatePair Mcts::selectNode() {
 	}
 
 	node->expand(state);
-	node = RandomChoice(node->children);
+	node = randomChoice(node->children);
 	state->performAction(node->getAction());
 
 	return {node, state};
-}
-
-void Mcts::expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state) {
-	const std::vector<Action> actions = state->getLegalActions();
-	node->addChildren(actions);
 }
 
 int Mcts::rollout(const std::shared_ptr<State> &state) {
 	for (int i = 0; i <= MAX_DEPTH; i++) {
 		auto legalActions = state->getLegalActions();
 
-		// get random index
-		std::uniform_int_distribution<std::mt19937::result_type> dist(0, legalActions.size() - 1);
-		const auto actionIndex = dist(_rng);
+		const auto action = randomChoice(legalActions);
 
-		state->performAction(legalActions[actionIndex]);
+		state->performAction(action);
 	}
 
 	return state->getValue();
 }
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
-
 	while (node != nullptr) {
 		node->N += 1;
 		node->Q += outcome;
@@ -105,14 +111,21 @@ void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
 	}
 }
 
-void Mcts::search(int timeLimit) {
-	// auto startTime = std::chrono::steady_clock::now();
+void Mcts::search(const int timeLimit) {
 	const auto endTime = std::chrono::steady_clock::now() + std::chrono::seconds(timeLimit);
-	int numberOfRollouts = 0;
+
 	while (std::chrono::steady_clock::now() < endTime) {
 		auto [node, state] = selectNode();
-		auto outcome = rollout(state);
+		const auto outcome = rollout(state);
 		backPropagate(node, outcome);
-		numberOfRollouts++;
 	}
+}
+
+Action Mcts::getBestAction() {
+	const auto maxValue = getMaxNodeValue(_rootNode->children);
+	const auto maxNodes = getMaxNodes(_rootNode->children, maxValue);
+
+	const auto bestNode = randomChoice(maxNodes);
+
+	return bestNode->getAction();
 }

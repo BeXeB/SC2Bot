@@ -26,7 +26,7 @@ namespace Sc2::Mcts {
 
 		const int MAX_DEPTH = 100;
 
-		static double maxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes);
+		static double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes);
 
 		static std::vector<std::shared_ptr<Node> > getMaxNodes(
 			std::map<Action, std::shared_ptr<Node> > &children, double maxValue);
@@ -35,15 +35,24 @@ namespace Sc2::Mcts {
 		std::shared_ptr<Node> getRootNode() { return _rootNode; }
 		std::shared_ptr<State> getRootState() { return _rootState; }
 
-		std::shared_ptr<Node> RandomChoice(const std::vector<std::shared_ptr<Node> > &nodes);
-		std::shared_ptr<Node> RandomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes);
+		// std::shared_ptr<Node> RandomChoice(const std::vector<std::shared_ptr<Node> > &nodes);
+
+		std::shared_ptr<Node> randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes);
+
+		template<typename Container>
+		auto randomChoice(const Container &container) -> decltype(*std::begin(container));
 
 		NodeStatePair selectNode();
+
 		static void expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state);
+
 		int rollout(const std::shared_ptr<State> &state);
+
 		static void backPropagate(std::shared_ptr<Node> node, int outcome);
 
 		void search(int timeLimit);
+
+		Action getBestAction();
 
 		unsigned int getRandomNum() {
 			std::uniform_int_distribution<std::mt19937::result_type> dist(0, 10);
@@ -58,7 +67,6 @@ namespace Sc2::Mcts {
 
 		Mcts() : _rng(std::random_device{}()) {
 		}
-
 	};
 }
 

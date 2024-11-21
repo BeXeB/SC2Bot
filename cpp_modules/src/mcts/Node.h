@@ -42,6 +42,7 @@ namespace Sc2::Mcts {
 
 		std::shared_ptr<Node> getParent() { return parent; }
 		[[nodiscard]] Action getAction() const { return action; }
+		int getDepth() const { return depth; }
 
 		void expand(const std::shared_ptr<State> &state) {
 			const std::vector<Action> actions = state->getLegalActions();
