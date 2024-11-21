@@ -18,12 +18,12 @@ TEST_SUITE("Test MCTS") {
 
 		SUBCASE("Can add children to a node") {
 			// auto childNode = Node(Action::buildBase, std::make_shared<Node>(node));
-			const std::vector possibleActions = {Action::none, Action::buildWorker, Action::buildBase};
+			const std::vector possibleActions = {Action::buildWorker, Action::buildBase};
 			node->addChildren(possibleActions);
-			CHECK(node->children.size() == 3);
+			CHECK(node->children.size() == possibleActions.size());
 		}
 
-		const std::vector possibleActions = {Action::none, Action::buildWorker, Action::buildBase};
+		const std::vector possibleActions = {Action::buildWorker, Action::buildBase};
 		node->addChildren(possibleActions);
 
 		SUBCASE("The children of the nodes parent points to the correct object") {
@@ -45,7 +45,9 @@ TEST_SUITE("Test MCTS") {
 		const auto bestMove = mcts->getBestAction();
 
 		CHECK(bestMove != Action::none);
+		std::cout << bestMove << std::endl;
 	}
+
 
 	TEST_CASE("Select Node will select a node that has not been fully explored") {
 		const auto state = std::make_shared<Sc2::State>();
@@ -61,26 +63,58 @@ TEST_SUITE("Test MCTS") {
 		CHECK(node->getDepth() > 1);
 	}
 
-	TEST_CASE("Expand will expand with all available actions in a state") {
-		const auto state = std::make_shared<Sc2::State>();
 
-		SUBCASE("Will expand to all actions, when there is enough resources") {
-			const auto mcts = new Mcts(state);
+	TEST_CASE("Expand will expand with all available actions in a state") {
+		const auto rootState = std::make_shared<Sc2::State>();
+		const auto mcts = new Mcts(rootState);
+
+		SUBCASE(
+			"Will expand to all actions, when there is available vespene geysers,"
+			" and the population limit has not been reached") {
 			mcts->search(1);
 
-			auto [node, _] = mcts->selectNode();
+			auto [node, state] = mcts->selectNode();
 
 			state->wait(500);
 
 			node->expand(state);
 
-			CHECK(node->children.size() == 5);
+			CHECK(node->children.size() == 4);
 		}
-		SUBCASE("Nodes will only expand to what there is enough resources for") {
-			auto node = std::make_shared<Node>(Action::none, nullptr);
+
+		SUBCASE("expand will not include build worker when the population limit is reached") {
+			auto [node, state] = mcts->selectNode();
+
+			for (auto i = 0; i < state->getPopulationLimit(); i++) {
+				state->buildWorker();
+			}
+			state->wait(state->getBuildWorkerCost().buildTime);
+
 			node->expand(state);
 
-			CHECK(node->children.size() == 1);
+			for (const auto action: node->children | std::views::keys) {
+				CHECK(action != Action::buildWorker);
+			}
+			CHECK(node->children.size() == 3);
+		}
+		SUBCASE("expand will not include build vespene collector when there is no available geysers") {
+			auto [node, state] = mcts->selectNode();
+			auto availableGeysers = state->getVespeneGeysersAmount() - state->getVespeneCollectorsAmount();
+
+			for (auto i = 0; i < availableGeysers; i++) {
+				state->buildVespeneCollector();
+			}
+
+			state->wait(state->getBuildVespeneCollectorCost().buildTime);
+
+			availableGeysers = state->getVespeneGeysersAmount() - state->getVespeneCollectorsAmount();
+			CHECK(availableGeysers == 0);
+
+			node->expand(state);
+			for (const auto action: node->children | std::views::keys) {
+				CHECK(action != Action::buildVespeneCollector);
+			}
+			CHECK(node->children.size() == 3);
 		}
 	}
 

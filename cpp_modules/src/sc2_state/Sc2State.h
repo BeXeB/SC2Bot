@@ -36,11 +36,8 @@ namespace Sc2 {
         ActionCost buildVespeneCollectorCost = ActionCost(75, 0, 21);
 
         void advanceConstructions();
-
         void advanceResources();
-
         void advanceOccupiedWorkers();
-
         void advanceTime(int amount);
 
         bool hasEnoughMinerals(const int cost) const { return _minerals >= cost; };
@@ -83,29 +80,26 @@ namespace Sc2 {
         ActionCost getBuildHouseCost() const { return buildHouseCost; }
         ActionCost getBuildVespeneCollectorCost() const { return buildVespeneCollectorCost; }
 
-        int mineralGainedPerTimestep() const;
+        bool hasUnoccupiedGeyser() const;
+        bool canAffordConstruction(const ActionCost &actionCost) const;
+        bool populationLimitReached() const;
 
+        int mineralGainedPerTimestep() const;
         int vespeneGainedPerTimestep() const;
 
         int getMineralWorkers() const;
-
         int getVespeneWorkers() const;
 
-        bool hasUnoccupiedGeyser() const;
-
         void buildWorker();
-
         void buildHouse();
-
         void buildBase();
-
         void buildVespeneCollector();
 
         void wait();
-
         void wait(int amount);
 
-        bool canAffordConstruction(const ActionCost &actionCost) const;
+        int getVespeneCollectorsAmount();
+        int getVespeneGeysersAmount();
 
         void performAction(const Action action) {
             switch (action) {
@@ -132,7 +126,6 @@ namespace Sc2 {
 
         static std::shared_ptr<State> DeepCopy(const State &state);
 
-        bool populationLimitReached() const;
 
         State(const State &state) : enable_shared_from_this(state) {
             _minerals = state._minerals;

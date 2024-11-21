@@ -63,14 +63,31 @@ void Sc2::State::wait(const int amount) {
     advanceTime(amount);
 }
 
+int Sc2::State::getVespeneCollectorsAmount() {
+    int vespeneCollectors = 0;
+    for (const auto &base: _bases) {
+        vespeneCollectors += base.vespeneCollectors;
+    }
+    return vespeneCollectors;
+}
+
+int Sc2::State::getVespeneGeysersAmount() {
+    int vespeneGeysers = 0;
+    for (const auto &base: _bases) {
+        vespeneGeysers += base.vespeneGeysers;
+    }
+    return vespeneGeysers;
+}
+
 int Sc2::State::getMineralWorkers() const {
     int availablePopulation = _population - static_cast<int>(_occupiedWorkerTimers.size());
     int availableMineralJobs = 0;
 
     for (const auto &base: _bases) {
-        availablePopulation -= base.getVespeneWorkerLimit();
         availableMineralJobs += base.getMineralWorkerLimit();
     }
+
+    availablePopulation -= getVespeneWorkers();
 
     return availablePopulation <= availableMineralJobs ? availablePopulation : availableMineralJobs;
 }
@@ -99,7 +116,8 @@ int Sc2::State::vespeneGainedPerTimestep() const {
 
 
 bool Sc2::State::canAffordConstruction(const ActionCost &actionCost) const {
-    return hasEnoughMinerals(actionCost.minerals) && hasEnoughVespene(actionCost.vespene);
+    const auto res = hasEnoughMinerals(actionCost.minerals) && hasEnoughVespene(actionCost.vespene);
+    return res;
 }
 
 bool Sc2::State::populationLimitReached() const {
@@ -142,7 +160,11 @@ void Sc2::State::addVespeneCollector() {
 
 void Sc2::State::buildVespeneCollector() {
     while (!canAffordConstruction(buildVespeneCollectorCost)) {
+        const auto initialMineral = _minerals;
         advanceTime(1);
+        if (initialMineral == _minerals) {
+            return;
+        }
     }
 
     while (!hasUnoccupiedWorker()) {
@@ -164,7 +186,11 @@ void Sc2::State::buildVespeneCollector() {
 
 void Sc2::State::buildBase() {
     while (!canAffordConstruction(buildBaseCost)) {
+        const auto initialMineral = _minerals;
         advanceTime(1);
+        if (initialMineral == _minerals) {
+            return;
+        }
     }
 
     while (!hasUnoccupiedWorker()) {
@@ -180,7 +206,11 @@ void Sc2::State::buildBase() {
 
 void Sc2::State::buildWorker() {
     while (!canAffordConstruction(buildWorkerCost)) {
+        const auto initialMineral = _minerals;
         advanceTime(1);
+        if (initialMineral == _minerals) {
+            return;
+        }
     }
 
     if (!populationLimitReached()) {
@@ -195,7 +225,11 @@ void Sc2::State::buildWorker() {
 
 void Sc2::State::buildHouse() {
     while (!canAffordConstruction(buildHouseCost)) {
+        const auto initialMineral = _minerals;
         advanceTime(1);
+        if (initialMineral == _minerals) {
+            return;
+        }
     }
 
     while (!hasUnoccupiedWorker()) {
