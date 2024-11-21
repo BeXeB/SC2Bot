@@ -8,97 +8,118 @@
 
 
 TEST_SUITE("Test the Sc2State") {
-	TEST_CASE("Check that the correct resources are gathered whenever an action is taken") {
+	TEST_CASE("Check that the correct resources are gathered when waiting") {
 		const auto state = std::make_shared<Sc2::State>();
 		state->wait(100);
 
-		std::cout << state->toString();
+		auto currentVespene = state->getVespene();
+		auto currentMinerals = state->getMinerals();
 
-		SUBCASE("Check that wait gives resources") {
-			auto currentVespene = state->getVespene();
-			auto currentMinerals = state->getMinerals();
+		auto waitTime = 50;
+		auto mineralWorkers = state->getMineralWorkers();
+		auto vespeneWorkers = state->getVespeneWorkers();
 
-			auto waitTime = 2;
-			auto mineralWorkers = state->getMineralWorkers();
-			auto vespeneWorkers = state->getVespeneWorkers();
+		state->wait(waitTime);
+		CHECK(state->getMinerals() == currentMinerals + (mineralWorkers * MINERAL_PER_WORKER * waitTime));
+		CHECK(state->getVespene() == currentVespene + (vespeneWorkers * VESPENE_PER_WORKER * waitTime));
+	}
 
-			state->wait(waitTime);
-			CHECK(state->getMinerals() == currentMinerals + (mineralWorkers * MINERAL_PER_WORKER * waitTime));
-			CHECK(state->getVespene() == currentVespene + (vespeneWorkers * VESPENE_PER_WORKER * waitTime));
-		}
+	TEST_CASE("Check that the correct resources are taken when an action is performed") {
+		const auto state = std::make_shared<Sc2::State>();
+		state->wait(150);
 
-		state->wait(50);
 		auto currentMinerals = state->getMinerals();
 		auto currentVespene = state->getVespene();
 		SUBCASE(
 			"Check that build house takes resources as cost, "
-			"and gives resources as time passes, "
 			"and occupies a worker") {
-			auto mineralWorkers = state->getMineralWorkers();
-			auto vespeneWorkers = state->getVespeneWorkers();
 			state->buildHouse();
 
-			currentMinerals = currentMinerals - state->getBuildHouseCost().minerals + (
-				                  mineralWorkers * MINERAL_PER_WORKER);
+			currentMinerals = currentMinerals - state->getBuildHouseCost().minerals;
 			CHECK(state->getMinerals() == currentMinerals);
 
-			currentVespene = currentVespene - state->getBuildHouseCost().vespene + (
-				                 vespeneWorkers * VESPENE_PER_WORKER);
+			currentVespene = currentVespene - state->getBuildHouseCost().vespene;
 			CHECK(state->getVespene() == currentVespene);
 		}
 		state->wait(50);
 		SUBCASE(
 			"Check that build base takes resources as cost, "
-			"and gives resources as time passes, "
 			"and occupies a worker") {
 			currentMinerals = state->getMinerals();
 			currentVespene = state->getVespene();
-			auto mineralWorkers = state->getMineralWorkers();
-			auto vespeneWorkers = state->getVespeneWorkers();
+
 			state->buildBase();
-			currentMinerals = currentMinerals - state->getBuildBaseCost().minerals + (
-				                  mineralWorkers * MINERAL_PER_WORKER);
+			currentMinerals = currentMinerals - state->getBuildBaseCost().minerals;
 			CHECK(state->getMinerals() == currentMinerals);
 
-			currentVespene = currentVespene - state->getBuildBaseCost().vespene + (vespeneWorkers * VESPENE_PER_WORKER);
+			currentVespene = currentVespene - state->getBuildBaseCost().vespene;
 			CHECK(state->getVespene() == currentVespene);
 		}
 		state->wait(50);
 		SUBCASE(
 			"Check that build vespene collector takes resources as cost, "
-			"and gives resources as time passes, "
 			"and occupies a worker") {
 			currentMinerals = state->getMinerals();
 			currentVespene = state->getVespene();
-			auto mineralWorkers = state->getMineralWorkers();
-			auto vespeneWorkers = state->getVespeneWorkers();
+
 			state->buildVespeneCollector();
-			currentMinerals = currentMinerals - state->getBuildVespeneCollectorCost().minerals + (
-				                  mineralWorkers * MINERAL_PER_WORKER);
+			currentMinerals = currentMinerals - state->getBuildVespeneCollectorCost().minerals;
 			CHECK(state->getMinerals() == currentMinerals);
 
-			currentVespene = currentVespene - state->getBuildVespeneCollectorCost().vespene + (
-				                 vespeneWorkers * VESPENE_PER_WORKER);
+			currentVespene = currentVespene - state->getBuildVespeneCollectorCost().vespene;
 			CHECK(state->getVespene() == currentVespene);
 		}
 		state->wait(50);
-		SUBCASE(
-			"Check build worker takes resources, "
-			"And gives resources as time passes, ") {
+		SUBCASE("Check build worker takes resources") {
 			currentMinerals = state->getMinerals();
 			currentVespene = state->getVespene();
 
-			auto mineralWorkers = state->getMineralWorkers();
-			auto vespeneWorkers = state->getVespeneWorkers();
 			state->buildWorker();
 
-			currentMinerals = currentMinerals - state->getBuildWorkerCost().minerals + mineralWorkers *
-			                  MINERAL_PER_WORKER;
+			currentMinerals = currentMinerals - state->getBuildWorkerCost().minerals;
 			CHECK(state->getMinerals() == currentMinerals);
 
-			currentVespene = currentVespene - state->getBuildWorkerCost().vespene + (
-				                 vespeneWorkers * VESPENE_PER_WORKER);
+			currentVespene = currentVespene - state->getBuildWorkerCost().vespene;
 			CHECK(state->getVespene() == currentVespene);
+		}
+	}
+
+	TEST_CASE("Legal constructions will eventually be performed even if they cannot initially be afforded") {
+		const auto state = std::make_shared<Sc2::State>();
+
+		SUBCASE("will eventually build worker even if it cannot initially be afforded") {
+			auto initialPopulation = state->getPopulation();
+			CHECK(state->getMinerals() < state->getBuildWorkerCost().minerals);
+
+			state->buildWorker();
+			CHECK(state->getPopulation() + state->getIncomingPopulation() > initialPopulation);
+		}
+
+		SUBCASE("will eventually build vespene collector even if it cannot initially be afforded") {
+			auto initialConstructionSize = state->getConstructions().size();
+			CHECK(state->getMinerals() < state->getBuildVespeneCollectorCost().minerals);
+
+			state->buildVespeneCollector();
+
+			CHECK(initialConstructionSize < state->getConstructions().size());
+		}
+
+		SUBCASE("will eventually build house even if it cannot initially be afforded") {
+			auto initialConstructionSize = state->getConstructions().size();
+			CHECK(state->getMinerals() < state->getBuildHouseCost().minerals);
+
+			state->buildHouse();
+
+			CHECK(initialConstructionSize < state->getConstructions().size());
+		}
+
+		SUBCASE("will eventually build base even if it cannot initially be afforded") {
+			auto initialConstructionSize = state->getConstructions().size();
+			CHECK(state->getMinerals() < state->getBuildBaseCost().minerals);
+
+			state->buildBase();
+
+			CHECK(initialConstructionSize < state->getConstructions().size());
 		}
 	}
 
@@ -173,6 +194,8 @@ TEST_SUITE("Test the Sc2State") {
 			CHECK(state->getVespene() >= state->getBuildWorkerCost().vespene);
 			state->buildWorker();
 		}
+
+		state->wait(100);
 
 		CHECK(state->getPopulation() == state->getPopulationLimit());
 	}

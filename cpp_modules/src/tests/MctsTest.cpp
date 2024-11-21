@@ -12,18 +12,18 @@ using namespace Sc2::Mcts;
 
 TEST_SUITE("Test MCTS") {
 	TEST_CASE("Can create a Node") {
-		auto node = std::make_shared<Node>(Action::wait, nullptr);
+		auto node = std::make_shared<Node>(Action::none, nullptr);
 		CHECK(node->N == 0);
 		CHECK(node->children.size() == 0);
 
 		SUBCASE("Can add children to a node") {
 			// auto childNode = Node(Action::buildBase, std::make_shared<Node>(node));
-			const std::vector possibleActions = {Action::wait, Action::buildWorker, Action::buildBase};
+			const std::vector possibleActions = {Action::none, Action::buildWorker, Action::buildBase};
 			node->addChildren(possibleActions);
 			CHECK(node->children.size() == 3);
 		}
 
-		const std::vector possibleActions = {Action::wait, Action::buildWorker, Action::buildBase};
+		const std::vector possibleActions = {Action::none, Action::buildWorker, Action::buildBase};
 		node->addChildren(possibleActions);
 
 		SUBCASE("The children of the nodes parent points to the correct object") {
@@ -77,7 +77,7 @@ TEST_SUITE("Test MCTS") {
 			CHECK(node->children.size() == 5);
 		}
 		SUBCASE("Nodes will only expand to what there is enough resources for") {
-			auto node = std::make_shared<Node>(Action::wait, nullptr);
+			auto node = std::make_shared<Node>(Action::none, nullptr);
 			node->expand(state);
 
 			CHECK(node->children.size() == 1);
