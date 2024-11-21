@@ -24,11 +24,6 @@ namespace Sc2::Mcts {
 		// Upper confidence bound applied to trees
 		// Q/N + C * (sqrt(log(parent.N)
 		[[nodiscard]] double uct(const float explore) const {
-			// auto t1 = Q / N;
-			// auto t2 = log(parent->N);
-			// auto t3 = sqrt(t2);
-			// auto t4 = explore * t3;
-			// return t1 + t4;
 			return Q / static_cast<float>(N) + explore * sqrt(
 				       log(parent->N));
 		}
