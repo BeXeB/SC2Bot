@@ -5,6 +5,7 @@
 
 #include "Base.h"
 #include "Construction.h"
+#include "ActionEnum.h"
 
 namespace Sc2 {
     class State : public std::enable_shared_from_this<State> {
@@ -16,7 +17,6 @@ namespace Sc2 {
         int _populationLimit = 15;
         std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
         std::vector<Construction> _constructions{}; // Replace with list
-
         std::vector<int> _occupiedWorkerTimers{};
 
         struct ActionCost {
@@ -94,6 +94,33 @@ namespace Sc2 {
         void buildVespeneCollector();
         void wait();
         void wait(int amount);
+        bool canAffordConstruction(const ActionCost &actionCost) const;
+
+        void performAction(const Action action) {
+            switch (action) {
+                case Action::wait:
+                    wait();
+                    break;
+                case Action::buildWorker:
+                    buildWorker();
+                    break;
+                case Action::buildHouse:
+                    buildHouse();
+                    break;
+                case Action::buildBase:
+                    buildBase();
+                    break;
+                case Action::buildVespeneCollector:
+                    buildVespeneCollector();
+                    break;
+                case Action::none:
+                    break;
+            }
+        }
+
+        std::vector<Action> getLegalActions() const;
+
+        int getValue() const { return mineralGainedPerTimestep() + vespeneGainedPerTimestep(); }
 
         static std::shared_ptr<State> DeepCopy(const State &state);
 

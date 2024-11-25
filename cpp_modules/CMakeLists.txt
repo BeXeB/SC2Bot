@@ -4,6 +4,7 @@ project(sc2modules)
 set(CMAKE_CXX_STANDARD 20)
 
 set(STATE_SOURCE "${PROJECT_SOURCE_DIR}/src/sc2_state")
+set(MCTS_SOURCE "${PROJECT_SOURCE_DIR}/src/mcts")
 set(MODULE_SOURCE "${PROJECT_SOURCE_DIR}/src/module")
 set(TEST_SOURCE "${PROJECT_SOURCE_DIR}/src/tests")
 set(EXTERNALS "${PROJECT_SOURCE_DIR}/externals")
@@ -12,15 +13,17 @@ set(EXTERNALS "${PROJECT_SOURCE_DIR}/externals")
 add_subdirectory(${EXTERNALS}/pybind11)
 
 # doctests
-#add_subdirectory(src/tests)
-add_executable(Sc2StateTest
+add_executable(RunTests
         ${TEST_SOURCE}/Sc2StateTest.cpp
+        ${TEST_SOURCE}/MctsTest.cpp
         ${STATE_SOURCE}/Sc2State.cpp
+        ${MCTS_SOURCE}/Mcts.cpp
 )
 
 target_include_directories(
-        Sc2StateTest
+        RunTests
         PRIVATE ${STATE_SOURCE}
+        PRIVATE ${MCTS_SOURCE}
 )
 
 # module

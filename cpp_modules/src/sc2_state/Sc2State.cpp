@@ -88,6 +88,33 @@ void Sc2::State::wait(const int amount) {
     }
 }
 
+bool Sc2::State::canAffordConstruction(const ActionCost &actionCost) const {
+    return hasEnoughMinerals(actionCost.minerals) && hasEnoughVespene(actionCost.vespene);
+}
+
+std::vector<Action> Sc2::State::getLegalActions() const {
+    std::vector actions = {Action::wait};
+
+    if (canAffordConstruction(buildWorkerCost)) {
+        actions.emplace_back(Action::buildWorker);
+    }
+
+    if (hasUnoccupiedWorker()) {
+        if (canAffordConstruction(buildBaseCost)) {
+            actions.emplace_back(Action::buildBase);
+        }
+        if (canAffordConstruction(buildHouseCost)) {
+            actions.emplace_back(Action::buildHouse);
+        }
+        if (canAffordConstruction(buildVespeneCollectorCost)) {
+            actions.emplace_back(Action::buildVespeneCollector);
+        }
+
+    }
+
+    return actions;
+}
+
 std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state) {
     auto copyState = std::make_shared<State>(state);
 
