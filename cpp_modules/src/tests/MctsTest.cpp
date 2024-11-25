@@ -12,7 +12,7 @@ using namespace Sc2::Mcts;
 
 TEST_SUITE("Test MCTS") {
 	TEST_CASE("Can create a Node") {
-		auto node = std::make_shared<Node>(Action::none, nullptr);
+		auto node = std::make_shared<Node>(Action::none, nullptr, ValueHeuristic::UCT);
 		CHECK(node->N == 0);
 		CHECK(node->children.size() == 0);
 

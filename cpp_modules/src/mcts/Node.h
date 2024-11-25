@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <utility>
+#include <ValueHeuristicEnum.h>
 #include <vector>
 
 #include "ActionEnum.h"
@@ -16,6 +17,8 @@
 
 namespace Sc2::Mcts {
 	class Node : public std::enable_shared_from_this<Node> {
+		ValueHeuristic _valueHeuristic;
+
 		Action action;
 		std::shared_ptr<Node> parent;
 		int depth = 0;
@@ -45,7 +48,7 @@ namespace Sc2::Mcts {
 
 		void addChildren(const std::vector<Action> &childActions) {
 			for (const auto &childAction: childActions) {
-				const auto childNode = std::make_shared<Node>(Node(childAction, shared_from_this()));;
+				const auto childNode = std::make_shared<Node>(Node(childAction, shared_from_this(), _valueHeuristic));;
 				childNode->depth = this->depth + 1;
 				children[childNode->action] = childNode;
 			}
@@ -59,7 +62,10 @@ namespace Sc2::Mcts {
 
 				return INFINITY;
 			}
-			return uct(explore);
+			switch (_valueHeuristic) {
+				case ValueHeuristic::UCT:
+					return uct(explore);
+			}
 		}
 
 		[[nodiscard]] std::string toString() const {
@@ -73,10 +79,13 @@ namespace Sc2::Mcts {
 			return str;
 		}
 
-		Node(): action(Action::none), parent(nullptr) {
+		explicit Node(const ValueHeuristic valueHeuristic): action(Action::none), parent(nullptr),
+		                                                    _valueHeuristic(valueHeuristic) {
 		}
 
-		Node(const Action action, std::shared_ptr<Node> parent) : action(action), parent(std::move(parent)) {
+		Node(const Action action, std::shared_ptr<Node> parent,
+		     const ValueHeuristic valueHeuristic) : _valueHeuristic(valueHeuristic), action(action),
+		                                            parent(std::move(parent)) {
 		}
 	};
 

@@ -9,11 +9,15 @@
 using namespace Sc2::Mcts;
 
 void benchmark1() {
-	const auto state = std::make_shared<Sc2::State>();
-	const auto mcts = new Mcts(state);
+	// const auto seed = std::random_device{}();
+	constexpr unsigned int seed = 3942438306;
 
-	for (auto i = 0; i < 500; i++) {
-		mcts->search(500);
+	std::cout << "seed: " << seed << std::endl;
+	const auto state = std::make_shared<Sc2::State>();
+	const auto mcts = new Mcts(state, seed);
+
+	for (auto i = 0; i < 20; i++) {
+		mcts->searchRollout(1000);
 		const Action a = mcts->getBestAction();
 
 		state->performAction(a);
@@ -27,8 +31,8 @@ void benchmark1() {
 
 void benchmark2() {
 	const auto state = std::make_shared<Sc2::State>();
-	const auto mcts = new Mcts(state);
-	for (auto i = 0; i < 100; i++) {
+
+	for (auto i = 0; i < 4; i++) {
 		state->performAction(Action::buildWorker);
 		state->performAction(Action::buildWorker);
 		state->performAction(Action::buildHouse);
@@ -41,8 +45,7 @@ void benchmark2() {
 
 int main() {
 
-	// benchmark1();
+	benchmark1();
 	benchmark2();
-
 
 }

@@ -9,14 +9,19 @@
 #include <Sc2State.h>
 
 #include "Node.h"
+#include "ValueHeuristicEnum.h"
 
 
 namespace Sc2::Mcts {
 	class Node;
 
 	class Mcts {
-		std::mt19937 _rng;
 		typedef std::pair<std::shared_ptr<Node>, std::shared_ptr<State> > NodeStatePair;
+		std::mt19937 _rng;
+
+		const double EXPLORATION = sqrt(2);
+		const int ROLLOUT_DEPTH = 100;
+		ValueHeuristic _valueHeuristic = ValueHeuristic::UCT;
 
 		std::shared_ptr<State> _rootState;
 		std::shared_ptr<Node> _rootNode;
@@ -30,6 +35,7 @@ namespace Sc2::Mcts {
 
 		static std::vector<std::shared_ptr<Node> > getMaxNodes(
 			std::map<Action, std::shared_ptr<Node> > &children, double maxValue);
+		void singleSearch();
 
 	public:
 		std::shared_ptr<Node> getRootNode() { return _rootNode; }
@@ -49,15 +55,21 @@ namespace Sc2::Mcts {
 		static void backPropagate(std::shared_ptr<Node> node, int outcome);
 
 		void search(int timeLimit);
+		void searchRollout(int rollouts);
 
 		void performAction(Action action);
 
 		Action getBestAction();
 
-		explicit Mcts(const std::shared_ptr<State> &rootState) : _rng(std::random_device{}()),
-		                                                         _rootState(State::DeepCopy(*rootState)),
-		                                                         _rootNode(std::make_shared<Node>(
-			                                                         Node(Action::none, nullptr))) {
+		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed = 0)
+			: _rootState(State::DeepCopy(*rootState)),
+			  _rootNode(std::make_shared<Node>(Node(Action::none, nullptr, _valueHeuristic))) {
+			if (seed != 0) {
+				_rng = std::mt19937(seed);
+			} else {
+				_rng = std::mt19937(std::random_device{}());
+			}
+
 		}
 
 		Mcts() : _rng(std::random_device{}()) {

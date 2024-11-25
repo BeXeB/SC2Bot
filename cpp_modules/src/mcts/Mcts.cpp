@@ -112,15 +112,26 @@ void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
 	}
 }
 
+void Mcts::singleSearch() {
+	auto [node, state] = selectNode();
+	const auto outcome = rollout(state);
+	backPropagate(node, outcome);
+}
+
 void Mcts::search(const int timeLimit) {
 	const auto endTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch())
 	                     .count() + timeLimit;
 
 	while (duration_cast<milliseconds>(system_clock::now().time_since_epoch())
 	       .count() < endTime) {
-		auto [node, state] = selectNode();
-		const auto outcome = rollout(state);
-		backPropagate(node, outcome);
+		singleSearch();
+	}
+}
+
+
+void Mcts::searchRollout(const int rollouts) {
+	for (int i = 0; i < rollouts; i++) {
+		singleSearch();
 	}
 }
 
