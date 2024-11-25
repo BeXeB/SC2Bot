@@ -11,6 +11,7 @@
 
 #include "Sc2State.h"
 using namespace Sc2::Mcts;
+using namespace std::chrono;
 
 
 std::shared_ptr<Node> Mcts::randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes) {
@@ -112,9 +113,11 @@ void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
 }
 
 void Mcts::search(const int timeLimit) {
-	const auto endTime = std::chrono::steady_clock::now() + std::chrono::seconds(timeLimit);
+	const auto endTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+	                     .count() + timeLimit;
 
-	while (std::chrono::steady_clock::now() < endTime) {
+	while (duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+	       .count() < endTime) {
 		auto [node, state] = selectNode();
 		const auto outcome = rollout(state);
 		backPropagate(node, outcome);

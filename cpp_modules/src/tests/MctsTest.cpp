@@ -40,7 +40,7 @@ TEST_SUITE("Test MCTS") {
 
 		const auto mcts = new Mcts(state);
 
-		mcts->search(1);
+		mcts->search(1000);
 
 		const auto bestMove = mcts->getBestAction();
 

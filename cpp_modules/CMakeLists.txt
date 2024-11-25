@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(STATE_SOURCE "${PROJECT_SOURCE_DIR}/src/sc2_state")
 set(MCTS_SOURCE "${PROJECT_SOURCE_DIR}/src/mcts")
 set(MODULE_SOURCE "${PROJECT_SOURCE_DIR}/src/module")
+set(BENCHMARK_SOURCE "${PROJECT_SOURCE_DIR}/src/benchmarks")
 set(TEST_SOURCE "${PROJECT_SOURCE_DIR}/src/tests")
 set(EXTERNALS "${PROJECT_SOURCE_DIR}/externals")
 
@@ -40,6 +41,18 @@ target_include_directories(
 )
 
 ## executables
+add_executable(MCTS_benchmark
+        ${BENCHMARK_SOURCE}/mcts_benchmark.cpp
+        ${STATE_SOURCE}/Sc2State.cpp
+        ${MCTS_SOURCE}/Mcts.cpp
+)
+
+target_include_directories(
+        MCTS_benchmark
+        PRIVATE ${STATE_SOURCE}
+        PRIVATE ${MCTS_SOURCE}
+)
+
 #add_executable(
 #        sc2State
 #        ${STATE_SOURCE}/Sc2State.cpp
