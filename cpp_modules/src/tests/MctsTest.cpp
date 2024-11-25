@@ -17,7 +17,6 @@ TEST_SUITE("Test MCTS") {
 		CHECK(node->children.size() == 0);
 
 		SUBCASE("Can add children to a node") {
-			// auto childNode = Node(Action::buildBase, std::make_shared<Node>(node));
 			const std::vector possibleActions = {Action::buildWorker, Action::buildBase};
 			node->addChildren(possibleActions);
 			CHECK(node->children.size() == possibleActions.size());

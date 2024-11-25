@@ -133,10 +133,6 @@ void Mcts::performAction(Action action) {
 			return;
 		}
 	}
-
-	// If the action is not explored it will still be performed, but the root node will be reset.
-	_rootState->performAction(action);
-	_rootNode = std::make_shared<Node>(Action::none, nullptr);
 }
 
 Action Mcts::getBestAction() {
