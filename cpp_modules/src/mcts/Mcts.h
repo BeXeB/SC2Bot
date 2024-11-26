@@ -61,8 +61,11 @@ namespace Sc2::Mcts {
 
 		Action getBestAction();
 
-		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed = 0)
-			: _rootState(State::DeepCopy(*rootState)),
+		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed = 0,
+		              const int rolloutDepth = 100, const double exploration = sqrt(2))
+			: EXPLORATION(exploration),
+			  ROLLOUT_DEPTH(rolloutDepth),
+			  _rootState(State::DeepCopy(*rootState)),
 			  _rootNode(std::make_shared<Node>(Node(Action::none, nullptr, _valueHeuristic))) {
 			if (seed != 0) {
 				_rng = std::mt19937(seed);
