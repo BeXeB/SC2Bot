@@ -24,10 +24,10 @@ namespace Sc2::Mcts {
 		int depth = 0;
 
 		// Upper confidence bound applied to trees
-		// Q/N + C * (sqrt(log(parent.N)
+		// Q/N + C * (sqrt(log(parent.N/N)
 		[[nodiscard]] double uct(const double explore) const {
 			return Q / static_cast<float>(N) + explore * sqrt(
-				       log(parent->N));
+				       log(static_cast<double>(parent->N) / static_cast<double>(N)));
 		}
 
 	public:
