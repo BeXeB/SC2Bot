@@ -33,6 +33,7 @@ namespace Sc2::Mcts {
 
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(Node node) const;
+		[[nodiscard]] double value(const Node &node) const;
 		[[nodiscard]] double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const;
 
 		std::vector<std::shared_ptr<Node> > getMaxNodes(
@@ -57,7 +58,6 @@ namespace Sc2::Mcts {
 		static void backPropagate(std::shared_ptr<Node> node, int outcome);
 
 		void search(int timeLimit);
-		[[nodiscard]] double value(const Node &node) const;
 		void searchRollout(int rollouts);
 
 		void performAction(Action action);
@@ -75,7 +75,6 @@ namespace Sc2::Mcts {
 			} else {
 				_rng = std::mt19937(std::random_device{}());
 			}
-
 		}
 
 		Mcts() : _rng(std::random_device{}()) {
