@@ -12,7 +12,7 @@ using namespace Sc2::Mcts;
 
 TEST_SUITE("Test MCTS") {
 	TEST_CASE("Can create a Node") {
-		auto node = std::make_shared<Node>(Action::none, nullptr);
+		auto node = std::make_shared<Node>(Action::none, nullptr, ValueHeuristic::UCT);
 		CHECK(node->N == 0);
 		CHECK(node->children.size() == 0);
 
@@ -39,7 +39,7 @@ TEST_SUITE("Test MCTS") {
 
 		const auto mcts = new Mcts(state);
 
-		mcts->search(1);
+		mcts->search(1000);
 
 		const auto bestMove = mcts->getBestAction();
 
@@ -53,7 +53,7 @@ TEST_SUITE("Test MCTS") {
 
 		const auto mcts = new Mcts(state);
 
-		mcts->search(1);
+		mcts->search(1000);
 
 		auto [node, _] = mcts->selectNode();
 
@@ -70,7 +70,7 @@ TEST_SUITE("Test MCTS") {
 		SUBCASE(
 			"Will expand to all actions, when there is available vespene geysers,"
 			" and the population limit has not been reached") {
-			mcts->search(1);
+			mcts->search(1000);
 
 			auto [node, state] = mcts->selectNode();
 
@@ -120,7 +120,7 @@ TEST_SUITE("Test MCTS") {
 	// TEST_CASE("Rollout") {
 	// 	const auto rootState = std::make_shared<Sc2::State>();
 	// 	const auto mcts = new Mcts(rootState);
-	// 	mcts->search(1);
+	// 	mcts->search(1000);
 	// 	auto [node, state] = mcts->selectNode();
 	//
 	// 	auto stateValue = state->getValue();

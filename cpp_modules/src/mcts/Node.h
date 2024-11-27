@@ -4,28 +4,22 @@
 
 #ifndef NODE_H
 #define NODE_H
-#include <cmath>
 #include <format>
 #include <map>
 #include <memory>
 #include <utility>
+#include <ValueHeuristicEnum.h>
 #include <vector>
 
 #include "ActionEnum.h"
-#include "MctsMeta.h"
 
 namespace Sc2::Mcts {
 	class Node : public std::enable_shared_from_this<Node> {
+		ValueHeuristic _valueHeuristic;
+
 		Action action;
 		std::shared_ptr<Node> parent;
 		int depth = 0;
-
-		// Upper confidence bound applied to trees
-		// Q/N + C * (sqrt(log(parent.N)
-		[[nodiscard]] double uct(const double explore) const {
-			return Q / static_cast<float>(N) + explore * sqrt(
-				       log(parent->N));
-		}
 
 	public:
 		// Number of simulations that has been run on this node
@@ -45,21 +39,10 @@ namespace Sc2::Mcts {
 
 		void addChildren(const std::vector<Action> &childActions) {
 			for (const auto &childAction: childActions) {
-				const auto childNode = std::make_shared<Node>(Node(childAction, shared_from_this()));;
+				const auto childNode = std::make_shared<Node>(Node(childAction, shared_from_this(), _valueHeuristic));;
 				childNode->depth = this->depth + 1;
 				children[childNode->action] = childNode;
 			}
-		}
-
-		[[nodiscard]] double value(const double explore = EXPLORATION) const {
-			if (N == 0) {
-				if (explore == 0) {
-					return 0;
-				}
-
-				return INFINITY;
-			}
-			return uct(explore);
 		}
 
 		[[nodiscard]] std::string toString() const {
@@ -73,10 +56,13 @@ namespace Sc2::Mcts {
 			return str;
 		}
 
-		Node(): action(Action::none), parent(nullptr) {
+		explicit Node(const ValueHeuristic valueHeuristic): _valueHeuristic(valueHeuristic), action(Action::none),
+		                                                    parent(nullptr) {
 		}
 
-		Node(const Action action, std::shared_ptr<Node> parent) : action(action), parent(std::move(parent)) {
+		Node(const Action action, std::shared_ptr<Node> parent,
+		     const ValueHeuristic valueHeuristic) : _valueHeuristic(valueHeuristic), action(action),
+		                                            parent(std::move(parent)) {
 		}
 	};
 

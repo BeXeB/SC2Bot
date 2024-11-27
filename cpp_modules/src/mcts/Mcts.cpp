@@ -4,13 +4,13 @@
 
 #include "Mcts.h"
 
-#include <algorithm>
 #include <chrono>
 #include <random>
 #include <ranges>
 
 #include "Sc2State.h"
 using namespace Sc2::Mcts;
+using namespace std::chrono;
 
 
 std::shared_ptr<Node> Mcts::randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes) {
@@ -44,22 +44,26 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 }
 
 //Find the highest value of the nodes
-double Mcts::getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) {
-	auto [action, node] = *std::ranges::max_element(nodes,
-	                                                [](const std::pair<Action, std::shared_ptr<Node> > &a,
-	                                                   const std::pair<Action, std::shared_ptr<Node> > &b) {
-		                                                return a.second->value() > b.second->value();
-	                                                });
+double Mcts::getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const {
+	const auto firstNode = nodes.begin()->second;
+	auto bestNodeValue = value(*firstNode);
 
-	return node->value();
+	for (const auto &node: nodes | std::views::values) {
+		const auto nodeValue = value(*node);
+		if (nodeValue > bestNodeValue) {
+			bestNodeValue = nodeValue;
+		}
+	}
+
+	return bestNodeValue;
 }
 
 std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children,
-                                                      const double maxValue) {
+                                                      const double maxValue) const {
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &child: std::ranges::views::values(children)) {
-		if (child->value() == maxValue) {
+		if (value(*child) == maxValue) {
 			maxNodes.emplace_back(child);
 		}
 	}
@@ -111,13 +115,48 @@ void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
 	}
 }
 
-void Mcts::search(const int timeLimit) {
-	const auto endTime = std::chrono::steady_clock::now() + std::chrono::seconds(timeLimit);
+void Mcts::singleSearch() {
+	auto [node, state] = selectNode();
+	const auto outcome = rollout(state);
+	backPropagate(node, outcome);
+}
 
-	while (std::chrono::steady_clock::now() < endTime) {
-		auto [node, state] = selectNode();
-		const auto outcome = rollout(state);
-		backPropagate(node, outcome);
+void Mcts::search(const int timeLimit) {
+	const auto endTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+	                     .count() + timeLimit;
+
+	while (duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+	       .count() < endTime) {
+		singleSearch();
+	}
+}
+
+// Upper confidence bound applied to trees
+// Q/N + C * (sqrt(log(parent.N/N)
+double Mcts::uct(Node node) const {
+	return node.Q / static_cast<float>(node.N) + EXPLORATION * sqrt(
+		       log(static_cast<double>(node.getParent()->N) / static_cast<double>(node.N)));
+}
+
+double Mcts::value(const Node &node) const {
+	if (node.N == 0) {
+		if (EXPLORATION == 0) {
+			return 0;
+		}
+
+		return INFINITY;
+	}
+	switch (_valueHeuristic) {
+		case ValueHeuristic::UCT:
+			return uct(node);
+		default:
+			return 0;
+	}
+}
+
+void Mcts::searchRollout(const int rollouts) {
+	for (int i = 0; i < rollouts; i++) {
+		singleSearch();
 	}
 }
 
