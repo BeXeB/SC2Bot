@@ -7,7 +7,6 @@
 
 enum class Action {
     none,
-    wait,
     buildWorker,
     buildHouse,
     buildBase,
@@ -18,9 +17,6 @@ inline std::ostream &operator<<(std::ostream &os, const Action &action) {
     switch (action) {
         case Action::none:
             os << "none";
-            break;
-        case Action::wait:
-            os << "wait";
             break;
         case Action::buildWorker:
             os << "buildWorker";
