@@ -9,7 +9,6 @@
 using namespace Sc2::Mcts;
 
 void benchmark1() {
-	// const auto seed = std::random_device{}();
 	constexpr unsigned int seed = 3942438306;
 
 	std::cout << "seed: " << seed << std::endl;
