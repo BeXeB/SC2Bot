@@ -19,7 +19,6 @@ std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state) {
 }
 
 void Sc2::State::advanceConstructions() {
-    // const auto lastIndex = static_cast<int>(_constructions.size()) - 1;
     if (_constructions.empty()) {
         return;
     }
@@ -34,15 +33,6 @@ void Sc2::State::advanceConstructions() {
             ++constructionIter;
         }
     } while (constructionIter != _constructions.end());
-
-
-    // for (int i = lastIndex; i >= 0; i--) {
-    //     _constructions[i].advanceTime(1);
-    //
-    //     if (_constructions[i].getIsFinished()) {
-    //         _constructions.erase(_constructions.begin() + i);
-    //     }
-    // }
 }
 
 void Sc2::State::advanceResources() {

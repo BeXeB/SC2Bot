@@ -17,7 +17,7 @@ namespace Sc2 {
         int incomingVespeneCollectors = 0;
         int _populationLimit = 15;
         std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
-        std::list<Construction> _constructions{}; // Replace with list
+        std::list<Construction> _constructions{};
         std::vector<int> _occupiedWorkerTimers{};
 
         struct ActionCost {
@@ -159,10 +159,6 @@ namespace Sc2 {
             str += std::format("    IncomingPopulation: {} \n", _incomingPopulation);
             str += std::format("    Number of bases: {} \n", _bases.size());
             str += "}\n";
-            // str += "    Population: " + std::to_string(_population) + "\n";
-            // str += "    PopulationLimit: " + std::to_string(_populationLimit) + "\n";
-            // str += "    numberOfBases: " + std::to_string(_bases.size()) + "\n";
-            // str += "}";
 
             return str;
         }
