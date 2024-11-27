@@ -32,8 +32,8 @@ namespace Sc2::Mcts {
 		const int MAX_DEPTH = 100;
 
 		// Upper confidence bound applied to trees
-		[[nodiscard]] double uct(Node node) const;
-		[[nodiscard]] double value(const Node &node) const;
+		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
+		[[nodiscard]] double value(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const;
 
 		std::vector<std::shared_ptr<Node> > getMaxNodes(

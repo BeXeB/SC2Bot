@@ -8,6 +8,17 @@
 #include "Sc2State.h"
 using namespace Sc2::Mcts;
 
+void printRootNode(const std::shared_ptr<Node> &rootNode) {
+	std::cout << "-------ROOT-------\n"
+			<< *rootNode << std::endl;
+
+	//print children
+	for (const auto &[action, node]: rootNode->children) {
+		std::cout << "---CHILD---\n"
+				<< *node << std::endl;
+	}
+}
+
 void benchmark1() {
 	constexpr unsigned int seed = 3942438306;
 
@@ -15,7 +26,7 @@ void benchmark1() {
 	const auto state = std::make_shared<Sc2::State>();
 	const auto mcts = new Mcts(state, seed);
 
-	for (auto i = 0; i < 20; i++) {
+	for (auto i = 0; i < 30; i++) {
 		mcts->searchRollout(1000);
 		const Action a = mcts->getBestAction();
 
@@ -24,6 +35,8 @@ void benchmark1() {
 
 		std::cout << a << i << std::endl;
 	}
+
+	// printRootNode(mcts->getRootNode());
 
 	std::cout << "State 1 value: " << state->getValue() << std::endl;
 }
