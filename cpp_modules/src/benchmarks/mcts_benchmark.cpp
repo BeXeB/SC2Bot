@@ -44,8 +44,6 @@ void benchmark2() {
 }
 
 int main() {
-
 	benchmark1();
 	benchmark2();
-
 }
