@@ -31,10 +31,12 @@ namespace Sc2::Mcts {
 
 		const int MAX_DEPTH = 100;
 
-		static double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes);
+		// Upper confidence bound applied to trees
+		[[nodiscard]] double uct(Node node) const;
+		[[nodiscard]] double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const;
 
-		static std::vector<std::shared_ptr<Node> > getMaxNodes(
-			std::map<Action, std::shared_ptr<Node> > &children, double maxValue);
+		std::vector<std::shared_ptr<Node> > getMaxNodes(
+			std::map<Action, std::shared_ptr<Node> > &children, double maxValue) const;
 		void singleSearch();
 
 	public:
@@ -55,6 +57,7 @@ namespace Sc2::Mcts {
 		static void backPropagate(std::shared_ptr<Node> node, int outcome);
 
 		void search(int timeLimit);
+		[[nodiscard]] double value(const Node &node) const;
 		void searchRollout(int rollouts);
 
 		void performAction(Action action);
