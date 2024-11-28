@@ -12,7 +12,8 @@ using namespace Sc2::Mcts;
 
 TEST_SUITE("Test MCTS") {
 	TEST_CASE("Can create a Node") {
-		auto node = std::make_shared<Node>(Action::none, nullptr, ValueHeuristic::UCT);
+		const auto state = std::make_shared<Sc2::State>();
+		auto node = std::make_shared<Node>(Action::none, nullptr, state);
 		CHECK(node->N == 0);
 		CHECK(node->children.size() == 0);
 
@@ -55,7 +56,7 @@ TEST_SUITE("Test MCTS") {
 
 		mcts->search(1000);
 
-		auto [node, _] = mcts->selectNode();
+		auto node = mcts->selectNode();
 
 		CHECK(node->N == 0);
 		CHECK(node->children.size() == 0);
@@ -72,24 +73,27 @@ TEST_SUITE("Test MCTS") {
 			" and the population limit has not been reached") {
 			mcts->search(1000);
 
-			auto [node, state] = mcts->selectNode();
+			auto node = mcts->selectNode();
+
+			auto state = node->getState();
 
 			state->wait(500);
 
-			node->expand(state);
+			node->expand();
 
 			CHECK(node->children.size() == 4);
 		}
 
 		SUBCASE("expand will not include build worker when the population limit is reached") {
-			auto [node, state] = mcts->selectNode();
+			auto node = mcts->selectNode();
+			auto state = node->getState();
 
 			for (auto i = 0; i < state->getPopulationLimit(); i++) {
 				state->buildWorker();
 			}
 			state->wait(state->getBuildWorkerCost().buildTime);
 
-			node->expand(state);
+			node->expand();
 
 			for (const auto action: node->children | std::views::keys) {
 				CHECK(action != Action::buildWorker);
@@ -97,7 +101,9 @@ TEST_SUITE("Test MCTS") {
 			CHECK(node->children.size() == 3);
 		}
 		SUBCASE("expand will not include build vespene collector when there is no available geysers") {
-			auto [node, state] = mcts->selectNode();
+			auto node = mcts->selectNode();
+			auto state = node->getState();
+
 			auto availableGeysers = state->getVespeneGeysersAmount() - state->getVespeneCollectorsAmount();
 
 			for (auto i = 0; i < availableGeysers; i++) {
@@ -109,7 +115,7 @@ TEST_SUITE("Test MCTS") {
 			availableGeysers = state->getVespeneGeysersAmount() - state->getVespeneCollectorsAmount();
 			CHECK(availableGeysers == 0);
 
-			node->expand(state);
+			node->expand();
 			for (const auto action: node->children | std::views::keys) {
 				CHECK(action != Action::buildVespeneCollector);
 			}
