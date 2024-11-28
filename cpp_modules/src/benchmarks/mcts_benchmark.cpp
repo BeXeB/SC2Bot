@@ -3,10 +3,12 @@
 //
 
 #include <iostream>
+#include <chrono>
 
 #include "Mcts.h"
 #include "Sc2State.h"
 using namespace Sc2::Mcts;
+using namespace std::chrono;
 
 void printRootNode(const std::shared_ptr<Node> &rootNode) {
 	std::cout << "-------ROOT-------\n"
@@ -56,6 +58,9 @@ void benchmark2() {
 }
 
 int main() {
+	auto startTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	benchmark1();
+	auto elapsedTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() - startTime;
+	std::cout << "Elapsed time: " << elapsedTime << " ms" << std::endl;
 	benchmark2();
 }
