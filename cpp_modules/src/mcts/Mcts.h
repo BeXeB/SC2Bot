@@ -37,7 +37,7 @@ namespace Sc2::Mcts {
 		[[nodiscard]] double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const;
 
 		std::vector<std::shared_ptr<Node> > getMaxNodes(
-			std::map<Action, std::shared_ptr<Node> > &children, double maxValue) const;
+			std::map<Action, std::shared_ptr<Node> > &children) const;
 		void singleSearch();
 
 	public:

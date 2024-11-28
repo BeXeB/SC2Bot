@@ -43,31 +43,36 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 	return *it;
 }
 
-//Find the highest value of the nodes
-double Mcts::getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const {
-	const auto &firstNode = nodes.begin()->second;
-	auto bestNodeValue = value(firstNode);
+// //Find the highest value of the nodes
+// double Mcts::getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const {
+// 	const auto &firstNode = nodes.begin()->second;
+// 	auto bestNodeValue = value(firstNode);
+//
+// 	for (const auto &node: nodes | std::views::values) {
+// 		const auto nodeValue = value(node);
+// 		if (nodeValue > bestNodeValue) {
+// 			bestNodeValue = nodeValue;
+// 		}
+// 	}
+//
+// 	return bestNodeValue;
+// }
 
-	for (const auto &node: nodes | std::views::values) {
-		const auto nodeValue = value(node);
-		if (nodeValue > bestNodeValue) {
-			bestNodeValue = nodeValue;
-		}
-	}
-
-	return bestNodeValue;
-}
-
-std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children,
-                                                      const double maxValue) const {
-	std::vector<std::shared_ptr<Node> > maxNodes = {};
+std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) const {
+	double maxValue = value(children.begin()->second);
+	std::map<double, std::vector<std::shared_ptr<Node> > > maxNodes = {};
+	maxNodes[maxValue].emplace_back(children.begin()->second);
 
 	for (const auto &child: std::ranges::views::values(children)) {
-		if (value(child) == maxValue) {
-			maxNodes.emplace_back(child);
+		const auto childValue = value(child);
+		if (childValue > maxValue) {
+			maxValue = childValue;
+			maxNodes[maxValue].emplace_back(child);
+		} else if (childValue == maxValue) {
+			maxNodes[maxValue].emplace_back(child);
 		}
 	}
-	return maxNodes;
+	return maxNodes[maxValue];
 }
 
 
@@ -76,9 +81,9 @@ std::shared_ptr<Node> Mcts::selectNode() {
 	auto node = _rootNode;
 
 	while (!node->children.empty()) {
-		const double maxValue = getMaxNodeValue(node->children);
+		// const double maxValue = getMaxNodeValue(node->children);
 
-		std::vector<std::shared_ptr<Node> > maxNodes = getMaxNodes(node->children, maxValue);
+		std::vector<std::shared_ptr<Node> > maxNodes = getMaxNodes(node->children);
 
 		node = randomChoice(maxNodes);
 		// state->performAction(node->getAction());
@@ -173,8 +178,8 @@ void Mcts::performAction(Action action) {
 }
 
 Action Mcts::getBestAction() {
-	const auto maxValue = getMaxNodeValue(_rootNode->children);
-	const auto maxNodes = getMaxNodes(_rootNode->children, maxValue);
+	// const auto maxValue = getMaxNodeValue(_rootNode->children);
+	const auto maxNodes = getMaxNodes(_rootNode->children);
 
 	const auto bestNode = randomChoice(maxNodes);
 
