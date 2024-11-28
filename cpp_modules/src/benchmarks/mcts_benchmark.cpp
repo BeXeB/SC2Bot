@@ -28,7 +28,7 @@ void benchmark1() {
 	const auto state = std::make_shared<Sc2::State>();
 	const auto mcts = new Mcts(state, seed);
 
-	for (auto i = 0; i < 30; i++) {
+	for (auto i = 0; i < 40; i++) {
 		mcts->searchRollout(1000);
 		const Action a = mcts->getBestAction();
 
