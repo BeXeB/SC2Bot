@@ -23,7 +23,6 @@ namespace Sc2::Mcts {
 		const int ROLLOUT_DEPTH = 100;
 		ValueHeuristic _valueHeuristic = ValueHeuristic::UCT;
 
-		// std::shared_ptr<State> _rootState;
 		std::shared_ptr<Node> _rootNode;
 		int _runTime = 0;
 		int _nodeCount = 0;
