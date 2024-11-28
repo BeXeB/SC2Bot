@@ -45,20 +45,18 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 
 std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) const {
 	double maxValue = value(children.begin()->second);
-	std::map<double, std::vector<std::shared_ptr<Node> > > maxNodes = {};
-
-	maxNodes[maxValue].emplace_back(children.begin()->second);
+	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &child: std::ranges::views::values(children)) {
 		const auto childValue = value(child);
 		if (childValue > maxValue) {
-			maxValue = childValue;
-			maxNodes[maxValue].emplace_back(child);
+			maxNodes.clear();
+			maxNodes.push_back(child);
 		} else if (childValue == maxValue) {
-			maxNodes[maxValue].emplace_back(child);
+			maxNodes.push_back(child);
 		}
 	}
-	return maxNodes[maxValue];
+	return maxNodes;
 }
 
 
