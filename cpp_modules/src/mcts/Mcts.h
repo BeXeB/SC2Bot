@@ -23,7 +23,7 @@ namespace Sc2::Mcts {
 		const int ROLLOUT_DEPTH = 100;
 		ValueHeuristic _valueHeuristic = ValueHeuristic::UCT;
 
-		std::shared_ptr<State> _rootState;
+		// std::shared_ptr<State> _rootState;
 		std::shared_ptr<Node> _rootNode;
 		int _runTime = 0;
 		int _nodeCount = 0;
@@ -41,19 +41,19 @@ namespace Sc2::Mcts {
 		void singleSearch();
 
 	public:
-		std::shared_ptr<Node> getRootNode() { return _rootNode; }
-		std::shared_ptr<State> getRootState() { return _rootState; }
+		[[nodiscard]] std::shared_ptr<Node> getRootNode() { return _rootNode; }
+		[[nodiscard]] std::shared_ptr<State> getRootState() const { return _rootNode->getState(); }
 
 		std::shared_ptr<Node> randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes);
 
 		template<typename Container>
 		auto randomChoice(const Container &container) -> decltype(*std::begin(container));
 
-		NodeStatePair selectNode();
+		std::shared_ptr<Node> selectNode();
 
 		static void expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state);
 
-		int rollout(const std::shared_ptr<State> &state);
+		int rollout(const std::shared_ptr<Node> &node);
 
 		static void backPropagate(std::shared_ptr<Node> node, int outcome);
 
@@ -68,8 +68,7 @@ namespace Sc2::Mcts {
 		              const int rolloutDepth = 100, const double exploration = sqrt(2))
 			: EXPLORATION(exploration),
 			  ROLLOUT_DEPTH(rolloutDepth),
-			  _rootState(State::DeepCopy(*rootState)),
-			  _rootNode(std::make_shared<Node>(Node(Action::none, nullptr, _valueHeuristic))) {
+			  _rootNode(std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
 			if (seed != 0) {
 				_rng = std::mt19937(seed);
 			} else {

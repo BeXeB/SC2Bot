@@ -45,7 +45,7 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 
 //Find the highest value of the nodes
 double Mcts::getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const {
-	const auto firstNode = nodes.begin()->second;
+	const auto &firstNode = nodes.begin()->second;
 	auto bestNodeValue = value(firstNode);
 
 	for (const auto &node: nodes | std::views::values) {
@@ -71,8 +71,8 @@ std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shar
 }
 
 
-Mcts::NodeStatePair Mcts::selectNode() {
-	auto state = State::DeepCopy(*_rootState);
+std::shared_ptr<Node> Mcts::selectNode() {
+	// auto state = State::DeepCopy(*_rootState);
 	auto node = _rootNode;
 
 	while (!node->children.empty()) {
@@ -81,21 +81,21 @@ Mcts::NodeStatePair Mcts::selectNode() {
 		std::vector<std::shared_ptr<Node> > maxNodes = getMaxNodes(node->children, maxValue);
 
 		node = randomChoice(maxNodes);
-		state->performAction(node->getAction());
+		// state->performAction(node->getAction());
 
 		if (node->N == 0) {
-			return {node, state};
+			return node;
 		}
 	}
 
-	node->expand(state);
+	node->expand();
 	node = randomChoice(node->children);
-	state->performAction(node->getAction());
 
-	return {node, state};
+	return node;
 }
 
-int Mcts::rollout(const std::shared_ptr<State> &state) {
+int Mcts::rollout(const std::shared_ptr<Node> &node) {
+	const auto state = State::DeepCopy(*node->getState());
 	for (int i = 0; i <= MAX_DEPTH; i++) {
 		auto legalActions = state->getLegalActions();
 
@@ -116,8 +116,8 @@ void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
 }
 
 void Mcts::singleSearch() {
-	auto [node, state] = selectNode();
-	const auto outcome = rollout(state);
+	const auto node = selectNode();
+	const auto outcome = rollout(node);
 	backPropagate(node, outcome);
 }
 
@@ -164,7 +164,7 @@ void Mcts::performAction(Action action) {
 	// Check if the action matches any explored nodes
 	for (const auto childAction: _rootNode->children | std::views::keys) {
 		if (childAction == action) {
-			_rootState->performAction(action);
+			// _rootState->performAction(action);
 			_rootNode = _rootNode->children[action];
 			_rootNode->setParent(nullptr);
 			return;

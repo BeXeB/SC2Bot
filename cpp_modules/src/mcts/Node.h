@@ -15,12 +15,12 @@
 
 namespace Sc2::Mcts {
 	class Node : public std::enable_shared_from_this<Node> {
-		ValueHeuristic _valueHeuristic;
-
 		Action _action;
 		int depth = 0;
 
 		std::shared_ptr<Node> _parent;
+
+		std::shared_ptr<State> _state;
 
 	public:
 		// Number of simulations that has been run on this node
@@ -29,19 +29,22 @@ namespace Sc2::Mcts {
 		double Q = 0;
 		std::map<Action, std::shared_ptr<Node> > children = {};
 
+		std::shared_ptr<State> getState() { return _state; }
 		void setParent(std::shared_ptr<Node> parent) { _parent = std::move(parent); }
 		std::shared_ptr<Node> getParent() { return _parent; }
 		[[nodiscard]] Action getAction() const { return _action; }
 		int getDepth() const { return depth; }
 
-		void expand(const std::shared_ptr<State> &state) {
-			const std::vector<Action> actions = state->getLegalActions();
+		void expand() {
+			const std::vector<Action> actions = _state->getLegalActions();
 			addChildren(actions);
 		}
 
 		void addChildren(const std::vector<Action> &childActions) {
 			for (const auto &childAction: childActions) {
-				const auto childNode = std::make_shared<Node>(Node(childAction, shared_from_this(), _valueHeuristic));;
+				const auto state = State::DeepCopy(*_state);
+
+				const auto childNode = std::make_shared<Node>(Node(childAction, shared_from_this(), state));
 				childNode->depth = this->depth + 1;
 				children[childNode->_action] = childNode;
 			}
@@ -58,13 +61,13 @@ namespace Sc2::Mcts {
 			return str;
 		}
 
-		explicit Node(const ValueHeuristic valueHeuristic): _valueHeuristic(valueHeuristic), _action(Action::none),
-		                                                    _parent(nullptr) {
+		explicit Node(std::shared_ptr<State> state): _action(Action::none),
+		                                             _parent(nullptr), _state(std::move(state)) {
 		}
 
-		Node(const Action action, std::shared_ptr<Node> parent,
-		     const ValueHeuristic valueHeuristic) : _valueHeuristic(valueHeuristic), _action(action),
-		                                            _parent(std::move(parent)) {
+		Node(const Action action, std::shared_ptr<Node> parent, std::shared_ptr<State> state) : _action(action),
+			_parent(std::move(parent)), _state(std::move(state)) {
+			_state->performAction(action);
 		}
 	};
 
