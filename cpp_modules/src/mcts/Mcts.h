@@ -75,9 +75,6 @@ namespace Sc2::Mcts {
 				_rng = std::mt19937(std::random_device{}());
 			}
 		}
-
-		Mcts() : _rng(std::random_device{}()) {
-		}
 	};
 }
 
