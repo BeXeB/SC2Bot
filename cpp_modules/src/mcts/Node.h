@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 #include <utility>
-#include <ValueHeuristicEnum.h>
 #include <vector>
 
 #include "ActionEnum.h"

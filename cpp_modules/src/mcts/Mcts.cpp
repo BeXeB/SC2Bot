@@ -164,3 +164,7 @@ Action Mcts::getBestAction() {
 
 	return bestNode->getAction();
 }
+
+void Mcts::updateRootState(const std::shared_ptr<State> &state) {
+	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
+}

@@ -62,6 +62,7 @@ namespace Sc2::Mcts {
 		void performAction(Action action);
 
 		Action getBestAction();
+		void updateRootState(const std::shared_ptr<State> &state);
 
 		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed = 0,
 		              const int rolloutDepth = 100, const double exploration = sqrt(2))
