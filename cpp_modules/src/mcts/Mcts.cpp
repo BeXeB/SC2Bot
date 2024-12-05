@@ -150,7 +150,6 @@ void Mcts::performAction(Action action) {
 	// Check if the action matches any explored nodes
 	for (const auto childAction: _rootNode->children | std::views::keys) {
 		if (childAction == action) {
-			// _rootState->performAction(action);
 			_rootNode = _rootNode->children[action];
 			_rootNode->setParent(nullptr);
 			return;
