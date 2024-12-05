@@ -43,6 +43,33 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 	return *it;
 }
 
+Action Mcts::weightedChoice(const std::vector<Action> &actions) {
+	std::vector<double> weights(actions.size());
+
+	for (int i = 0; i < actions.size(); ++i) {
+		switch (actions[i]) {
+			case Action::none:
+				throw std::runtime_error("Cannot choose none as an action.");
+			case Action::buildWorker:
+				weights[i] = 22.0;
+				break;
+			case Action::buildHouse:
+				weights[i] = 1.0;
+				break;
+			case Action::buildBase:
+				weights[i] = 1.0;
+				break;
+			case Action::buildVespeneCollector:
+				weights[i] = 2.0;
+				break;
+		}
+	}
+
+	std::discrete_distribution<int> dist(weights.begin(), weights.end());
+	const auto index = dist(_rng);
+	return actions[index];
+}
+
 std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) const {
 	double maxValue = value(children.begin()->second);
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
@@ -80,12 +107,23 @@ std::shared_ptr<Node> Mcts::selectNode() {
 	return node;
 }
 
+
 int Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState());
 	for (int i = 0; i <= MAX_DEPTH; i++) {
 		auto legalActions = state->getLegalActions();
 
-		const auto action = randomChoice(legalActions);
+		Action action;
+		switch (_rolloutHeuristic) {
+			case RolloutHeuristic::Random:
+				action = randomChoice(legalActions);
+				break;
+			case RolloutHeuristic::WeightedChoice:
+				action = weightedChoice(legalActions);
+				break;
+			default:
+				throw std::runtime_error("Invalid rollout heuristic.");
+		}
 
 		state->performAction(action);
 	}

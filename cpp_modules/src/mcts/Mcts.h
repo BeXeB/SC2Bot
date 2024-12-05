@@ -10,6 +10,7 @@
 
 #include "Node.h"
 #include "ValueHeuristicEnum.h"
+#include "RolloutHeuristicEnum.h"
 
 
 namespace Sc2::Mcts {
@@ -22,6 +23,7 @@ namespace Sc2::Mcts {
 		const double EXPLORATION = sqrt(2);
 		const int ROLLOUT_DEPTH = 100;
 		ValueHeuristic _valueHeuristic = ValueHeuristic::UCT;
+		RolloutHeuristic _rolloutHeuristic = RolloutHeuristic::Random;
 
 		std::shared_ptr<Node> _rootNode;
 		int _runTime = 0;
@@ -52,6 +54,7 @@ namespace Sc2::Mcts {
 
 		static void expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state);
 
+		Action weightedChoice(const std::vector<Action> &actions);
 		int rollout(const std::shared_ptr<Node> &node);
 
 		static void backPropagate(std::shared_ptr<Node> node, int outcome);
@@ -64,18 +67,63 @@ namespace Sc2::Mcts {
 		Action getBestAction();
 		void updateRootState(const std::shared_ptr<State> &state);
 
-		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed = 0,
-		              const int rolloutDepth = 100, const double exploration = sqrt(2))
-			: EXPLORATION(exploration),
-			  ROLLOUT_DEPTH(rolloutDepth),
-			  _rootNode(std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
-			if (seed != 0) {
-				_rng = std::mt19937(seed);
-			} else {
-				_rng = std::mt19937(std::random_device{}());
+		[[nodiscard]] std::string toString() const {
+			std::string rolloutHeuristicStr;
+			switch (_rolloutHeuristic) {
+				case RolloutHeuristic::Random:
+					rolloutHeuristicStr = "Random";
+					break;
+				case RolloutHeuristic::WeightedChoice:
+					rolloutHeuristicStr = "WeightedChoice";
+					break;
+				default:
+					rolloutHeuristicStr = "Unknown";
+					break;
 			}
+
+			std::string valueHeuristicStr;
+			switch (_valueHeuristic) {
+				case ValueHeuristic::UCT:
+					valueHeuristicStr = "UCT";
+					break;
+				default:
+					valueHeuristicStr = "Unknown";
+					break;
+			}
+
+			std::string str;
+			str += "MCTS: { \n";
+			str += std::format("Exploration: {}", EXPLORATION) + "\n";
+			str += std::format("Rollout Depth: {}", ROLLOUT_DEPTH) + "\n";
+			str += std::format("Value Heuristic: {} ", valueHeuristicStr) + "\n";
+			str += std::format("Rollout Heuristic: {} ", rolloutHeuristicStr) + "\n";
+			str += "} \n";
+			return str;
+		};
+
+		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed, const int rolloutDepth,
+		              const double exploration, const ValueHeuristic valueHeuristic,
+		              const RolloutHeuristic rolloutHeuristic) : EXPLORATION(exploration), ROLLOUT_DEPTH(rolloutDepth),
+		                                                         _valueHeuristic(valueHeuristic),
+		                                                         _rolloutHeuristic(rolloutHeuristic),
+		                                                         _rootNode(std::make_shared<Node>(
+			                                                         Node(Action::none, nullptr,
+			                                                              State::DeepCopy(*rootState)))) {
+			_rng = std::mt19937(seed);
+		}
+
+		Mcts(const std::shared_ptr<State> &rootState): _rootNode(
+			std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
+			_rng = std::mt19937(std::random_device{}());
 		}
 	};
+
+	inline std::ostream &operator<<(std::ostream &os, const Mcts &mcts) {
+		os << mcts.toString();
+		return os;
+	}
+
+	// inline std::ostream &operator<<(std::ostream &os, const Action &action) {
 }
 
 #endif //MCTS_H
