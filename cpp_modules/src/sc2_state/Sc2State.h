@@ -1,6 +1,7 @@
 #pragma once
 #include <format>
 #include <iostream>
+#include <list>
 #include <vector>
 
 #include "Base.h"
@@ -16,7 +17,7 @@ namespace Sc2 {
         int incomingVespeneCollectors = 0;
         int _populationLimit = 15;
         std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
-        std::vector<Construction> _constructions{}; // Replace with list
+        std::list<Construction> _constructions{};
         std::vector<int> _occupiedWorkerTimers{};
 
         struct ActionCost {
@@ -72,7 +73,7 @@ namespace Sc2 {
         [[nodiscard]] int getPopulationLimit() const { return _populationLimit; }
         [[nodiscard]] int getPopulation() const { return _population; }
         int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
-        std::vector<Construction> getConstructions() const { return _constructions; }
+        std::list<Construction> getConstructions() const { return _constructions; }
         std::vector<Base> getBases() const { return _bases; }
 
         ActionCost getBuildWorkerCost() const { return buildWorkerCost; }
@@ -140,7 +141,7 @@ namespace Sc2 {
             buildVespeneCollectorCost = state.buildVespeneCollectorCost;
 
             _bases = std::vector<Base>();
-            _constructions = std::vector<Construction>();
+            _constructions = std::list<Construction>();
             _occupiedWorkerTimers = state._occupiedWorkerTimers;
         };
 
@@ -158,10 +159,6 @@ namespace Sc2 {
             str += std::format("    IncomingPopulation: {} \n", _incomingPopulation);
             str += std::format("    Number of bases: {} \n", _bases.size());
             str += "}\n";
-            // str += "    Population: " + std::to_string(_population) + "\n";
-            // str += "    PopulationLimit: " + std::to_string(_populationLimit) + "\n";
-            // str += "    numberOfBases: " + std::to_string(_bases.size()) + "\n";
-            // str += "}";
 
             return str;
         }

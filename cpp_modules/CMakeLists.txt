@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.29)
 project(sc2modules)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS -static)
 
 set(STATE_SOURCE "${PROJECT_SOURCE_DIR}/src/sc2_state")
 set(MCTS_SOURCE "${PROJECT_SOURCE_DIR}/src/mcts")
