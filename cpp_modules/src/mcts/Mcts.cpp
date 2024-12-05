@@ -52,6 +52,7 @@ std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shar
 		if (childValue > maxValue) {
 			maxNodes.clear();
 			maxNodes.push_back(child);
+			maxValue = childValue;
 		} else if (childValue == maxValue) {
 			maxNodes.push_back(child);
 		}
