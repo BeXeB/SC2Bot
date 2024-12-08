@@ -48,6 +48,7 @@ class MyBot(BotAI):
         print(translated_state)
 
         # Update the busy workers
+        # TODO: There is a crash here
         for worker in self.busy_workers:
             self.busy_workers[worker] -= 1
             if self.busy_workers[worker] == 0:
