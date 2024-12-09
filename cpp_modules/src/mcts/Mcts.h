@@ -17,7 +17,6 @@ namespace Sc2::Mcts {
 	class Node;
 
 	class Mcts {
-		// typedef std::pair<std::shared_ptr<Node>, std::shared_ptr<State> > NodeStatePair;
 		std::mt19937 _rng;
 
 		const double EXPLORATION = sqrt(2);
@@ -134,8 +133,6 @@ namespace Sc2::Mcts {
 		os << mcts.toString();
 		return os;
 	}
-
-	// inline std::ostream &operator<<(std::ostream &os, const Action &action) {
 }
 
 #endif //MCTS_H
