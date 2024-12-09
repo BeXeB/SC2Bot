@@ -193,6 +193,8 @@ namespace Sc2 {
 
             return str;
         }
+
+        friend Construction;
     };
 
     inline std::ostream &operator<<(std::ostream &os, const State &state) {

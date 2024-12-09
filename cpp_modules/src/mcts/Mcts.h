@@ -127,6 +127,12 @@ namespace Sc2::Mcts {
 			std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
 			_rng = std::mt19937(std::random_device{}());
 		}
+
+		Mcts() {
+			auto rootState = std::make_shared<State>();
+			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
+			_rng = std::mt19937(std::random_device{}());
+		}
 	};
 
 	inline std::ostream &operator<<(std::ostream &os, const Mcts &mcts) {

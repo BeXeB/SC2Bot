@@ -5,10 +5,12 @@
 #define CONSTRUCTION_H
 #include <memory>
 #include <utility>
+#include "ActionEnum.h"
 
 
 namespace Sc2 {
     class State;
+    // enum class Action;
 
     typedef void (State::*ConstructionFunction)();
 
@@ -27,11 +29,7 @@ namespace Sc2 {
                                                                        _constructionFunction(constructionFunction) {
         }
 
-        Construction(const int constructionTime,
-                     const ConstructionFunction constructionFunction): _timeLeft(constructionTime),
-                                                                       _state(nullptr),
-                                                                       _constructionFunction(constructionFunction) {
-        }
+        Construction(const int constructionTime, const Action action);
 
         [[nodiscard]] int getTimeLeft() const { return _timeLeft; }
         [[nodiscard]] bool getIsFinished() const { return _isFinished; }

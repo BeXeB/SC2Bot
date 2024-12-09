@@ -35,50 +35,26 @@ TEST_SUITE("Test MCTS") {
 	}
 
 
-	TEST_CASE("Can create run an MCTS") {
-		const auto state = std::make_shared<Sc2::State>();
+	TEST_CASE("Can create and run an MCTS") {
+		SUBCASE("Can create and run an MCTS, by giving it a root state") {
+			const auto state = std::make_shared<Sc2::State>();
 
-		auto mcts = Mcts(state);
+			auto mcts = Mcts(state);
 
-		mcts.search(1000);
+			mcts.search(1000);
 
-		const auto bestMove = mcts.getBestAction();
+			const auto bestMove = mcts.getBestAction();
 
-		CHECK(bestMove != Action::none);
-
-		SUBCASE("Can update the state in an MCTS using a new state") {
-			const auto updatedState = std::make_shared<Sc2::State>();
-			updatedState->performAction(Action::buildWorker);
-			updatedState->wait(updatedState->getBuildWorkerCost().buildTime);
-
-			mcts.updateRootState(updatedState);
-
-			auto rootState = mcts.getRootState();
-
-			CHECK(rootState->getPopulation() == updatedState->getPopulation());
-			CHECK(rootState->getPopulation() != state->getPopulation());
+			CHECK(bestMove != Action::none);
 		}
-		SUBCASE("Can update the state in an MCTS using values of a state") {
-			const auto updatedState = std::make_shared<Sc2::State>();
-			updatedState->performAction(Action::buildWorker);
-			updatedState->wait(updatedState->getBuildWorkerCost().buildTime);
+		SUBCASE("Can create and run an MCTS with a default constructor") {
+			auto mcts = Mcts();
 
-			auto minerals = updatedState->getMinerals();
-			auto vespene = updatedState->getVespene();
-			auto incomingPopulation = updatedState->getIncomingPopulation();
-			auto population = updatedState->getPopulation();
-			auto populationLimit = updatedState->getPopulationLimit();
-			auto occupiedWorkerTimers = updatedState->getOccupiedWorkerTimers();
-			auto bases = updatedState->getBases();
-			auto constructions = updatedState->getConstructions();
+			mcts.search(1000);
 
-			mcts.updateRootState(minerals, vespene, population, incomingPopulation, populationLimit, bases,
-			                     constructions, occupiedWorkerTimers);
+			const auto bestMove = mcts.getBestAction();
 
-			auto rootState = mcts.getRootState();
-
-			CHECK(rootState->getPopulation() == updatedState->getPopulation());
-			CHECK(rootState->getPopulation() != state->getPopulation());
+			CHECK(bestMove != Action::none);
 		}
 	}
 
@@ -156,6 +132,47 @@ TEST_SUITE("Test MCTS") {
 
 			CHECK(rootState->getConstructions().size() == updatedState->getConstructions().size());
 			CHECK(rootState->getConstructions().size() != state->getConstructions().size());
+		}
+	}
+
+	TEST_CASE("State constructions can be generated with actions and times") {
+		const auto state = std::make_shared<Sc2::State>();
+		auto mcts = Mcts(state);
+
+		state->performAction(Action::buildWorker);
+
+		CHECK(mcts.getRootState()->getConstructions().size() != state->getConstructions().size());
+
+		state->wait(1);
+
+		auto minerals = state->getMinerals();
+		auto vespene = state->getVespene();
+		auto incomingPopulation = state->getIncomingPopulation();
+		auto population = state->getPopulation();
+		auto populationLimit = state->getPopulationLimit();
+		auto occupiedWorkerTimers = state->getOccupiedWorkerTimers();
+		auto bases = state->getBases();
+
+		auto constructions = std::list<Sc2::Construction>();
+		constructions.emplace_back(state->getBuildWorkerCost().buildTime - 1, Action::buildWorker);
+
+
+		mcts.updateRootState(minerals, vespene, population, incomingPopulation, populationLimit, bases,
+		                     constructions, occupiedWorkerTimers);
+
+		CHECK(mcts.getRootState()->getConstructions().size() == state->getConstructions().size());
+		CHECK(mcts.getRootState()->getConstructions().size() == 1);
+		CHECK(mcts.getRootState()->getConstructions().begin()->getTimeLeft() == state->getConstructions().begin()->
+			getTimeLeft());
+		CHECK(mcts.getRootState()->getConstructions().begin()->getTimeLeft() == mcts.getRootState()->getBuildWorkerCost(
+		).buildTime - 1);
+
+		SUBCASE("Constructions added with actions and times will eventually be built") {
+			auto initialPopulation = mcts.getRootState()->getPopulation();
+			mcts.getRootState()->wait(mcts.getRootState()->getBuildWorkerCost().buildTime);
+
+			CHECK(mcts.getRootState()->getConstructions().size() == 0);
+			CHECK(mcts.getRootState()->getPopulation() == initialPopulation + 1);
 		}
 	}
 
