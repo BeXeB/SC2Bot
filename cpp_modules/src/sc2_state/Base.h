@@ -15,7 +15,7 @@ namespace Sc2 {
 
 		[[nodiscard]] int getUnoccupiedGeysers() const { return vespeneGeysers - vespeneCollectors; }
 		[[nodiscard]] int getMineralWorkerLimit() const { return mineralFields * WORKER_PER_MINERAL_FIELD; }
-		[[nodiscard]] int getVespeneWorkerLimit() const { return vespeneCollectors * WORKER_PER_MINERAL_FIELD; }
+		[[nodiscard]] int getVespeneWorkerLimit() const { return vespeneCollectors * WORKER_PER_GEYSER; }
 
 		void addVespeneCollector() { if (vespeneCollectors < vespeneGeysers) vespeneCollectors++; }
 
