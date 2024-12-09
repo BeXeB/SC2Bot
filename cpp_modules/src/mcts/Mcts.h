@@ -10,6 +10,7 @@
 
 #include "Node.h"
 #include "ValueHeuristicEnum.h"
+#include "Ucb1Normal2.h"
 
 
 namespace Sc2::Mcts {

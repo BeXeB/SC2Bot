@@ -1,6 +1,7 @@
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 
+from Actions.build_supply import SupplyBuilder
 from Actions.BuildBase import BaseBuilder
 from Actions.VespeneExtractor import VespeneBuilder
 
@@ -13,6 +14,7 @@ class MyBot(BotAI):
         self.base_builder = BaseBuilder(self)
         self.vespene_builder = VespeneBuilder(self)
         self.completed_bases = set()
+        self.supply_builder = SupplyBuilder(self)
 
     async def on_step(self, iteration: int) -> None:
         print(f"iteration: {iteration}")
