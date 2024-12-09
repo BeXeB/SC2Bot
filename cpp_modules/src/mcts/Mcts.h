@@ -122,8 +122,6 @@ namespace Sc2::Mcts {
 		os << mcts.toString();
 		return os;
 	}
-
-	// inline std::ostream &operator<<(std::ostream &os, const Action &action) {
 }
 
 #endif //MCTS_H
