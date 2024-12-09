@@ -85,8 +85,8 @@ void printResults(const std::vector<int> &results) {
 }
 
 int main() {
-	// constexpr unsigned int seed = 3942438306;
-	const unsigned int seed = std::random_device()();
+	constexpr unsigned int seed = 3942438306;
+	// const unsigned int seed = std::random_device()();
 	int numberOfActions = 50;
 	int numberOfRollouts = 2000;
 	int rolloutDepth = 100;
