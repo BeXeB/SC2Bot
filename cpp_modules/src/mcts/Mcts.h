@@ -17,7 +17,7 @@ namespace Sc2::Mcts {
 	class Node;
 
 	class Mcts {
-		typedef std::pair<std::shared_ptr<Node>, std::shared_ptr<State> > NodeStatePair;
+		// typedef std::pair<std::shared_ptr<Node>, std::shared_ptr<State> > NodeStatePair;
 		std::mt19937 _rng;
 
 		const double EXPLORATION = sqrt(2);
@@ -66,6 +66,18 @@ namespace Sc2::Mcts {
 
 		Action getBestAction();
 		void updateRootState(const std::shared_ptr<State> &state);
+
+		void updateRootState(const int minerals, const int vespene, const int population,
+		                     const int incomingPopulation,
+		                     const int populationLimit,
+		                     const std::vector<Base> &bases,
+		                     std::list<Construction> &constructions,
+		                     const std::vector<int> &occupiedWorkerTimers) {
+			const auto state = State::StateBuilder(minerals, vespene, population, incomingPopulation, populationLimit,
+			                                       bases, constructions, occupiedWorkerTimers);
+
+			updateRootState(state);
+		}
 
 		[[nodiscard]] std::string toString() const {
 			std::string rolloutHeuristicStr;

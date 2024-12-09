@@ -124,9 +124,40 @@ namespace Sc2 {
         std::vector<Action> getLegalActions() const;
 
         int getValue() const { return mineralGainedPerTimestep() + vespeneGainedPerTimestep(); }
+        std::vector<int> &getOccupiedWorkerTimers() { return _occupiedWorkerTimers; };
 
         static std::shared_ptr<State> DeepCopy(const State &state);
 
+        static std::shared_ptr<State> StateBuilder(const int minerals, const int vespene, const int population,
+                                                   const int incomingPopulation,
+                                                   const int populationLimit,
+                                                   const std::vector<Base> &bases,
+                                                   std::list<Construction> &constructions,
+                                                   const std::vector<int> &occupiedWorkerTimers) {
+            auto state = std::make_shared<State>(minerals, vespene, population, incomingPopulation, populationLimit,
+                                                 bases,
+                                                 occupiedWorkerTimers);
+
+            for (auto &construction: constructions) {
+                construction.setState(state);
+                state->_constructions.emplace_back(construction);
+            }
+
+            return state;
+        };
+
+        State(const int minerals, const int vespene, const int population, const int incomingPopulation,
+              const int populationLimit,
+              std::vector<Base> bases, std::vector<int> occupiedWorkerTimers) {
+            _minerals = minerals;
+            _vespene = vespene;
+            _population = population;
+            _incomingPopulation = incomingPopulation;
+            _populationLimit = populationLimit;
+            _bases = std::move(bases);
+            _constructions = std::list<Construction>();
+            _occupiedWorkerTimers = std::move(occupiedWorkerTimers);
+        };
 
         State(const State &state) : enable_shared_from_this(state) {
             _minerals = state._minerals;
