@@ -25,7 +25,7 @@ class MyBot(BotAI):
 
     async def on_start(self):
         self.CC_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time
-        self.CC_TRAVEL_TIME_STEPS: int = math.ceil(10 * STEPS_PER_SECOND)
+        self.CC_TRAVEL_TIME_STEPS: int = math.ceil(5 * STEPS_PER_SECOND)
         self.REFINERY_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time
         self.REFINERY_TRAVEL_TIME_STEPS: int = math.ceil(1 * STEPS_PER_SECOND)
         self.WORKER_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.SCV.value]._proto.build_time
@@ -49,10 +49,11 @@ class MyBot(BotAI):
 
         # Update the busy workers
         # TODO: There is a crash here
+        # TODO: Worker timers are way too off
         for worker in self.busy_workers:
             self.busy_workers[worker] -= 1
             if self.busy_workers[worker] == 0:
-                del self.busy_workers[worker]
+                self.busy_workers.pop(worker)
 
         # Distribute workers to mine minerals and gas
         self.worker_manager.distribute_workers()

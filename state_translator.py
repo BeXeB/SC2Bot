@@ -26,7 +26,6 @@ class State:
     minerals: int
     vespene: int
     # worker population
-    # TODO: should this include idle and busy workers?
     population: int
     # workers under construction
     incoming_population: int
@@ -47,6 +46,7 @@ def translate_state(bot: 'MyBot') -> State:
             incoming_vespene_collectors=len(vespene_collectors.filter(lambda s: s.build_progress < 1))
         )
         bases.append(base)
+    # TODO: Add constructions that havent been started but has been ordered
     constructions = []
     for str in bot.structures.not_ready:
         # Calculate time left based on the build progress
@@ -64,6 +64,6 @@ def translate_state(bot: 'MyBot') -> State:
         population_limit=math.floor(bot.supply_cap),
         bases=bases,
         constructions=constructions,
-        busy_workers=[time for time in bot.busy_workers]
+        busy_workers=[time for time in bot.busy_workers.values()]
     )
     return state
