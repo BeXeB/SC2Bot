@@ -1,10 +1,12 @@
 #pragma once
 #include <format>
 #include <iostream>
+#include <list>
 #include <vector>
 
 #include "Base.h"
 #include "Construction.h"
+#include "ActionEnum.h"
 
 namespace Sc2 {
     class State : public std::enable_shared_from_this<State> {
@@ -15,8 +17,7 @@ namespace Sc2 {
         int incomingVespeneCollectors = 0;
         int _populationLimit = 15;
         std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
-        std::vector<Construction> _constructions{}; // Replace with list
-
+        std::list<Construction> _constructions{};
         std::vector<int> _occupiedWorkerTimers{};
 
         struct ActionCost {
@@ -72,7 +73,7 @@ namespace Sc2 {
         [[nodiscard]] int getPopulationLimit() const { return _populationLimit; }
         [[nodiscard]] int getPopulation() const { return _population; }
         int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
-        std::vector<Construction> getConstructions() const { return _constructions; }
+        std::list<Construction> getConstructions() const { return _constructions; }
         std::vector<Base> getBases() const { return _bases; }
 
         ActionCost getBuildWorkerCost() const { return buildWorkerCost; }
@@ -80,22 +81,52 @@ namespace Sc2 {
         ActionCost getBuildHouseCost() const { return buildHouseCost; }
         ActionCost getBuildVespeneCollectorCost() const { return buildVespeneCollectorCost; }
 
+        bool hasUnoccupiedGeyser() const;
+        bool canAffordConstruction(const ActionCost &actionCost) const;
+        bool populationLimitReached() const;
+
         int mineralGainedPerTimestep() const;
         int vespeneGainedPerTimestep() const;
 
         int getMineralWorkers() const;
         int getVespeneWorkers() const;
 
-        bool hasUnoccupiedGeyser() const;
-
         void buildWorker();
         void buildHouse();
         void buildBase();
         void buildVespeneCollector();
+
         void wait();
         void wait(int amount);
 
+        int getVespeneCollectorsAmount();
+        int getVespeneGeysersAmount();
+
+        void performAction(const Action action) {
+            switch (action) {
+                case Action::buildWorker:
+                    buildWorker();
+                    break;
+                case Action::buildHouse:
+                    buildHouse();
+                    break;
+                case Action::buildBase:
+                    buildBase();
+                    break;
+                case Action::buildVespeneCollector:
+                    buildVespeneCollector();
+                    break;
+                case Action::none:
+                    break;
+            }
+        }
+
+        std::vector<Action> getLegalActions() const;
+
+        int getValue() const { return mineralGainedPerTimestep() + vespeneGainedPerTimestep(); }
+
         static std::shared_ptr<State> DeepCopy(const State &state);
+
 
         State(const State &state) : enable_shared_from_this(state) {
             _minerals = state._minerals;
@@ -110,7 +141,7 @@ namespace Sc2 {
             buildVespeneCollectorCost = state.buildVespeneCollectorCost;
 
             _bases = std::vector<Base>();
-            _constructions = std::vector<Construction>();
+            _constructions = std::list<Construction>();
             _occupiedWorkerTimers = state._occupiedWorkerTimers;
         };
 
@@ -128,10 +159,6 @@ namespace Sc2 {
             str += std::format("    IncomingPopulation: {} \n", _incomingPopulation);
             str += std::format("    Number of bases: {} \n", _bases.size());
             str += "}\n";
-            // str += "    Population: " + std::to_string(_population) + "\n";
-            // str += "    PopulationLimit: " + std::to_string(_populationLimit) + "\n";
-            // str += "    numberOfBases: " + std::to_string(_bases.size()) + "\n";
-            // str += "}";
 
             return str;
         }
