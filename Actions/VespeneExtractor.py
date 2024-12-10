@@ -27,9 +27,10 @@ class VespeneBuilder:
 
             # Build refinery if can_afford
             if self.bot.can_afford(UnitTypeId.REFINERY):
-                worker = self.bot.worker_manager.get_worker(geyser.position, WorkerRole.BUILD)
+                worker = self.bot.worker_manager.select_worker(geyser.position, WorkerRole.BUILD)
                 worker.build(UnitTypeId.REFINERY, geyser)
-                self.bot.busy_workers.update({worker.tag: self.bot.REFINERY_BUILD_TIME_STEPS + self.bot.REFINERY_TRAVEL_TIME_STEPS})
+                # self.bot.busy_workers.update({worker.tag: self.bot.REFINERY_BUILD_TIME_STEPS + self.bot.REFINERY_TRAVEL_TIME_STEPS})
+                self.bot.busy_workers.update({worker.tag: self.bot.REFINERY_BUILD_TIME_SECONDS + self.bot.REFINERY_TRAVEL_TIME_SECONDS})
                 # Mark this geyser as processed
                 self.processed_geysers.add(geyser.tag)
                 return
