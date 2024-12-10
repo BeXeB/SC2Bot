@@ -18,5 +18,5 @@ class WorkerBuilder:
         if close_to is None:
             closest_th = available_townhalls.random
         else:
-            closest_th = self.bot.townhalls.closest_to(close_to)
+            closest_th = available_townhalls.closest_to(close_to)
         self.bot.do(closest_th.train(UnitTypeId.SCV))
