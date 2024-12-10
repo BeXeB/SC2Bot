@@ -19,15 +19,20 @@ std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state) {
 }
 
 void Sc2::State::advanceConstructions() {
-    const auto lastIndex = static_cast<int>(_constructions.size()) - 1;
-
-    for (int i = lastIndex; i >= 0; i--) {
-        _constructions[i].advanceTime(1);
-
-        if (_constructions[i].getIsFinished()) {
-            _constructions.erase(_constructions.begin() + i);
-        }
+    if (_constructions.empty()) {
+        return;
     }
+
+    auto constructionIter = _constructions.begin();
+
+    do {
+        constructionIter->advanceTime(1);
+        if (constructionIter->getIsFinished()) {
+            constructionIter = _constructions.erase(constructionIter);
+        } else {
+            ++constructionIter;
+        }
+    } while (constructionIter != _constructions.end());
 }
 
 void Sc2::State::advanceResources() {

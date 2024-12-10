@@ -43,63 +43,87 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 	return *it;
 }
 
-//Find the highest value of the nodes
-double Mcts::getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const {
-	const auto firstNode = nodes.begin()->second;
-	auto bestNodeValue = value(*firstNode);
+Action Mcts::weightedChoice(const std::vector<Action> &actions) {
+	std::vector<double> weights(actions.size());
 
-	for (const auto &node: nodes | std::views::values) {
-		const auto nodeValue = value(*node);
-		if (nodeValue > bestNodeValue) {
-			bestNodeValue = nodeValue;
+	for (int i = 0; i < actions.size(); ++i) {
+		switch (actions[i]) {
+			case Action::none:
+				throw std::runtime_error("Cannot choose none as an action.");
+			case Action::buildWorker:
+				weights[i] = 22.0;
+				break;
+			case Action::buildHouse:
+				weights[i] = 1.0;
+				break;
+			case Action::buildBase:
+				weights[i] = 1.0;
+				break;
+			case Action::buildVespeneCollector:
+				weights[i] = 2.0;
+				break;
 		}
 	}
 
-	return bestNodeValue;
+	std::discrete_distribution<int> dist(weights.begin(), weights.end());
+	const auto index = dist(_rng);
+	return actions[index];
 }
 
-std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children,
-                                                      const double maxValue) const {
+std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) const {
+	double maxValue = value(children.begin()->second);
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &child: std::ranges::views::values(children)) {
-		if (value(*child) == maxValue) {
-			maxNodes.emplace_back(child);
+		const auto childValue = value(child);
+		if (childValue > maxValue) {
+			maxNodes.clear();
+			maxNodes.push_back(child);
+			maxValue = childValue;
+		} else if (childValue == maxValue) {
+			maxNodes.push_back(child);
 		}
 	}
 	return maxNodes;
 }
 
 
-Mcts::NodeStatePair Mcts::selectNode() {
-	auto state = State::DeepCopy(*_rootState);
+std::shared_ptr<Node> Mcts::selectNode() {
 	auto node = _rootNode;
 
 	while (!node->children.empty()) {
-		const double maxValue = getMaxNodeValue(node->children);
-
-		std::vector<std::shared_ptr<Node> > maxNodes = getMaxNodes(node->children, maxValue);
+		std::vector<std::shared_ptr<Node> > maxNodes = getMaxNodes(node->children);
 
 		node = randomChoice(maxNodes);
-		state->performAction(node->getAction());
 
 		if (node->N == 0) {
-			return {node, state};
+			return node;
 		}
 	}
 
-	node->expand(state);
+	node->expand();
 	node = randomChoice(node->children);
-	state->performAction(node->getAction());
 
-	return {node, state};
+	return node;
 }
 
-int Mcts::rollout(const std::shared_ptr<State> &state) {
+
+int Mcts::rollout(const std::shared_ptr<Node> &node) {
+	const auto state = State::DeepCopy(*node->getState());
 	for (int i = 0; i <= MAX_DEPTH; i++) {
 		auto legalActions = state->getLegalActions();
 
-		const auto action = randomChoice(legalActions);
+		Action action;
+		switch (_rolloutHeuristic) {
+			case RolloutHeuristic::Random:
+				action = randomChoice(legalActions);
+				break;
+			case RolloutHeuristic::WeightedChoice:
+				action = weightedChoice(legalActions);
+				break;
+			default:
+				throw std::runtime_error("Invalid rollout heuristic.");
+		}
 
 		state->performAction(action);
 	}
@@ -116,8 +140,8 @@ void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
 }
 
 void Mcts::singleSearch() {
-	auto [node, state] = selectNode();
-	const auto outcome = rollout(state);
+	const auto node = selectNode();
+	const auto outcome = rollout(node);
 	backPropagate(node, outcome);
 }
 
@@ -133,13 +157,13 @@ void Mcts::search(const int timeLimit) {
 
 // Upper confidence bound applied to trees
 // Q/N + C * (sqrt(log(parent.N/N)
-double Mcts::uct(Node node) const {
-	return node.Q / static_cast<float>(node.N) + EXPLORATION * sqrt(
-		       log(static_cast<double>(node.getParent()->N) / static_cast<double>(node.N)));
+double Mcts::uct(const std::shared_ptr<Node> &node) const {
+	return node->Q / static_cast<float>(node->N) + EXPLORATION * sqrt(
+		       log(static_cast<double>(node->getParent()->N) / static_cast<double>(node->N)));
 }
 
-double Mcts::value(const Node &node) const {
-	if (node.N == 0) {
+double Mcts::value(const std::shared_ptr<Node> &node) const {
+	if (node->N == 0) {
 		if (EXPLORATION == 0) {
 			return 0;
 		}
@@ -164,18 +188,21 @@ void Mcts::performAction(Action action) {
 	// Check if the action matches any explored nodes
 	for (const auto childAction: _rootNode->children | std::views::keys) {
 		if (childAction == action) {
-			_rootState->performAction(action);
 			_rootNode = _rootNode->children[action];
+			_rootNode->setParent(nullptr);
 			return;
 		}
 	}
 }
 
 Action Mcts::getBestAction() {
-	const auto maxValue = getMaxNodeValue(_rootNode->children);
-	const auto maxNodes = getMaxNodes(_rootNode->children, maxValue);
+	const auto maxNodes = getMaxNodes(_rootNode->children);
 
 	const auto bestNode = randomChoice(maxNodes);
 
 	return bestNode->getAction();
+}
+
+void Mcts::updateRootState(const std::shared_ptr<State> &state) {
+	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
 }

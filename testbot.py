@@ -5,6 +5,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 
+from Actions.build_worker import WorkerBuilder
 from state_translator import translate_state
 
 from Actions.BuildBase import BaseBuilder
@@ -42,6 +43,7 @@ class MyBot(BotAI):
         self.vespene_builder = VespeneBuilder(self)
         self.supply_builder = SupplyBuilder(self)
         self.worker_manager = WorkerManager(self)
+        self.worker_builder = WorkerBuilder(self)
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
@@ -83,7 +85,7 @@ class MyBot(BotAI):
                 self.completed_bases.add(townhall.tag)
 
         if self.can_afford(UnitTypeId.SCV) and self.supply_left > 0:
-            self.train(UnitTypeId.SCV)
+            await self.worker_builder.build_worker()
 
         if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_cap < 200:
             await self.supply_builder.build_supply()
