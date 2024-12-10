@@ -89,7 +89,6 @@ class MyBot(BotAI):
             unit(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
         building_worker = self.workers.closest_to(unit)
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
-        # self.busy_workers.pop(building_worker.tag)
 
     # Update the busy workers for the state translator
     def update_busy_workers(self) -> None:
