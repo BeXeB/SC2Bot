@@ -10,7 +10,6 @@
 
 namespace Sc2 {
     class State;
-    // enum class Action;
 
     typedef void (State::*ConstructionFunction)();
 
