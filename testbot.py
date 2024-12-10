@@ -55,18 +55,8 @@ class MyBot(BotAI):
         translated_state = translate_state(self)
         print(translated_state)
 
-        # Update the busy workers
-        workers_to_remove = []
-        for worker in self.busy_workers:
-            self.busy_workers[worker] -= 1 / (STEPS_PER_SECOND / 4)
-            if self.busy_workers[worker] <= 0:
-                workers_to_remove.append(worker)
-        for worker in workers_to_remove:
-            self.busy_workers.pop(worker)
-
-        # Distribute workers to mine minerals and gas
-        self.worker_manager.distribute_workers()
-        self.worker_manager.speed_mine()
+        self.update_busy_workers()
+        self.manage_workers()
 
         # Bot code to automatically find next base location, and build a command center, if possible/affordable.
         # We'll have to update this later for the monte carlo tree search, but it will not be difficult whatsoever
@@ -100,6 +90,21 @@ class MyBot(BotAI):
         building_worker = self.workers.closest_to(unit)
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
         # self.busy_workers.pop(building_worker.tag)
+
+    # Update the busy workers for the state translator
+    def update_busy_workers(self) -> None:
+        workers_to_remove = []
+        for worker in self.busy_workers:
+            self.busy_workers[worker] -= 1 / (STEPS_PER_SECOND / 4)
+            if self.busy_workers[worker] <= 0:
+                workers_to_remove.append(worker)
+        for worker in workers_to_remove:
+            self.busy_workers.pop(worker)
+
+    # Manage the workers, distribute them to the correct roles, and speed mine
+    def manage_workers(self):
+        self.worker_manager.distribute_workers()
+        self.worker_manager.speed_mine()
 
 
 class PeacefulBot(BotAI):
