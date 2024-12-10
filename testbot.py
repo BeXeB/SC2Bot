@@ -1,4 +1,5 @@
 import math
+from sc2_mcts import *
 
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
@@ -57,6 +58,47 @@ class MyBot(BotAI):
 
         self.update_busy_workers()
         self.manage_workers()
+
+        bases = []
+        for base in translated_state.bases:
+            Base(
+                id=1,
+                mineral_fields=base.number_of_mineral_fields,
+                vespene_geysers=base.vespene_geysers,
+                vespene_collectors=base.vespene_collectors,
+            )
+            bases.append(base)
+        constructions = []
+        for construction in translated_state.constructions:
+            match construction.unit_type:
+                case UnitTypeId.SUPPLYDEPOT:
+                    action = Action.build_house
+                case UnitTypeId.COMMANDCENTER:
+                    action = Action.build_base
+                case UnitTypeId.REFINERY:
+                    action = Action.build_vespene_collector
+                case UnitTypeId.SCV:
+                    action = Action.build_worker
+                case _:
+                    action = Action.none
+            Construction(
+                time_left=construction.time_left,
+                action=action
+            )
+            constructions.append(construction)
+        state = state_builder(
+            minerals=translated_state.minerals,
+            vespene=translated_state.vespene,
+            population=translated_state.population,
+            incoming_population=translated_state.incoming_population,
+            population_limit=translated_state.population_limit,
+            occupied_worker_timers=translated_state.busy_workers,
+            bases=bases,
+            constructions=constructions
+        )
+        mcts = Mcts(state, 0, 100, math.sqrt(2), ValueHeuristic.UCT, RolloutHeuristic.weighted_choice)
+        mcts.search(1000)
+        best_action = mcts.get_best_action()
 
         # Bot code to automatically find next base location, and build a command center, if possible/affordable.
         # We'll have to update this later for the monte carlo tree search, but it will not be difficult whatsoever
