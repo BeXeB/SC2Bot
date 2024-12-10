@@ -13,6 +13,8 @@ class WorkerBuilder:
         # If no position is given, we will use the position of a random townhall, that is ready and has no queue
         closest_th = None
         available_townhalls = self.bot.townhalls.ready.filter(lambda t: len(t.orders) == 0)
+        if len(available_townhalls) == 0:
+            return  # No townhall is ready
         if close_to is None:
             closest_th = available_townhalls.random
         else:
