@@ -4,6 +4,7 @@
 
 #ifndef ACTIONENUM_H
 #define ACTIONENUM_H
+#include <string>
 
 enum class Action {
     none,
@@ -16,19 +17,19 @@ enum class Action {
 inline std::ostream &operator<<(std::ostream &os, const Action &action) {
     switch (action) {
         case Action::none:
-            os << "none";
+            os << std::string("none");
             break;
         case Action::buildWorker:
-            os << "buildWorker";
+            os << std::string("buildWorker");
             break;
         case Action::buildHouse:
-            os << "buildHouse";
+            os << std::string("buildHouse");
             break;
         case Action::buildBase:
-            os << "buildBase";
+            os << std::string("buildBase");
             break;
         case Action::buildVespeneCollector:
-            os << "buildVespeneCollector";
+            os << std::string("buildVespeneCollector");
             break;
     }
     return os;
