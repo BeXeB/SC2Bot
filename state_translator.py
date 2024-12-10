@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 import math
 
+from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
 
@@ -75,6 +76,13 @@ def translate_state(bot: 'MyBot') -> State:
             unit_type=str.type_id
         )
         constructions.append(construction)
+    for th in bot.townhalls:
+        if th.orders and th.orders[0].ability.id == AbilityId.COMMANDCENTERTRAIN_SCV:
+            construction = Construction(
+                time_left= (1-th.orders[0].progress) * bot.WORKER_BUILD_TIME_SECONDS,
+                unit_type=UnitTypeId.SCV
+            )
+            constructions.append(construction)
     state = State(
         minerals=bot.minerals,
         vespene=bot.vespene,
