@@ -24,6 +24,7 @@ class SupplyBuilder:
             for position in self.possible_supply_positions:
                 can_place = await self.bot.can_place_single(UnitTypeId.SUPPLYDEPOT, position)
                 if can_place:
+                    # TODO change this to the worker manager
                     worker = self.bot.select_build_worker(position)
                     if worker:
                         worker.build(UnitTypeId.SUPPLYDEPOT, position)

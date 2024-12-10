@@ -1,8 +1,12 @@
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
+from sc2.unit import Unit
 
 from Actions.BuildBase import BaseBuilder
 from Actions.VespeneExtractor import VespeneBuilder
+from Actions.build_supply import SupplyBuilder
+from Actions.build_worker import WorkerBuilder
+from worker_manager import WorkerManager
 
 
 class MyBot(BotAI):
@@ -12,6 +16,9 @@ class MyBot(BotAI):
     def __init__(self) -> None:
         self.base_builder = BaseBuilder(self)
         self.vespene_builder = VespeneBuilder(self)
+        self.worker_builder = WorkerBuilder(self)
+        self.supply_builder = SupplyBuilder(self)
+        self.worker_manager = WorkerManager(self)
         self.completed_bases = set()
 
     async def on_step(self, iteration: int) -> None:
@@ -35,8 +42,9 @@ class MyBot(BotAI):
                 await self.vespene_builder.build_vespene_extractor(townhall.position)
                 self.completed_bases.add(townhall.tag)
 
-
-
+        # Build workers
+        if self.can_afford(UnitTypeId.SCV):
+            await self.worker_builder.build_worker()
 
 
 
@@ -55,7 +63,6 @@ class PeacefulBot(BotAI):
 from sc2.bot_ai import BotAI
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
-from sc2.unit import Unit
 from sc2.units import Units
 
 from Actions.build_supply import SupplyBuilder
