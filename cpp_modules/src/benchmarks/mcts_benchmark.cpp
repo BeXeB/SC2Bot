@@ -90,7 +90,7 @@ int main() {
 	int numberOfActions = 50;
 	int numberOfRollouts = 2000;
 	int rolloutDepth = 100;
-	double exploration = sqrt(2);
+	double exploration = 0.5;//sqrt(2);
 	auto valueHeuristic = ValueHeuristic::UCT;
 	auto rolloutHeuristic = RolloutHeuristic::Random;
 	std::vector<int> results;

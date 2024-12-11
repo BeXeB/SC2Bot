@@ -36,11 +36,23 @@ namespace Sc2::Mcts {
 
 		void expand() {
 			const std::vector<Action> actions = _state->getLegalActions();
+
+			// Debug for arms
+			std::cout << "Expanding node with " << actions.size() << " actions" << std::endl;
+
+			if (actions.empty()) {
+				std::cout << "No actions to expand" << std::endl;
+				return;
+			}
+
 			addChildren(actions);
+			std::cout << "Added " << actions.size() << " children" << std::endl;
 		}
 
 		void addChildren(const std::vector<Action> &childActions) {
+			std::cout << "Adding children: " << childActions.size() << " actions" << std::endl;
 			for (const auto &childAction: childActions) {
+				std::cout << "Adding action: " << static_cast<int>(childAction) << std::endl;
 				const auto state = State::DeepCopy(*_state);
 
 				const auto childNode = std::make_shared<Node>(Node(childAction, shared_from_this(), state));

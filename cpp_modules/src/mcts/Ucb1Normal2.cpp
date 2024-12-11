@@ -3,10 +3,23 @@
 
 // Constructor which allows us to choose numArms of arms
 UCB1Normal2::UCB1Normal2(int numArms) : totalTrials(0) {
-    rewards.resize(numArms);
+  // Debug for numArms
+  if(numArms <= 0) {
+    std::cerr << "Error: numArms must be greater than 0, received: " << numArms << std::endl;
+      //throw std::invalid_argument("numArms");
+  }
+  rewards.resize(numArms);
+  std::cout << "Initialized UCB1Normal2 with " << numArms << " arms." << std::endl;
 }
 
 void UCB1Normal2::addReward(int arm, double reward) {
+    // debug
+    if (arm < 0 || arm >= rewards.size()) {
+      std::cout << "Error: arm index " << arm << " out of bounds" << std::endl;
+      throw::std::out_of_range("UCB1Normal2::addReward");
+    }
+
+    std::cout << "Adding reward for arm " << arm << " with value " << reward << std::endl;
     rewards[arm].push_back(reward);
     totalTrials++;
 }
@@ -18,6 +31,11 @@ int UCB1Normal2::selectArm() {
 
     // Ensure that we always explore the unexplored arms first
     for (size_t i = 0; i < rewards.size(); ++i) {
+      // Debug test for arm index and rewards size
+      if (i >= rewards.size()) {
+        std::cout << "Error: Accessing invalid arm index " << i << " in rewards vector" << std::endl;
+      }
+
         if (rewards[i].empty()) {
           //Debug test
           std::cout << "Arm" << i << " has no rewards. Selecting for exploration" << std::endl;

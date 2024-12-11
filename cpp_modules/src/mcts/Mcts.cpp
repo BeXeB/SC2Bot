@@ -91,12 +91,26 @@ std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shar
 std::shared_ptr<Node> Mcts::selectNode() {
 	auto node = _rootNode;
 
+	// Debug test for node
+	if (node->children.empty()) {
+		std::cout << "Expanding node because it has no children" << std::endl;
+		node->expand();
+		std::cout << "Note expanded. Number of children: " << node->children.size() << std::endl;
+	}
+
+	int iteration = 0;
 	while (!node->children.empty()) {
 		std::vector<std::shared_ptr<Node> > maxNodes = getMaxNodes(node->children);
 
 		node = randomChoice(maxNodes);
 
 		if (node->N == 0) {
+			return node;
+		}
+
+		iteration++;
+		if (iteration > 100) {
+			std::cerr << "Too many iterations!" << std::endl;
 			return node;
 		}
 	}
@@ -209,21 +223,36 @@ void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
 }
 
-double Mcts::ucb(const std::shared_ptr<Node> &node) const{
-	std::cout << "Now evaluating UCB for node with" << node->children.size() << " children" << std::endl;
+double Mcts::ucb(const std::shared_ptr<Node> &node) const {
+	std::cout << "Now evaluating UCB for node with " << node->children.size() << " children" << std::endl;
 
 	if (node->children.empty()) {
 		std::cout << "Node has no children" << std::endl;
 		return -1;
 	}
 
+	// Debug for numarms
+	if (node->children.size() <= 0) {
+		throw std::runtime_error("Invalid number of arms");
+	}
+	std::cout << "Creating UcbNormal with " << node->children.size() << " arms" << std::endl;
 	UCB1Normal2 ucbBandit(node->children.size());
+
+	// Debug
+	std::cout << "Checking children size: " << node->children.size() << std::endl;
 
 	// Add rewards
 	for (const auto& [action, child] : node->children) {
+		std::cout << "Child: " << static_cast<int>(action) << ", N: " << child->N << ", Q: " << child->Q << std::endl;
 		if (child->N > 0) {
 			std::cout << "Adding reward for action " << action << std::endl;
-			ucbBandit.addReward(static_cast<int>(action), child->Q/child->N);
+			std::cout << "Reward is: " << child->Q / child->N << std::endl;
+
+			// Ensure the arm index is valid (e.g., use the correct range for valid actions)
+			int armIndex = static_cast<int>(action) - 1;  // Subtract 1 to match action's index in the map
+			ucbBandit.addReward(armIndex, child->Q / child->N);
+		} else {
+			std::cout << "No reward for action " << action << std::endl;
 		}
 	}
 
@@ -234,4 +263,5 @@ double Mcts::ucb(const std::shared_ptr<Node> &node) const{
 	// Return the best one
 	return bestAction;
 }
+
 
