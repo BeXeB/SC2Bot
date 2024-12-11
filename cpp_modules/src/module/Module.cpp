@@ -42,7 +42,7 @@ namespace pymodule {
 			py::arg("id"),
 			py::arg("mineral_fields"),
 			py::arg("vespene_geysers"),
-			py::arg("vespene_collectors"),)
+			py::arg("vespene_collectors"))
 		.def(py::init<>())
 		.def_readwrite("id", &Sc2::Base::id)
 		.def_readwrite("mineral_fields", &Sc2::Base::mineralFields)
