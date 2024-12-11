@@ -53,7 +53,7 @@ namespace pymodule {
 		.value("none", Action::none)
 		.value("build_worker", Action::buildWorker)
 		.value("build_base", Action::buildBase)
-		.value("build_vespene_collectors", Action::buildVespeneCollector)
+		.value("build_vespene_collector", Action::buildVespeneCollector)
 		.value("build_house", Action::buildHouse);
 
 		py::enum_<ValueHeuristic>(module, "ValueHeuristic")
