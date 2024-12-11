@@ -18,7 +18,7 @@ namespace pymodule {
 						 py::arg("population_limit"),
 						 py::arg("bases"),
 						 py::arg("constructions"),
-						 py::arg("occupiedWorkerTimers"));
+						 py::arg("occupied_worker_timers"));
 
 		py::class_<Sc2::State, std::shared_ptr<Sc2::State> >(module, "State") 
 				.def(py::init<>())

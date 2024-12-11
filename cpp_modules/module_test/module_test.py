@@ -13,9 +13,19 @@ constructions = [
     Construction(1, Action.build_worker),
     Construction(3, Action.build_worker)
 ]
+
+bases.append(Base(id=1, mineral_fields=4, vespene_geysers=2, vespene_collectors=1))
+
 occupied_worker_timers = [1, 2, 3]
 
-state : State = state_builder(minerals, vespene, population, incoming_population, population_limit, bases, constructions, occupied_worker_timers)
+state : State = state_builder(minerals=minerals,
+                              vespene=vespene,
+                              population=population,
+                              incoming_population=incoming_population,
+                              population_limit=population_limit,
+                              bases=bases,
+                              constructions=constructions,
+                              occupied_worker_timers=occupied_worker_timers)
 
 print(state.to_string())
 
