@@ -18,7 +18,7 @@ namespace pymodule {
 						 py::arg("population_limit"),
 						 py::arg("bases"),
 						 py::arg("constructions"),
-						 py::arg("occupied_worker_timers"));
+						 py::arg("occupiedWorkerTimers"));
 
 		py::class_<Sc2::State, std::shared_ptr<Sc2::State> >(module, "State") 
 				.def(py::init<>())
@@ -31,15 +31,18 @@ namespace pymodule {
 				.def("get_population_limit", &Sc2::State::getPopulationLimit)
 				.def("get_population", &Sc2::State::getPopulation)
 				.def("get_occupied_population", &Sc2::State::getOccupiedPopulation)
-				.def("get_mineral_gained_per_time_step", &Sc2::State::mineralGainedPerTimestep)
-				.def("get_vespene_gained_per_time_step", &Sc2::State::vespeneGainedPerTimestep)
+				.def("mineral_gained_per_time_step", &Sc2::State::mineralGainedPerTimestep)
+				.def("vespene_gained_per_time_step", &Sc2::State::vespeneGainedPerTimestep)
 				.def("get_mineral_workers", &Sc2::State::getMineralWorkers)
 				.def("get_vespene_workers", &Sc2::State::getVespeneWorkers)
 				.def_readwrite("id", &Sc2::State::id);
 
 		py::class_<Sc2::Base>(module, "Base")
 		.def(py::init<const int, const int, const int, const int>(),
-			py::arg("id"), py::arg("mineral_fields"), py::arg("vespene_geysers"), py::arg("vespene_collectors"))
+			py::arg("id"),
+			py::arg("mineral_fields"),
+			py::arg("vespene_geysers"),
+			py::arg("vespene_collectors"),)
 		.def(py::init<>())
 		.def_readwrite("id", &Sc2::Base::id)
 		.def_readwrite("mineral_fields", &Sc2::Base::mineralFields)
@@ -61,7 +64,9 @@ namespace pymodule {
 		.value("weighted_choice", RolloutHeuristic::WeightedChoice);
 		
 		py::class_<Sc2::Construction>(module, "Construction")
-		.def(py::init<const int, Action>(), py::arg("time_left"), py::arg("action"))
+		.def(py::init<const int, Action>(),
+			py::arg("time_left"),
+			py::arg("action"))
 		.def("get_time_left", &Sc2::Construction::getTimeLeft);
 
 		py::class_<Sc2::Mcts::Node, std::shared_ptr<Sc2::Mcts::Node>>(module, "Node")
