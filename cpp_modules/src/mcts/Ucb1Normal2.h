@@ -15,6 +15,7 @@ private:
     double calculateVariance(const std::vector<double>& samples, double mean);
 
 public:
+    UCB1Normal2() : totalTrials(0) {}
     explicit UCB1Normal2(int numArms);
     void addReward(int arm, double reward);
     int selectArm();

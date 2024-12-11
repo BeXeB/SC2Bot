@@ -97,15 +97,25 @@ int main() {
 
 	int result;
 
-	result = benchmark(1, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
+	// Benchmark 1: UCT with Random as the rollout heuristic
+	/*result = benchmark(1, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
 	                   rolloutHeuristic);
 	results.push_back(result);
 
+	// Benchmark 2: UCT with weighted choice as the rollout heuristic
 	rolloutHeuristic = RolloutHeuristic::WeightedChoice;
 
 	result = benchmark(2, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
 	                   rolloutHeuristic, true);
+	results.push_back(result);*/
+
+	// Benchmark 3: UCB1-Normal2 with random as the rollout heuristic
+	valueHeuristic = ValueHeuristic::UcbNormal;
+	rolloutHeuristic = RolloutHeuristic::Random;
+	result = benchmark(3, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
+						rolloutHeuristic);
 	results.push_back(result);
 
+	// Print all the results of our benchmarks
 	printResults(results);
 }

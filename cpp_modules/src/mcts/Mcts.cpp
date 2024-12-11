@@ -173,6 +173,8 @@ double Mcts::value(const std::shared_ptr<Node> &node) const {
 	switch (_valueHeuristic) {
 		case ValueHeuristic::UCT:
 			return uct(node);
+		case ValueHeuristic::UcbNormal:
+			return ucb(node);
 		default:
 			return 0;
 	}
@@ -206,3 +208,30 @@ Action Mcts::getBestAction() {
 void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
 }
+
+double Mcts::ucb(const std::shared_ptr<Node> &node) const{
+	std::cout << "Now evaluating UCB for node with" << node->children.size() << " children" << std::endl;
+
+	if (node->children.empty()) {
+		std::cout << "Node has no children" << std::endl;
+		return -1;
+	}
+
+	UCB1Normal2 ucbBandit(node->children.size());
+
+	// Add rewards
+	for (const auto& [action, child] : node->children) {
+		if (child->N > 0) {
+			std::cout << "Adding reward for action " << action << std::endl;
+			ucbBandit.addReward(static_cast<int>(action), child->Q/child->N);
+		}
+	}
+
+	// Select the arm with the highest score
+	int bestAction = ucbBandit.selectArm();
+	std::cout << "Best action: " << bestAction << std::endl;
+
+	// Return the best one
+	return bestAction;
+}
+

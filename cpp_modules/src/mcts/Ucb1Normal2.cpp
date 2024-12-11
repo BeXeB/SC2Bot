@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Ucb1Normal2.h"
 
 // Constructor which allows us to choose numArms of arms
@@ -18,6 +19,8 @@ int UCB1Normal2::selectArm() {
     // Ensure that we always explore the unexplored arms first
     for (size_t i = 0; i < rewards.size(); ++i) {
         if (rewards[i].empty()) {
+          //Debug test
+          std::cout << "Arm" << i << " has no rewards. Selecting for exploration" << std::endl;
             return i;
         }
 

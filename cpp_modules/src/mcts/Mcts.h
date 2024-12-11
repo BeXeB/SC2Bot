@@ -11,6 +11,7 @@
 #include "Node.h"
 #include "ValueHeuristicEnum.h"
 #include "RolloutHeuristicEnum.h"
+#include "Ucb1Normal2.h"
 
 
 namespace Sc2::Mcts {
@@ -31,6 +32,10 @@ namespace Sc2::Mcts {
 		int _numberOfRollouts = 0;
 
 		const int MAX_DEPTH = 100;
+
+		// UCB
+		[[nodiscard]] double ucb(const std::shared_ptr<Node>& node) const;
+		mutable UCB1Normal2 _ucbBandit;
 
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
@@ -108,12 +113,15 @@ namespace Sc2::Mcts {
 		                                                         _rolloutHeuristic(rolloutHeuristic),
 		                                                         _rootNode(std::make_shared<Node>(
 			                                                         Node(Action::none, nullptr,
-			                                                              State::DeepCopy(*rootState)))) {
+			                                                              State::DeepCopy(*rootState)))),
+																 _ucbBandit(0) {
 			_rng = std::mt19937(seed);
 		}
 
 		Mcts(const std::shared_ptr<State> &rootState): _rootNode(
-			std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
+			std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))),
+			_ucbBandit(0)
+		{
 			_rng = std::mt19937(std::random_device{}());
 		}
 	};
