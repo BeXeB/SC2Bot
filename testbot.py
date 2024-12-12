@@ -51,20 +51,21 @@ class MyBot(BotAI):
         self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
         self.mcts = Mcts(State(), 0, 100, math.sqrt(2), ValueHeuristic.UCT, RolloutHeuristic.weighted_choice)
-        self.mcts_thread = threading.Thread(target=self.mcts_search_thread)
-        self.mcts_thread.start()
-        self.next_action_mutex = threading.Lock()
+        self.search_time = math.floor((1/STEPS_PER_SECOND*3.5)*1000/4)
+        # self.mcts_thread = threading.Thread(target=self.mcts_search_thread)
+        # self.mcts_thread.start()
+        # self.next_action_mutex = threading.Lock()
 
-    def mcts_search_thread(self):
-        while True:
-            self.mcts.search(100)
-            while not self.next_action == Action.none:
-                self.mcts.search(500)
-                print("Search")
-            with self.next_action_mutex:
-                self.next_action = self.mcts.get_best_action()
-                print(f"Best action: {self.next_action}")
-            self.mcts.update_root_state(translate_state(self))
+    # def mcts_search_thread(self):
+    #     while True:
+    #         self.mcts.search(100)
+    #         while not self.next_action == Action.none:
+    #             self.mcts.search(500)
+    #             print("Search")
+    #         with self.next_action_mutex:
+    #             self.next_action = self.mcts.get_best_action()
+    #             print(f"Best action: {self.next_action}")
+    #         self.mcts.update_root_state(translate_state(self))
 
 
     async def on_step(self, iteration: int) -> None:
@@ -79,13 +80,15 @@ class MyBot(BotAI):
         self.update_busy_workers()
         self.manage_workers()
 
+        self.mcts.search(self.search_time)
+
         match self.next_action:
             case Action.build_base:
                 if not self.can_afford(UnitTypeId.COMMANDCENTER):
                     return
                 new_base_location = await self.base_builder.find_next_base_location()
                 self.build_base(new_base_location)
-                # self.set_next_action()
+                self.set_next_action()
             case Action.build_vespene_collector:
                 if not self.can_afford(UnitTypeId.REFINERY):
                     return
@@ -95,22 +98,25 @@ class MyBot(BotAI):
                     await self.vespene_builder.build_vespene_extractor(self.townhalls.random.position)
                     # TODO only add to completed if all the vespene extractors are built
                     self.completed_bases.add(th.tag)
-                # self.set_next_action()
+                self.set_next_action()
             case Action.build_worker:
                 if not self.can_afford(UnitTypeId.SCV):
                     return
                 # TODO if we are unable to build an scv, wait
                 await self.worker_builder.build_worker()
-                # self.set_next_action()
+                self.set_next_action()
             case Action.build_house:
                 if not self.can_afford(UnitTypeId.SUPPLYDEPOT):
                     return
                 await self.supply_builder.build_supply()
-                # self.set_next_action()
+                self.set_next_action()
+            case Action.none:
+                self.next_action = self.mcts.get_best_action()
+                self.mcts.update_root_state(translate_state(self))
 
     def set_next_action(self, action: Action = Action.none):
-        with self.next_action_mutex:
-            self.next_action = action
+        # with self.next_action_mutex:
+        self.next_action = action
 
     async def on_building_construction_complete(self, unit: Unit) -> None:
         if unit.type_id == UnitTypeId.COMMANDCENTER:
