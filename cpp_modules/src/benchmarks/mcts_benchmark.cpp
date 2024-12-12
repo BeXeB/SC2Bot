@@ -21,19 +21,20 @@ void printRootNode(const std::shared_ptr<Node> &rootNode) {
 	}
 }
 
-int benchmark(const int benchmarkIndex, const unsigned int seed, const int numberOfActions, const int numberOfRollouts,
-              const int rolloutDepth, const double exploration, const ValueHeuristic valueHeuristic,
-              const RolloutHeuristic rolloutHeuristic, const bool shouldPrintActions = false) {
-	const auto state = std::make_shared<Sc2::State>();
+int benchmarkOnActions(const int benchmarkIndex, const unsigned int seed, const int numberOfActions,
+                       const int numberOfRollouts,
+                       const int rolloutEndTime, const double exploration, const ValueHeuristic valueHeuristic,
+                       const RolloutHeuristic rolloutHeuristic, const bool shouldPrintActions = false) {
+	auto state = std::make_shared<Sc2::State>(rolloutEndTime);
 
-	const auto mcts = new Mcts(state, seed, rolloutDepth, exploration, valueHeuristic, rolloutHeuristic);
+	const auto mcts = new Mcts(state, seed, rolloutEndTime, exploration, valueHeuristic, rolloutHeuristic);
 
 	std::cout << "MCTS Benchmark " << benchmarkIndex << ": {" << std::endl
 			<< "\t" << "Seed: " << seed << std::endl
 			<< "\t" << "Number of actions: " << numberOfActions << std::endl
 			<< "\t" << "Number of rollouts: " << numberOfRollouts << std::endl
 			<< "\t" << "Exploration: " << exploration << std::endl
-			<< "\t" << "Rollout depth: " << rolloutDepth << std::endl
+			<< "\t" << "Rollout depth: " << rolloutEndTime << std::endl
 			<< "\t" << "Value heuristic: " << valueHeuristic << std::endl
 			<< "\t" << "Rollout heuristic: " << rolloutHeuristic << std::endl
 			<< "}" << std::endl;
@@ -48,16 +49,58 @@ int benchmark(const int benchmarkIndex, const unsigned int seed, const int numbe
 			std::cout << "Action: " << action << ", Index: " << i << std::endl;
 
 		state->performAction(action);
+		// state->resetCurrentTime();
 	}
 	const int stateValue = state->getValue();
 	std::cout << "Benchmark " << benchmarkIndex << " State value: " << stateValue << std::endl << std::endl
+			<< "Current time of state: " << state->getCurrentTime() << std::endl << std::endl
+			<< "------------------------------------------------------------------" << std::endl << std::endl;
+
+	return stateValue;
+}
+
+int benchmarkOnTime(const int benchmarkIndex, const unsigned int seed, const int numberOfRollouts,
+                    const int endTime, const double exploration, const ValueHeuristic valueHeuristic,
+                    const RolloutHeuristic rolloutHeuristic, const bool shouldPrintActions = false) {
+	auto state = std::make_shared<Sc2::State>(endTime);
+
+	const auto mcts = new Mcts(state, seed, endTime, exploration, valueHeuristic, rolloutHeuristic);
+
+	std::cout << "MCTS Benchmark " << benchmarkIndex << ": {" << std::endl
+			<< "\t" << "Seed: " << seed << std::endl
+			<< "\t" << "Time to perform actions: " << endTime << std::endl
+			<< "\t" << "Number of rollouts: " << numberOfRollouts << std::endl
+			<< "\t" << "Exploration: " << exploration << std::endl
+			<< "\t" << "Rollout depth: " << endTime << std::endl
+			<< "\t" << "Value heuristic: " << valueHeuristic << std::endl
+			<< "\t" << "Rollout heuristic: " << rolloutHeuristic << std::endl
+			<< "}" << std::endl;
+
+	int i = 0;
+	while (!state->endTimeReached()) {
+		mcts->updateRootState(state);
+
+		mcts->searchRollout(numberOfRollouts);
+		const Action action = mcts->getBestAction();
+
+		if (shouldPrintActions)
+			std::cout << "Action: " << action << ", Index: " << i << std::endl
+					<< "Current time of state: " << state->getCurrentTime() << std::endl;
+
+
+		state->performAction(action);
+		i++;
+	}
+	const int stateValue = state->getValue();
+	std::cout << "Benchmark " << benchmarkIndex << " State value: " << stateValue << std::endl << std::endl
+			<< "Current time of state: " << state->getCurrentTime() << std::endl << std::endl
 			<< "------------------------------------------------------------------" << std::endl << std::endl;
 
 	return stateValue;
 }
 
 void dumbBenchmark() {
-	const auto state = std::make_shared<Sc2::State>();
+	const auto state = std::make_shared<Sc2::State>(100);
 
 	for (auto i = 0; i < 20; i++) {
 		state->performAction(Action::buildWorker);
@@ -89,7 +132,7 @@ int main() {
 	// const unsigned int seed = std::random_device()();
 	int numberOfActions = 50;
 	int numberOfRollouts = 2000;
-	int rolloutDepth = 100;
+	int rolloutEndTime = 500;
 	double exploration = sqrt(2);
 	auto valueHeuristic = ValueHeuristic::UCT;
 	auto rolloutHeuristic = RolloutHeuristic::Random;
@@ -97,14 +140,23 @@ int main() {
 
 	int result;
 
-	result = benchmark(1, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
-	                   rolloutHeuristic);
-	results.push_back(result);
-
+	// result = benchmarkOnActions(1, seed, numberOfActions, numberOfRollouts, rolloutEndTime, exploration, valueHeuristic,
+	//                             rolloutHeuristic);
+	// results.push_back(result);
+	//
+	// rolloutHeuristic = RolloutHeuristic::WeightedChoice;
+	//
+	//
+	// result = benchmarkOnActions(2, seed, numberOfActions, numberOfRollouts, rolloutEndTime, exploration, valueHeuristic,
+	//                             rolloutHeuristic);
+	//
+	// results.push_back(result);
+	//
+	// rolloutHeuristic = RolloutHeuristic::Random;
+	// result = benchmarkOnTime(3, seed, numberOfRollouts, rolloutEndTime, exploration, valueHeuristic, rolloutHeuristic);
+	// results.push_back(result);
 	rolloutHeuristic = RolloutHeuristic::WeightedChoice;
-
-	result = benchmark(2, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
-	                   rolloutHeuristic, true);
+	result = benchmarkOnTime(4, seed, numberOfRollouts, rolloutEndTime, exploration, valueHeuristic, rolloutHeuristic);
 	results.push_back(result);
 
 	printResults(results);

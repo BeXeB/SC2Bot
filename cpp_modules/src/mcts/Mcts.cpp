@@ -44,28 +44,28 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 }
 
 Action Mcts::weightedChoice(const std::vector<Action> &actions) {
-	std::vector<double> weights(actions.size());
+	_actionWeights.resize(actions.size());
 
 	for (int i = 0; i < actions.size(); ++i) {
 		switch (actions[i]) {
 			case Action::none:
 				throw std::runtime_error("Cannot choose none as an action.");
 			case Action::buildWorker:
-				weights[i] = 22.0;
+				_actionWeights[i] = 22.0;
 				break;
 			case Action::buildHouse:
-				weights[i] = 1.0;
+				_actionWeights[i] = 1.0;
 				break;
 			case Action::buildBase:
-				weights[i] = 1.0;
+				_actionWeights[i] = 1.0;
 				break;
 			case Action::buildVespeneCollector:
-				weights[i] = 2.0;
+				_actionWeights[i] = 2.0;
 				break;
 		}
 	}
 
-	std::discrete_distribution<int> dist(weights.begin(), weights.end());
+	std::discrete_distribution<int> dist(_actionWeights.begin(), _actionWeights.end());
 	const auto index = dist(_rng);
 	return actions[index];
 }
@@ -110,7 +110,7 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 int Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState());
-	for (int i = 0; i <= MAX_DEPTH; i++) {
+	while (!state->endTimeReached()) {
 		auto legalActions = state->getLegalActions();
 
 		Action action;
@@ -128,7 +128,10 @@ int Mcts::rollout(const std::shared_ptr<Node> &node) {
 		state->performAction(action);
 	}
 
-	return state->getValue();
+	return
+			state
+			->
+			getValue();
 }
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {

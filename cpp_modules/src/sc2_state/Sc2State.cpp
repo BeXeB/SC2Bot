@@ -54,6 +54,7 @@ void Sc2::State::advanceOccupiedWorkers() {
 
 void Sc2::State::advanceTime(int amount) {
     for (int i = 0; i < amount; i++) {
+        _currentTime++;
         advanceResources();
         advanceOccupiedWorkers();
         advanceConstructions();

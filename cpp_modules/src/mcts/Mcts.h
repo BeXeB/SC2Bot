@@ -20,7 +20,7 @@ namespace Sc2::Mcts {
 		std::mt19937 _rng;
 
 		const double EXPLORATION = sqrt(2);
-		const int ROLLOUT_DEPTH = 100;
+		const int ROLLOUT_END_TIME = 100;
 		ValueHeuristic _valueHeuristic = ValueHeuristic::UCT;
 		RolloutHeuristic _rolloutHeuristic = RolloutHeuristic::Random;
 
@@ -30,6 +30,8 @@ namespace Sc2::Mcts {
 		int _numberOfRollouts = 0;
 
 		const int MAX_DEPTH = 100;
+
+		std::vector<double> _actionWeights = std::vector<double>(10);
 
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
@@ -66,14 +68,17 @@ namespace Sc2::Mcts {
 		Action getBestAction();
 		void updateRootState(const std::shared_ptr<State> &state);
 
-		void updateRootState(const int minerals, const int vespene, const int population,
+		void updateRootState(const int minerals,
+		                     const int vespene,
+		                     const int population,
 		                     const int incomingPopulation,
 		                     const int populationLimit,
 		                     const std::vector<Base> &bases,
 		                     std::list<Construction> &constructions,
-		                     const std::vector<int> &occupiedWorkerTimers) {
+		                     const std::vector<int> &occupiedWorkerTimers,
+		                     const int endTime) {
 			const auto state = State::StateBuilder(minerals, vespene, population, incomingPopulation, populationLimit,
-			                                       bases, constructions, occupiedWorkerTimers);
+			                                       bases, constructions, occupiedWorkerTimers, endTime);
 
 			updateRootState(state);
 		}
@@ -105,16 +110,17 @@ namespace Sc2::Mcts {
 			std::string str;
 			str += "MCTS: { \n";
 			str += std::format("Exploration: {}", EXPLORATION) + "\n";
-			str += std::format("Rollout Depth: {}", ROLLOUT_DEPTH) + "\n";
+			str += std::format("Rollout Depth: {}", ROLLOUT_END_TIME) + "\n";
 			str += std::format("Value Heuristic: {} ", valueHeuristicStr) + "\n";
 			str += std::format("Rollout Heuristic: {} ", rolloutHeuristicStr) + "\n";
 			str += "} \n";
 			return str;
 		};
 
-		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed, const int rolloutDepth,
+		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed, const int rolloutEndTime,
 		              const double exploration, const ValueHeuristic valueHeuristic,
-		              const RolloutHeuristic rolloutHeuristic) : EXPLORATION(exploration), ROLLOUT_DEPTH(rolloutDepth),
+		              const RolloutHeuristic rolloutHeuristic) : EXPLORATION(exploration),
+		                                                         ROLLOUT_END_TIME(rolloutEndTime),
 		                                                         _valueHeuristic(valueHeuristic),
 		                                                         _rolloutHeuristic(rolloutHeuristic),
 		                                                         _rootNode(std::make_shared<Node>(
@@ -123,13 +129,13 @@ namespace Sc2::Mcts {
 			_rng = std::mt19937(seed);
 		}
 
-		Mcts(const std::shared_ptr<State> &rootState): _rootNode(
+		explicit Mcts(const std::shared_ptr<State> &rootState): _rootNode(
 			std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
 			_rng = std::mt19937(std::random_device{}());
 		}
 
 		Mcts() {
-			auto rootState = std::make_shared<State>();
+			auto rootState = std::make_shared<State>(ROLLOUT_END_TIME);
 			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
 			_rng = std::mt19937(std::random_device{}());
 		}
