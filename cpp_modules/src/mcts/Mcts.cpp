@@ -67,6 +67,7 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 
 	std::discrete_distribution<int> dist(_actionWeights.begin(), _actionWeights.end());
 	const auto index = dist(_rng);
+
 	return actions[index];
 }
 
@@ -101,8 +102,10 @@ std::shared_ptr<Node> Mcts::selectNode() {
 		}
 	}
 
-	node->expand();
-	node = randomChoice(node->children);
+	if (!node->gameOver()) {
+		node->expand();
+		node = randomChoice(node->children);
+	}
 
 	return node;
 }
@@ -128,10 +131,7 @@ int Mcts::rollout(const std::shared_ptr<Node> &node) {
 		state->performAction(action);
 	}
 
-	return
-			state
-			->
-			getValue();
+	return state->getValue();
 }
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {

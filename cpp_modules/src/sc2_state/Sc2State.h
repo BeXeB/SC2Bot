@@ -42,7 +42,7 @@ namespace Sc2 {
         void advanceConstructions();
         void advanceResources();
         void advanceOccupiedWorkers();
-        void advanceTime(int amount);
+        void advanceTime();
 
         bool hasEnoughMinerals(const int cost) const { return _minerals >= cost; };
         bool hasEnoughVespene(const int cost) const { return _vespene >= cost; }
@@ -191,7 +191,8 @@ namespace Sc2 {
         explicit State(const int endTime): _endTime(endTime) {
         }
 
-        // State() = default;
+        State(): _endTime(1000) {
+        }
 
         std::string toString() const {
             std::string str;

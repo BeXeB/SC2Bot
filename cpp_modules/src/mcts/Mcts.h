@@ -29,9 +29,8 @@ namespace Sc2::Mcts {
 		int _nodeCount = 0;
 		int _numberOfRollouts = 0;
 
-		const int MAX_DEPTH = 100;
-
 		std::vector<double> _actionWeights = std::vector<double>(10);
+		std::discrete_distribution<int> _weightedDist = std::discrete_distribution<int>();
 
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;

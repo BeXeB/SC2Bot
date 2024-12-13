@@ -52,21 +52,21 @@ void Sc2::State::advanceOccupiedWorkers() {
     }
 }
 
-void Sc2::State::advanceTime(int amount) {
-    for (int i = 0; i < amount; i++) {
-        _currentTime++;
-        advanceResources();
-        advanceOccupiedWorkers();
-        advanceConstructions();
-    }
+void Sc2::State::advanceTime() {
+    _currentTime++;
+    advanceResources();
+    advanceOccupiedWorkers();
+    advanceConstructions();
 }
 
 void Sc2::State::wait() {
-    advanceTime(1);
+    advanceTime();
 }
 
 void Sc2::State::wait(const int amount) {
-    advanceTime(amount);
+    for (int i = 0; i < amount; i++) {
+        advanceTime();
+    }
 }
 
 int Sc2::State::getVespeneCollectorsAmount() {
@@ -167,14 +167,14 @@ void Sc2::State::addVespeneCollector() {
 void Sc2::State::buildVespeneCollector() {
     while (!canAffordConstruction(buildVespeneCollectorCost)) {
         const auto initialMineral = _minerals;
-        advanceTime(1);
+        advanceTime();
         if (initialMineral == _minerals) {
             return;
         }
     }
 
     while (!hasUnoccupiedWorker()) {
-        advanceTime(1);
+        advanceTime();
     }
 
     if (hasUnoccupiedGeyser()) {
@@ -193,14 +193,14 @@ void Sc2::State::buildVespeneCollector() {
 void Sc2::State::buildBase() {
     while (!canAffordConstruction(buildBaseCost)) {
         const auto initialMineral = _minerals;
-        advanceTime(1);
+        advanceTime();
         if (initialMineral == _minerals) {
             return;
         }
     }
 
     while (!hasUnoccupiedWorker()) {
-        advanceTime(1);
+        advanceTime();
     }
 
     _minerals -= buildBaseCost.minerals;
@@ -213,7 +213,7 @@ void Sc2::State::buildBase() {
 void Sc2::State::buildWorker() {
     while (!canAffordConstruction(buildWorkerCost)) {
         const auto initialMineral = _minerals;
-        advanceTime(1);
+        advanceTime();
         if (initialMineral == _minerals) {
             return;
         }
@@ -232,14 +232,14 @@ void Sc2::State::buildWorker() {
 void Sc2::State::buildHouse() {
     while (!canAffordConstruction(buildHouseCost)) {
         const auto initialMineral = _minerals;
-        advanceTime(1);
+        advanceTime();
         if (initialMineral == _minerals) {
             return;
         }
     }
 
     while (!hasUnoccupiedWorker()) {
-        advanceTime(1);
+        advanceTime();
     }
 
     _minerals -= buildHouseCost.minerals;
