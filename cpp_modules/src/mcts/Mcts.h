@@ -7,6 +7,7 @@
 #include <random>
 #include <utility>
 #include <Sc2State.h>
+#include <thread>
 
 #include "Node.h"
 #include "ValueHeuristicEnum.h"
@@ -29,7 +30,12 @@ namespace Sc2::Mcts {
 		int _nodeCount = 0;
 		int _numberOfRollouts = 0;
 
+		std::thread _searchThread;
+		std::mutex _mctsMutex;
+		bool _running = false;
+
 		const int MAX_DEPTH = 100;
+
 
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
@@ -39,6 +45,7 @@ namespace Sc2::Mcts {
 		std::vector<std::shared_ptr<Node> > getMaxNodes(
 			std::map<Action, std::shared_ptr<Node> > &children) const;
 		void singleSearch();
+		void threadedSearch();
 
 	public:
 		[[nodiscard]] std::shared_ptr<Node> getRootNode() { return _rootNode; }
@@ -60,6 +67,8 @@ namespace Sc2::Mcts {
 
 		void search(int timeLimit);
 		void searchRollout(int rollouts);
+		void stopSearchThread();
+		void startSearchThread();
 
 		void performAction(Action action);
 

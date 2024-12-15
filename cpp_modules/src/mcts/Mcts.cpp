@@ -145,12 +145,36 @@ void Mcts::singleSearch() {
 	backPropagate(node, outcome);
 }
 
+void Mcts::threadedSearch() {
+	while (_running) {
+		_mctsMutex.lock();
+		singleSearch();
+		_mctsMutex.unlock();
+	}
+}
+
+void Mcts::stopSearchThread() {
+	_running = false;
+	_searchThread.join();
+}
+
+void Mcts::startSearchThread() {
+	_running = true;
+	_searchThread = std::thread(&Mcts::threadedSearch, this);
+}
+
 void Mcts::search(const int timeLimit) {
 	const auto endTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch())
 	                     .count() + timeLimit;
 
 	while (duration_cast<milliseconds>(system_clock::now().time_since_epoch())
 	       .count() < endTime) {
+		singleSearch();
+	}
+}
+
+void Mcts::searchRollout(const int rollouts) {
+	for (int i = 0; i < rollouts; i++) {
 		singleSearch();
 	}
 }
@@ -178,11 +202,6 @@ double Mcts::value(const std::shared_ptr<Node> &node) const {
 	}
 }
 
-void Mcts::searchRollout(const int rollouts) {
-	for (int i = 0; i < rollouts; i++) {
-		singleSearch();
-	}
-}
 
 void Mcts::performAction(Action action) {
 	// Check if the action matches any explored nodes
@@ -196,7 +215,9 @@ void Mcts::performAction(Action action) {
 }
 
 Action Mcts::getBestAction() {
+	_mctsMutex.lock();
 	const auto maxNodes = getMaxNodes(_rootNode->children);
+	_mctsMutex.unlock();
 
 	const auto bestNode = randomChoice(maxNodes);
 
@@ -204,5 +225,7 @@ Action Mcts::getBestAction() {
 }
 
 void Mcts::updateRootState(const std::shared_ptr<State> &state) {
+	_mctsMutex.lock();
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
+	_mctsMutex.unlock();
 }

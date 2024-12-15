@@ -84,6 +84,29 @@ void printResults(const std::vector<int> &results) {
 	}
 }
 
+int threadedMcts(const int benchmarkIndex, const unsigned int seed, const int numberOfActions,
+
+                 const int rolloutDepth, const double exploration, const ValueHeuristic valueHeuristic,
+                 const RolloutHeuristic rolloutHeuristic, const bool shouldPrintActions = false) {
+	auto state = std::make_shared<Sc2::State>();
+	auto mcts = Mcts(state, seed, rolloutDepth, exploration, valueHeuristic, rolloutHeuristic);
+	mcts.startSearchThread();
+	for (auto i = 0; i < numberOfActions; i++) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		auto action = mcts.getBestAction();
+		state->performAction(action);
+		mcts.updateRootState(state);
+		if (shouldPrintActions)
+			std::cout << "Action: " << action << ", Index: " << i << std::endl;
+	}
+	mcts.stopSearchThread();
+	auto stateValue = state->getValue();
+	std::cout << "number of actions: taken: " << numberOfActions << std::endl;
+	std::cout << "threaded Mcts " << benchmarkIndex << " State value: " << stateValue << std::endl << std::endl
+			<< "------------------------------------------------------------------" << std::endl << std::endl;
+	return stateValue;
+}
+
 int main() {
 	constexpr unsigned int seed = 3942438306;
 	// const unsigned int seed = std::random_device()();
@@ -97,15 +120,18 @@ int main() {
 
 	int result;
 
-	result = benchmark(1, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
-	                   rolloutHeuristic);
+	// result = benchmark(1, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
+	//                    rolloutHeuristic);
+	// results.push_back(result);
+	//
+	// rolloutHeuristic = RolloutHeuristic::WeightedChoice;
+	//
+	// result = benchmark(2, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
+	//                    rolloutHeuristic, false);
+	// results.push_back(result);
+
+	result = threadedMcts(2, seed, numberOfActions, rolloutDepth, exploration, valueHeuristic,
+	                      rolloutHeuristic, true);
 	results.push_back(result);
-
-	rolloutHeuristic = RolloutHeuristic::WeightedChoice;
-
-	result = benchmark(2, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
-	                   rolloutHeuristic, true);
-	results.push_back(result);
-
 	printResults(results);
 }
