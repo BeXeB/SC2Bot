@@ -147,9 +147,11 @@ void Mcts::singleSearch() {
 
 void Mcts::threadedSearch() {
 	while (_running) {
-		_mctsMutex.lock();
-		singleSearch();
-		_mctsMutex.unlock();
+		if (!_mctsRequestsPending) {
+			_mctsMutex.lock();
+			singleSearch();
+			_mctsMutex.unlock();
+		}
 	}
 }
 
@@ -215,9 +217,11 @@ void Mcts::performAction(Action action) {
 }
 
 Action Mcts::getBestAction() {
+	_mctsRequestsPending = true;
 	_mctsMutex.lock();
 	const auto maxNodes = getMaxNodes(_rootNode->children);
 	_mctsMutex.unlock();
+	_mctsRequestsPending = false;
 
 	const auto bestNode = randomChoice(maxNodes);
 
@@ -225,7 +229,9 @@ Action Mcts::getBestAction() {
 }
 
 void Mcts::updateRootState(const std::shared_ptr<State> &state) {
+	_mctsRequestsPending = true;
 	_mctsMutex.lock();
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
 	_mctsMutex.unlock();
+	_mctsRequestsPending = false;
 }

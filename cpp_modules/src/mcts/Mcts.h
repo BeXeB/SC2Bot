@@ -32,7 +32,8 @@ namespace Sc2::Mcts {
 
 		std::thread _searchThread;
 		std::mutex _mctsMutex;
-		bool _running = false;
+		std::atomic<bool> _running = false;
+		std::atomic<bool> _mctsRequestsPending;
 
 		const int MAX_DEPTH = 100;
 

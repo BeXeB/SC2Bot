@@ -92,7 +92,7 @@ int threadedMcts(const int benchmarkIndex, const unsigned int seed, const int nu
 	auto mcts = Mcts(state, seed, rolloutDepth, exploration, valueHeuristic, rolloutHeuristic);
 	mcts.startSearchThread();
 	for (auto i = 0; i < numberOfActions; i++) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 		auto action = mcts.getBestAction();
 		state->performAction(action);
 		mcts.updateRootState(state);
