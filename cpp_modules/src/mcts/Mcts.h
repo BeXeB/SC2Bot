@@ -8,6 +8,7 @@
 #include <utility>
 #include <Sc2State.h>
 #include <thread>
+#include <mutex>
 
 #include "Node.h"
 #include "ValueHeuristicEnum.h"
@@ -49,8 +50,19 @@ namespace Sc2::Mcts {
 		void threadedSearch();
 
 	public:
-		[[nodiscard]] std::shared_ptr<Node> getRootNode() { return _rootNode; }
-		[[nodiscard]] std::shared_ptr<State> getRootState() const { return _rootNode->getState(); }
+		[[nodiscard]] std::shared_ptr<Node> getRootNode() {
+			_mctsMutex.lock();
+			auto node = _rootNode;
+			_mctsMutex.unlock();
+			return node;
+		}
+
+		[[nodiscard]] std::shared_ptr<State> getRootState() {
+			_mctsMutex.lock();
+			auto state = _rootNode->getState();
+			_mctsMutex.unlock();
+			return state;
+		}
 
 		std::shared_ptr<Node> randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes);
 
