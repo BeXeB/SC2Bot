@@ -143,6 +143,7 @@ void Mcts::singleSearch() {
 	const auto node = selectNode();
 	const auto outcome = rollout(node);
 	backPropagate(node, outcome);
+	_numberOfRollouts++;
 }
 
 void Mcts::threadedSearch() {
@@ -232,6 +233,7 @@ void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	_mctsRequestsPending = true;
 	_mctsMutex.lock();
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
+	_numberOfRollouts = 0;
 	_mctsMutex.unlock();
 	_mctsRequestsPending = false;
 }

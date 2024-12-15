@@ -28,7 +28,7 @@ namespace Sc2::Mcts {
 		std::shared_ptr<Node> _rootNode;
 		int _runTime = 0;
 		int _nodeCount = 0;
-		int _numberOfRollouts = 0;
+		unsigned int _numberOfRollouts = 0;
 
 		std::thread _searchThread;
 		std::mutex _mctsMutex;
@@ -86,6 +86,10 @@ namespace Sc2::Mcts {
 			                                       bases, constructions, occupiedWorkerTimers);
 
 			updateRootState(state);
+		}
+
+		[[nodiscard]] unsigned int getNumberOfRollouts() const {
+			return _numberOfRollouts;
 		}
 
 		[[nodiscard]] std::string toString() const {

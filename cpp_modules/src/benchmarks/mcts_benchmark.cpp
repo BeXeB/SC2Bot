@@ -95,9 +95,11 @@ int threadedMcts(const int benchmarkIndex, const unsigned int seed, const int nu
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		auto action = mcts.getBestAction();
 		state->performAction(action);
-		mcts.updateRootState(state);
 		if (shouldPrintActions)
-			std::cout << "Action: " << action << ", Index: " << i << std::endl;
+			std::cout << "Action: " << action << ", Index: " << i << std::endl
+					<< "Number of rollouts: " << mcts.getNumberOfRollouts() << std::endl;
+
+		mcts.updateRootState(state);
 	}
 	mcts.stopSearchThread();
 	auto stateValue = state->getValue();
