@@ -115,6 +115,7 @@ def translate_state(bot: 'MyBot') -> State:
         population_limit=math.floor(bot.supply_cap),
         bases=bases,
         constructions=constructions,
-        occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()]
+        occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
+        end_time = 300
     )
     return state

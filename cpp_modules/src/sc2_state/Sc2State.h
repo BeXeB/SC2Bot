@@ -20,6 +20,9 @@ namespace Sc2 {
         std::list<Construction> _constructions{};
         std::vector<int> _occupiedWorkerTimers{};
 
+        const int _endTime;
+        int _currentTime = 0;
+
         struct ActionCost {
             int minerals;
             int vespene;
@@ -39,7 +42,7 @@ namespace Sc2 {
         void advanceConstructions();
         void advanceResources();
         void advanceOccupiedWorkers();
-        void advanceTime(int amount);
+        void advanceTime();
 
         bool hasEnoughMinerals(const int cost) const { return _minerals >= cost; };
         bool hasEnoughVespene(const int cost) const { return _vespene >= cost; }
@@ -124,19 +127,29 @@ namespace Sc2 {
         std::vector<Action> getLegalActions() const;
 
         int getValue() const { return mineralGainedPerTimestep() + vespeneGainedPerTimestep(); }
-        std::vector<int> &getOccupiedWorkerTimers() { return _occupiedWorkerTimers; };
+        std::vector<int> &getOccupiedWorkerTimers() { return _occupiedWorkerTimers; }
+
+
+        bool endTimeReached() const {
+            return _currentTime >= _endTime;
+        }
+
+        int getCurrentTime() const { return _currentTime; }
+        void resetCurrentTime() { _currentTime = 0; }
 
         static std::shared_ptr<State> DeepCopy(const State &state);
 
-        static std::shared_ptr<State> StateBuilder(const int minerals, const int vespene, const int population,
+        static std::shared_ptr<State> StateBuilder(const int minerals,
+                                                   const int vespene,
+                                                   const int population,
                                                    const int incomingPopulation,
                                                    const int populationLimit,
                                                    const std::vector<Base> &bases,
                                                    std::list<Construction> &constructions,
-                                                   const std::vector<int> &occupiedWorkerTimers) {
+                                                   const std::vector<int> &occupiedWorkerTimers,
+                                                   int endTime) {
             auto state = std::make_shared<State>(minerals, vespene, population, incomingPopulation, populationLimit,
-                                                 bases,
-                                                 occupiedWorkerTimers);
+                                                 bases, occupiedWorkerTimers, 0, endTime);
 
             for (auto &construction: constructions) {
                 construction.setState(state);
@@ -147,19 +160,18 @@ namespace Sc2 {
         };
 
         State(const int minerals, const int vespene, const int population, const int incomingPopulation,
-              const int populationLimit,
-              std::vector<Base> bases, std::vector<int> occupiedWorkerTimers) {
-            _minerals = minerals;
-            _vespene = vespene;
-            _population = population;
-            _incomingPopulation = incomingPopulation;
-            _populationLimit = populationLimit;
-            _bases = std::move(bases);
-            _constructions = std::list<Construction>();
-            _occupiedWorkerTimers = std::move(occupiedWorkerTimers);
+              const int populationLimit, std::vector<Base> bases, std::vector<int> occupiedWorkerTimers,
+              const int currentTime, const int endTime): _minerals(minerals), _vespene(vespene),
+                                                         _population(population),
+                                                         _incomingPopulation(incomingPopulation),
+                                                         _populationLimit(populationLimit), _bases(std::move(bases)),
+                                                         _constructions(std::list<Construction>()),
+                                                         _occupiedWorkerTimers(std::move(occupiedWorkerTimers)),
+                                                         _endTime(endTime), _currentTime(currentTime) {
         };
 
-        State(const State &state) : enable_shared_from_this(state) {
+        State(const State &state) : enable_shared_from_this(state), _endTime(state._endTime),
+                                    _currentTime(state._currentTime) {
             _minerals = state._minerals;
             _vespene = state._vespene;
             _population = state._population;
@@ -176,7 +188,11 @@ namespace Sc2 {
             _occupiedWorkerTimers = state._occupiedWorkerTimers;
         };
 
-        State() = default;
+        explicit State(const int endTime): _endTime(endTime) {
+        }
+
+        State(): _endTime(1000) {
+        }
 
         std::string toString() const {
             std::string str;

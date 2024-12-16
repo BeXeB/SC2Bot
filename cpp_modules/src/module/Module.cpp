@@ -18,7 +18,8 @@ namespace pymodule {
 						 py::arg("population_limit"),
 						 py::arg("bases"),
 						 py::arg("constructions"),
-						 py::arg("occupied_worker_timers"));
+						 py::arg("occupied_worker_timers"),
+						 py::arg("end_time"));
 
 		py::class_<Sc2::State, std::shared_ptr<Sc2::State> >(module, "State") 
 				.def(py::init<>())
@@ -77,7 +78,7 @@ namespace pymodule {
 		.def(py::init<const std::shared_ptr<Sc2::State>, const unsigned int, const int, const double, const ValueHeuristic, RolloutHeuristic>(),
 			py::arg("state"),
 			py::arg("seed"),
-			py::arg("rollout_depth"),
+			py::arg("rollout_end_time"),
 			py::arg("exploration"),
 			py::arg("value_heuristic"),
 			py::arg("rollout_heuristic"))
