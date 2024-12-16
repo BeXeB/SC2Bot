@@ -61,7 +61,6 @@ int benchmarkOnActions(const int benchmarkIndex, const unsigned int seed, const 
 			std::cout << "Action: " << action << ", Index: " << i << std::endl;
 
 		state->performAction(action);
-		// state->resetCurrentTime();
 	}
 	const int stateValue = state->getValue();
 	std::cout << "Benchmark " << benchmarkIndex << " State value: " << stateValue << std::endl << std::endl
