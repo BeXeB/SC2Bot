@@ -107,13 +107,10 @@ namespace pymodule {
 		.def("get_root_state", &Sc2::Mcts::Mcts::getRootState)
 		.def("get_root_node", &Sc2::Mcts::Mcts::getRootNode)
 		.def("to_string", &Sc2::Mcts::Mcts::toString)
-		.def("search", &Sc2::Mcts::Mcts::search,
-			py::arg("time_to_search"))
-		.def("search_rollout", &Sc2::Mcts::Mcts::searchRollout,
-			py::arg("number_of_rollouts"))
+		.def("start_search", &Sc2::Mcts::Mcts::startSearchThread)
+		.def("stop_search", &Sc2::Mcts::Mcts::stopSearchThread)
 		.def("get_best_action", &Sc2::Mcts::Mcts::getBestAction)
 		.def("perform_action", &Sc2::Mcts::Mcts::performAction,
 			py::arg("action"));
-		
 	}
 }

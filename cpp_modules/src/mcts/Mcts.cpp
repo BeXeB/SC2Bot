@@ -71,6 +71,9 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 }
 
 std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) const {
+	if (children.empty()) {
+		return {};
+	}
 	double maxValue = value(children.begin()->second);
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
@@ -224,6 +227,9 @@ Action Mcts::getBestAction() {
 	_mctsMutex.unlock();
 	_mctsRequestsPending = false;
 
+	if (maxNodes.empty()) {
+		return Action::none;
+	}
 	const auto bestNode = randomChoice(maxNodes);
 
 	return bestNode->getAction();
