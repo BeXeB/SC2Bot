@@ -7,6 +7,8 @@
 #include <random>
 #include <utility>
 #include <Sc2State.h>
+#include <thread>
+#include <mutex>
 
 #include "Node.h"
 #include "ValueHeuristicEnum.h"
@@ -27,10 +29,16 @@ namespace Sc2::Mcts {
 		std::shared_ptr<Node> _rootNode;
 		int _runTime = 0;
 		int _nodeCount = 0;
-		int _numberOfRollouts = 0;
+		unsigned int _numberOfRollouts = 0;
+
+		std::thread _searchThread;
+		std::mutex _mctsMutex;
+		std::atomic<bool> _running = false;
+		std::atomic<bool> _mctsRequestsPending;
 
 		std::vector<double> _actionWeights = std::vector<double>(10);
 		std::discrete_distribution<int> _weightedDist = std::discrete_distribution<int>();
+
 
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
@@ -40,10 +48,22 @@ namespace Sc2::Mcts {
 		std::vector<std::shared_ptr<Node> > getMaxNodes(
 			std::map<Action, std::shared_ptr<Node> > &children) const;
 		void singleSearch();
+		void threadedSearch();
 
 	public:
-		[[nodiscard]] std::shared_ptr<Node> getRootNode() { return _rootNode; }
-		[[nodiscard]] std::shared_ptr<State> getRootState() const { return _rootNode->getState(); }
+		[[nodiscard]] std::shared_ptr<Node> getRootNode() {
+			_mctsMutex.lock();
+			auto node = _rootNode;
+			_mctsMutex.unlock();
+			return node;
+		}
+
+		[[nodiscard]] std::shared_ptr<State> getRootState() {
+			_mctsMutex.lock();
+			auto state = _rootNode->getState();
+			_mctsMutex.unlock();
+			return state;
+		}
 
 		std::shared_ptr<Node> randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes);
 
@@ -61,6 +81,8 @@ namespace Sc2::Mcts {
 
 		void search(int timeLimit);
 		void searchRollout(int rollouts);
+		void stopSearchThread();
+		void startSearchThread();
 
 		void performAction(Action action);
 
@@ -80,6 +102,10 @@ namespace Sc2::Mcts {
 			                                       bases, constructions, occupiedWorkerTimers, endTime);
 
 			updateRootState(state);
+		}
+
+		[[nodiscard]] unsigned int getNumberOfRollouts() const {
+			return _numberOfRollouts;
 		}
 
 		[[nodiscard]] std::string toString() const {

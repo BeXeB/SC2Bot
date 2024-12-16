@@ -72,6 +72,9 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 }
 
 std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) const {
+	if (children.empty()) {
+		return {};
+	}
 	double maxValue = value(children.begin()->second);
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
@@ -146,6 +149,27 @@ void Mcts::singleSearch() {
 	const auto node = selectNode();
 	const auto outcome = rollout(node);
 	backPropagate(node, outcome);
+	_numberOfRollouts++;
+}
+
+void Mcts::threadedSearch() {
+	while (_running) {
+		if (!_mctsRequestsPending) {
+			_mctsMutex.lock();
+			singleSearch();
+			_mctsMutex.unlock();
+		}
+	}
+}
+
+void Mcts::stopSearchThread() {
+	_running = false;
+	_searchThread.join();
+}
+
+void Mcts::startSearchThread() {
+	_running = true;
+	_searchThread = std::thread(&Mcts::threadedSearch, this);
 }
 
 void Mcts::search(const int timeLimit) {
@@ -154,6 +178,12 @@ void Mcts::search(const int timeLimit) {
 
 	while (duration_cast<milliseconds>(system_clock::now().time_since_epoch())
 	       .count() < endTime) {
+		singleSearch();
+	}
+}
+
+void Mcts::searchRollout(const int rollouts) {
+	for (int i = 0; i < rollouts; i++) {
 		singleSearch();
 	}
 }
@@ -181,11 +211,6 @@ double Mcts::value(const std::shared_ptr<Node> &node) const {
 	}
 }
 
-void Mcts::searchRollout(const int rollouts) {
-	for (int i = 0; i < rollouts; i++) {
-		singleSearch();
-	}
-}
 
 void Mcts::performAction(Action action) {
 	// Check if the action matches any explored nodes
@@ -199,13 +224,25 @@ void Mcts::performAction(Action action) {
 }
 
 Action Mcts::getBestAction() {
+	_mctsRequestsPending = true;
+	_mctsMutex.lock();
 	const auto maxNodes = getMaxNodes(_rootNode->children);
+	_mctsMutex.unlock();
+	_mctsRequestsPending = false;
 
+	if (maxNodes.empty()) {
+		return Action::none;
+	}
 	const auto bestNode = randomChoice(maxNodes);
 
 	return bestNode->getAction();
 }
 
 void Mcts::updateRootState(const std::shared_ptr<State> &state) {
+	_mctsRequestsPending = true;
+	_mctsMutex.lock();
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
+	_numberOfRollouts = 0;
+	_mctsMutex.unlock();
+	_mctsRequestsPending = false;
 }
