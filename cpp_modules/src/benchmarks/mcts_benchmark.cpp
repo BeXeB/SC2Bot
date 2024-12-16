@@ -11,7 +11,7 @@ using namespace Sc2::Mcts;
 using namespace std::chrono;
 
 
-struct BenchmarkOnTimeParams {
+struct BenchmarkParams {
 	const int benchmarkIndex = 0;
 	const unsigned int seed = 0;
 	const int numberOfRollouts = 0;
@@ -71,7 +71,7 @@ int benchmarkOnActions(const int benchmarkIndex, const unsigned int seed, const 
 	return stateValue;
 }
 
-float benchmarkOnTime(BenchmarkOnTimeParams params) {
+float benchmarkOnTime(const BenchmarkParams &params) {
 	auto state = std::make_shared<Sc2::State>(params.endTime);
 
 	const auto mcts = new Mcts(state, params.seed, params.endTime, params.exploration, params.valueHeuristic,
@@ -173,29 +173,29 @@ void printResults(const std::vector<float> &results) {
 	}
 }
 
-int threadedMcts(const int benchmarkIndex, const unsigned int seed, const int numberOfActions,
-
-                 const int rolloutDepth, const double exploration, const ValueHeuristic valueHeuristic,
-                 const RolloutHeuristic rolloutHeuristic, const bool shouldPrintActions = false) {
-	auto state = std::make_shared<Sc2::State>();
-	auto mcts = Mcts(state, seed, rolloutDepth, exploration, valueHeuristic, rolloutHeuristic);
+float threadedMcts(const BenchmarkParams &params) {
+	const auto state = std::make_shared<Sc2::State>(params.endTime);
+	auto mcts = Mcts(state, params.seed, params.endTime, params.exploration, params.valueHeuristic,
+	                 params.rolloutHeuristic);
 	mcts.startSearchThread();
-	for (auto i = 0; i < numberOfActions; i++) {
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+	int actionsTaken = 0;
+	while (!state->endTimeReached()) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		auto action = mcts.getBestAction();
 		state->performAction(action);
-		if (shouldPrintActions)
-			std::cout << "Action: " << action << ", Index: " << i << std::endl
+		if (params.shouldPrintActions)
+			std::cout << "Action: " << action << ", Index: " << actionsTaken << std::endl
 					<< "Number of rollouts: " << mcts.getNumberOfRollouts() << std::endl;
 
 		mcts.updateRootState(state);
+		actionsTaken++;
 	}
 	mcts.stopSearchThread();
-	auto stateValue = state->getValue();
-	std::cout << "number of actions: taken: " << numberOfActions << std::endl;
-	std::cout << "threaded Mcts " << benchmarkIndex << " State value: " << stateValue << std::endl << std::endl
+	const auto stateValue = state->getValue();
+	std::cout << "number of actions: taken: " << actionsTaken << std::endl;
+	std::cout << "threaded Mcts " << params.benchmarkIndex << " State value: " << stateValue << std::endl << std::endl
 			<< "------------------------------------------------------------------" << std::endl << std::endl;
-	return stateValue;
+	return static_cast<float>(stateValue);
 }
 
 int main() {
@@ -278,12 +278,22 @@ int main() {
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
 	});
-	result = benchmark(2, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
-	                   rolloutHeuristic, false);
 	results.push_back(result);
 
-	result = threadedMcts(2, seed, numberOfActions, rolloutDepth, exploration, valueHeuristic,
-	                      rolloutHeuristic, true);
+
+	benchmarkIndex++;
+	result = threadedMcts({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 0,
+		.endTime = 300,
+		.exploration = sqrt(2),
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+		.shouldPrintActions = false
+	});
+
 	results.push_back(result);
+
 	printResults(results);
 }
