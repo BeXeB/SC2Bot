@@ -1,6 +1,7 @@
 import math
 import threading
 
+from sc2.data import Result
 from sc2.position import Point2
 
 from sc2_mcts import *
@@ -50,7 +51,7 @@ class MyBot(BotAI):
         self.supply_builder = SupplyBuilder(self)
         self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
-        self.mcts = Mcts(State(), 0, 100, math.sqrt(2), ValueHeuristic.UCT, RolloutHeuristic.weighted_choice)
+        self.mcts = Mcts(State(), 0, 300, math.sqrt(2), ValueHeuristic.UCT, RolloutHeuristic.weighted_choice)
         self.mcts.start_search()
         # self.mcts_thread = threading.Thread(target=self.mcts_search_thread)
         # self.mcts_thread.start()
@@ -148,6 +149,9 @@ class MyBot(BotAI):
             worker = self.worker_manager.select_worker(position, WorkerRole.BUILD)
             worker.build(UnitTypeId.COMMANDCENTER, position)
             self.busy_workers.update({worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
+
+    def on_end(self, game_result: Result):
+        self.mcts.stop_search()
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:

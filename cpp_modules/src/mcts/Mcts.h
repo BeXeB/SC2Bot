@@ -22,7 +22,7 @@ namespace Sc2::Mcts {
 		std::mt19937 _rng;
 
 		const double EXPLORATION = sqrt(2);
-		const int ROLLOUT_END_TIME = 100;
+		int _rolloutEndTime = 100;
 		ValueHeuristic _valueHeuristic = ValueHeuristic::UCT;
 		RolloutHeuristic _rolloutHeuristic = RolloutHeuristic::Random;
 
@@ -63,6 +63,12 @@ namespace Sc2::Mcts {
 			auto state = _rootNode->getState();
 			_mctsMutex.unlock();
 			return state;
+		}
+
+		void setEndTime(const int time) {
+			_mctsMutex.lock();
+			_rolloutEndTime = time;
+			_mctsMutex.unlock();
 		}
 
 		std::shared_ptr<Node> randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes);
@@ -135,7 +141,7 @@ namespace Sc2::Mcts {
 			std::string str;
 			str += "MCTS: { \n";
 			str += std::format("Exploration: {}", EXPLORATION) + "\n";
-			str += std::format("Rollout Depth: {}", ROLLOUT_END_TIME) + "\n";
+			str += std::format("Rollout Depth: {}", _rolloutEndTime) + "\n";
 			str += std::format("Value Heuristic: {} ", valueHeuristicStr) + "\n";
 			str += std::format("Rollout Heuristic: {} ", rolloutHeuristicStr) + "\n";
 			str += "} \n";
@@ -145,7 +151,7 @@ namespace Sc2::Mcts {
 		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed, const int rolloutEndTime,
 		              const double exploration, const ValueHeuristic valueHeuristic,
 		              const RolloutHeuristic rolloutHeuristic) : EXPLORATION(exploration),
-		                                                         ROLLOUT_END_TIME(rolloutEndTime),
+		                                                         _rolloutEndTime(rolloutEndTime),
 		                                                         _valueHeuristic(valueHeuristic),
 		                                                         _rolloutHeuristic(rolloutHeuristic),
 		                                                         _rootNode(std::make_shared<Node>(
@@ -160,7 +166,7 @@ namespace Sc2::Mcts {
 		}
 
 		Mcts() {
-			auto rootState = std::make_shared<State>(ROLLOUT_END_TIME);
+			auto rootState = std::make_shared<State>(_rolloutEndTime);
 			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
 			_rng = std::mt19937(std::random_device{}());
 		}
