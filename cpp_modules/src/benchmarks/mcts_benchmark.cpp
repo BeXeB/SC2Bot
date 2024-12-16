@@ -88,7 +88,7 @@ int main() {
 	// constexpr unsigned int seed = 3942438306;
 	const unsigned int seed = std::random_device()();
 	int numberOfActions = 50;
-	int numberOfRollouts = 10;//2000;
+	int numberOfRollouts = 100;//2000;
 	int rolloutDepth = 100;
 	double exploration = sqrt(2);
 	auto valueHeuristic = ValueHeuristic::UCT;

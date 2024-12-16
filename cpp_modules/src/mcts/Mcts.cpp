@@ -7,7 +7,6 @@
 #include <chrono>
 #include <random>
 #include <ranges>
-#include <thread>
 
 #include "Sc2State.h"
 
