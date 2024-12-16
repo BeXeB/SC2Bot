@@ -51,7 +51,7 @@ class MyBot(BotAI):
         self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
         self.mcts = Mcts(State(), 0, 100, math.sqrt(2), ValueHeuristic.UCT, RolloutHeuristic.weighted_choice)
-        self.search_time = math.floor((1/STEPS_PER_SECOND*3.5)*1000/4)
+        self.mcts.start_search()
         # self.mcts_thread = threading.Thread(target=self.mcts_search_thread)
         # self.mcts_thread.start()
         # self.next_action_mutex = threading.Lock()
@@ -75,12 +75,11 @@ class MyBot(BotAI):
             for townhall in self.townhalls:
                 townhall(AbilityId.RALLY_WORKERS, self.start_location)
 
-        print("Iteration ", iteration)
+        # print("Iteration ", iteration)
 
         self.update_busy_workers()
         self.manage_workers()
 
-        self.mcts.search(self.search_time)
 
         match self.next_action:
             case Action.build_base:
@@ -112,6 +111,7 @@ class MyBot(BotAI):
                 self.set_next_action()
             case Action.none:
                 self.next_action = self.mcts.get_best_action()
+                print(self.next_action)
                 self.mcts.update_root_state(translate_state(self))
 
     def set_next_action(self, action: Action = Action.none):
