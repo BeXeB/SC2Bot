@@ -122,15 +122,15 @@ int main() {
 
 	int result;
 
-	// result = benchmark(1, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
-	//                    rolloutHeuristic);
-	// results.push_back(result);
-	//
-	// rolloutHeuristic = RolloutHeuristic::WeightedChoice;
-	//
-	// result = benchmark(2, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
-	//                    rolloutHeuristic, false);
-	// results.push_back(result);
+	result = benchmark(1, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
+	                   rolloutHeuristic);
+	results.push_back(result);
+
+	rolloutHeuristic = RolloutHeuristic::WeightedChoice;
+
+	result = benchmark(2, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
+	                   rolloutHeuristic, false);
+	results.push_back(result);
 
 	result = threadedMcts(2, seed, numberOfActions, rolloutDepth, exploration, valueHeuristic,
 	                      rolloutHeuristic, true);
