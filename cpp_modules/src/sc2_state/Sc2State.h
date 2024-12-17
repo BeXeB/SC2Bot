@@ -90,6 +90,7 @@ namespace Sc2 {
         bool hasUnoccupiedGeyser() const;
         bool canAffordConstruction(const ActionCost &actionCost) const;
         bool populationLimitReached() const;
+        bool hasFreeBase() const;
 
         int mineralGainedPerTimestep() const;
         int vespeneGainedPerTimestep() const;

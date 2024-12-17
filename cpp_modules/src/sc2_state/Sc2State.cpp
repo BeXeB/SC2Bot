@@ -130,6 +130,10 @@ bool Sc2::State::populationLimitReached() const {
     return _incomingPopulation + _population >= _populationLimit;
 }
 
+bool Sc2::State::hasFreeBase() const {
+    return _bases.size() > _incomingPopulation;
+}
+
 bool Sc2::State::hasUnoccupiedGeyser() const {
     auto incoming = incomingVespeneCollectors;
     for (auto &base: _bases) {
@@ -219,6 +223,10 @@ void Sc2::State::buildWorker() {
         if (initialMineral == _minerals) {
             return;
         }
+    }
+
+    while (!hasFreeBase()) {
+        advanceTime();
     }
 
     if (!populationLimitReached()) {
