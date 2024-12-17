@@ -18,7 +18,7 @@ using namespace std::chrono;
 
 std::shared_ptr<Node> Mcts::randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes) {
 	if (nodes.empty()) {
-		throw std::runtime_error("Cannot select a random element from an empty container.");
+		throw std::runtime_error("Cannot select a random node from an empty container.");
 	}
 
 	std::uniform_int_distribution<std::mt19937::result_type> dist(0, nodes.size() - 1);
@@ -136,7 +136,7 @@ int Mcts::rollout(const std::shared_ptr<Node> &node) {
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
 	while (node != nullptr) {
-		const auto oldMean = node->Q / node->N;
+		const auto oldMean = node->N == 0 ? 0 : node->Q / node->N;
 
 		node->N += 1;
 		node->Q += outcome;

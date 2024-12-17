@@ -27,7 +27,7 @@ namespace Sc2::Mcts {
 		// The cumulative value of this node
 		double Q = 0;
 
-		// used for UCB1Normal2
+		// used to calculate variance, which is needed for UCB1normal2
 		double M2 = 0;
 
 		double getSampleVariance() const {
