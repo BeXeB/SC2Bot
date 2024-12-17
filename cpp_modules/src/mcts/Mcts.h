@@ -40,8 +40,10 @@ namespace Sc2::Mcts {
 		std::discrete_distribution<int> _weightedDist = std::discrete_distribution<int>();
 
 
+
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
+		[[nodiscard]] static double ucb1Normal2(const std::shared_ptr<Node> &node);
 		[[nodiscard]] double value(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const;
 

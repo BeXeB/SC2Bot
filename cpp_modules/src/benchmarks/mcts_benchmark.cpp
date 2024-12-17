@@ -294,5 +294,6 @@ int main() {
 
 	results.push_back(result);
 
+	// Print all the results of our benchmarks
 	printResults(results);
 }

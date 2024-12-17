@@ -248,4 +248,3 @@ void Sc2::State::buildHouse() {
     _occupiedWorkerTimers.emplace_back(buildHouseCost.buildTime);
     _constructions.emplace_back(buildHouseCost.buildTime, shared_from_this(), &State::addHouse);
 }
-
