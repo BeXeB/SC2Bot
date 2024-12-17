@@ -5,11 +5,11 @@
 #include "Mcts.h"
 
 #include <chrono>
+#include <complex>
 #include <random>
 #include <ranges>
 
 #include "Sc2State.h"
-
 
 
 using namespace Sc2::Mcts;
@@ -150,8 +150,16 @@ int Mcts::rollout(const std::shared_ptr<Node> &node) {
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
 	while (node != nullptr) {
+		const auto oldMean = node->Q / node->N;
+
 		node->N += 1;
 		node->Q += outcome;
+
+		const auto newMean = node->Q / node->N;
+		const auto delta = outcome - oldMean;
+		// M2 is updated using Welfords online algorithm
+		node->M2 += delta * (outcome - newMean);
+
 		node = node->getParent();
 	}
 }
@@ -179,6 +187,24 @@ double Mcts::uct(const std::shared_ptr<Node> &node) const {
 		       log(static_cast<double>(node->getParent()->N) / static_cast<double>(node->N)));
 }
 
+// Upper confidence bound normalized
+double Mcts::ucb1Normal2(const std::shared_ptr<Node> &node) {
+
+	// If the node has not been explored at least twice we will divide by 0 when getting the variance
+	if (node->N < 2) {
+		return INFINITY;
+	}
+
+	const double totalTrials = node->getParent()->N;
+	const double trials = node->N;
+	const auto mean = node->Q / trials;
+	const auto variance = node->getSampleVariance();
+
+	// const double value = mean + std::sqrt(2 * std::log(totalTrials) / trials) * std::sqrt(node->variance);
+	const double value = mean + variance + sqrt(2 * std::log(totalTrials));
+	return value;
+}
+
 double Mcts::value(const std::shared_ptr<Node> &node) const {
 	if (node->N == 0) {
 		if (EXPLORATION == 0) {
@@ -191,7 +217,7 @@ double Mcts::value(const std::shared_ptr<Node> &node) const {
 		case ValueHeuristic::UCT:
 			return uct(node);
 		case ValueHeuristic::UcbNormal:
-			return ucb(node);
+			return ucb1Normal2(node);
 		default:
 			return 0;
 	}
@@ -202,7 +228,6 @@ void Mcts::searchRollout(const int rollouts) {
 		singleSearch();
 	}
 }
-
 
 
 void Mcts::performAction(Action action) {
@@ -228,45 +253,5 @@ void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
 }
 
-double Mcts::ucb(const std::shared_ptr<Node> &node) const {
-	std::cout << "Now evaluating UCB for node with " << node->children.size() << " children" << std::endl;
-
-	if (node->children.empty()) {
-		std::cout << "Node has no children" << std::endl;
-		return -1;
-	}
-
-	// Debug for numarms
-	if (node->children.size() <= 0) {
-		throw std::runtime_error("Invalid number of arms");
-	}
-	std::cout << "Creating UcbNormal with " << node->children.size() << " arms" << std::endl;
-	UCB1Normal2 ucbBandit(node->children.size());
-
-	// Debug
-	std::cout << "Checking children size: " << node->children.size() << std::endl;
-
-	// Add rewards
-	for (const auto& [action, child] : node->children) {
-		std::cout << "Child: " << static_cast<int>(action) << ", N: " << child->N << ", Q: " << child->Q << std::endl;
-		if (child->N > 0) {
-			std::cout << "Adding reward for action " << action << std::endl;
-			std::cout << "Reward is: " << child->Q / child->N << std::endl;
-
-			// Ensure the arm index is valid (e.g., use the correct range for valid actions)
-			int armIndex = static_cast<int>(action) - 1;  // Subtract 1 to match action's index in the map
-			ucbBandit.addReward(armIndex, child->Q / child->N);
-		} else {
-			std::cout << "No reward for action " << action << std::endl;
-		}
-	}
-
-	// Select the arm with the highest score
-	int bestAction = ucbBandit.selectArm();
-	std::cout << "Best action: " << bestAction << std::endl;
-
-	// Return the best one
-	return bestAction;
-}
 
 
