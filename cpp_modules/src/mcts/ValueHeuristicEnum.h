@@ -22,8 +22,10 @@ inline std::ostream &operator<<(std::ostream &os, const ValueHeuristic &heuristi
 			break;
 		case ValueHeuristic::UCB1Normal:
 			os << "Ucb1-Normal";
+			break;
 		case ValueHeuristic::EpsilonGreedy:
 			os << "EpsilonGreedy";
+			break;
 		default:
 			os << "Unknown";
 			break;
