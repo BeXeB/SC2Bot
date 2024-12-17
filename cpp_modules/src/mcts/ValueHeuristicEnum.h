@@ -7,7 +7,9 @@
 
 enum class ValueHeuristic {
 	UCT,
-	Ucb1Normal2
+	UCB1Normal2,
+	UCB1Normal,
+	EpsilonGreedy,
 };
 
 inline std::ostream &operator<<(std::ostream &os, const ValueHeuristic &heuristic) {
@@ -15,9 +17,13 @@ inline std::ostream &operator<<(std::ostream &os, const ValueHeuristic &heuristi
 		case ValueHeuristic::UCT:
 			os << "UCT";
 			break;
-		case ValueHeuristic::Ucb1Normal2:
+		case ValueHeuristic::UCB1Normal2:
 			os << "Ucb1-Normal2";
 			break;
+		case ValueHeuristic::UCB1Normal:
+			os << "Ucb1-Normal";
+		case ValueHeuristic::EpsilonGreedy:
+			os << "EpsilonGreedy";
 		default:
 			os << "Unknown";
 			break;

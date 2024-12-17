@@ -8,6 +8,9 @@
 #include <ranges>
 
 #include "Mcts.h"
+
+// #include <valarray>
+
 #include "Sc2State.h"
 
 using namespace Sc2::Mcts;
@@ -222,6 +225,31 @@ double Mcts::ucb1Normal2(const std::shared_ptr<Node> &node) {
 	return value;
 }
 
+double Mcts::ucb1Normal(const std::shared_ptr<Node> &node) {
+	if (node->N < 2) {
+		return INFINITY;
+	}
+	const auto totalTrials = node->getParent()->N;
+	const auto trials = node->N;
+	const auto variance = node->getSampleVariance();
+	const auto mean = node->Q / trials;
+	return mean + variance * std::sqrt((16 * std::log(totalTrials - 1)) / trials);
+}
+
+double Mcts::epsilonGreedy(const std::shared_ptr<Node> &node) const {
+	std::random_device rd;
+	std::mt19937 gen(0);
+	std::uniform_real_distribution<float> dist(0.0f, 1.0f); // Range [0, 1)
+
+	if (dist(gen) > EXPLORATION) {
+		//exploit
+		return node->Q / node->N;
+	} else {
+		// explore
+		return INFINITY;
+	}
+}
+
 double Mcts::value(const std::shared_ptr<Node> &node) const {
 	if (node->N == 0) {
 		if (EXPLORATION == 0) {
@@ -233,8 +261,12 @@ double Mcts::value(const std::shared_ptr<Node> &node) const {
 	switch (_valueHeuristic) {
 		case ValueHeuristic::UCT:
 			return uct(node);
-		case ValueHeuristic::Ucb1Normal2:
+		case ValueHeuristic::UCB1Normal2:
 			return ucb1Normal2(node);
+		case ValueHeuristic::UCB1Normal:
+			return ucb1Normal(node);
+		case ValueHeuristic::EpsilonGreedy:
+			return epsilonGreedy(node);
 		default:
 			return 0;
 	}

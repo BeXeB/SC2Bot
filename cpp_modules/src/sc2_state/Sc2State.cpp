@@ -135,7 +135,7 @@ bool Sc2::State::hasFreeBase() const {
 }
 
 bool Sc2::State::hasUnoccupiedGeyser() const {
-    auto incoming = incomingVespeneCollectors;
+    auto incoming = _incomingVespeneCollectors;
     for (auto &base: _bases) {
         incoming -= base.getUnoccupiedGeysers();
         if (incoming < 0) {
@@ -167,7 +167,7 @@ void Sc2::State::addVespeneCollector() {
             break;
         }
     }
-    incomingVespeneCollectors--;
+    _incomingVespeneCollectors--;
 }
 
 void Sc2::State::buildVespeneCollector() {
@@ -186,7 +186,7 @@ void Sc2::State::buildVespeneCollector() {
     if (hasUnoccupiedGeyser()) {
         _minerals -= buildVespeneCollectorCost.minerals;
         _vespene -= buildVespeneCollectorCost.vespene;
-        incomingVespeneCollectors++;
+        _incomingVespeneCollectors++;
 
         _occupiedWorkerTimers.emplace_back(buildVespeneCollectorCost.buildTime);
         _constructions.emplace_back(

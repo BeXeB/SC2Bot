@@ -43,6 +43,8 @@ namespace Sc2::Mcts {
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] static double ucb1Normal2(const std::shared_ptr<Node> &node);
+		[[nodiscard]] static double ucb1Normal(const std::shared_ptr<Node> &node);
+		[[nodiscard]] double epsilonGreedy(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] double value(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const;
 

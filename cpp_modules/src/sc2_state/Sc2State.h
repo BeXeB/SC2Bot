@@ -14,7 +14,7 @@ namespace Sc2 {
         int _vespene = 0;
         int _population = 5;
         int _incomingPopulation = 0;
-        int incomingVespeneCollectors = 0;
+        int _incomingVespeneCollectors = 0;
         const int MAX_POPULATION_LIMIT = 200;
         int _populationLimit = 15;
         std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
@@ -181,6 +181,7 @@ namespace Sc2 {
             _population = state._population;
             _incomingPopulation = state._incomingPopulation;
             _populationLimit = state._populationLimit;
+            _incomingVespeneCollectors = state._incomingVespeneCollectors;
 
             buildWorkerCost = state.buildWorkerCost;
             buildBaseCost = state.buildBaseCost;

@@ -241,7 +241,7 @@ int main() {
 		.exploration = sqrt(2),
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::Random,
-		.shouldPrintActions = true
+		.shouldPrintActions = false
 	});
 	results.push_back(result);
 
@@ -301,7 +301,7 @@ int main() {
 		.seed = seed,
 		.numberOfRollouts = 5000,
 		.endTime = 300,
-		.valueHeuristic = ValueHeuristic::Ucb1Normal2,
+		.valueHeuristic = ValueHeuristic::UCB1Normal2,
 		.rolloutHeuristic = RolloutHeuristic::Random,
 	});
 	results.push_back(result);
@@ -312,7 +312,52 @@ int main() {
 		.seed = seed,
 		.numberOfRollouts = 5000,
 		.endTime = 300,
-		.valueHeuristic = ValueHeuristic::Ucb1Normal2,
+		.valueHeuristic = ValueHeuristic::UCB1Normal2,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 5000,
+		.endTime = 300,
+		.valueHeuristic = ValueHeuristic::UCB1Normal,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 5000,
+		.endTime = 300,
+		.valueHeuristic = ValueHeuristic::UCB1Normal,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+		.shouldPrintActions = false
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
 	});
 	results.push_back(result);
