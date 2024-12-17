@@ -15,6 +15,7 @@ namespace Sc2 {
         int _population = 5;
         int _incomingPopulation = 0;
         int incomingVespeneCollectors = 0;
+        const int MAX_POPULATION_LIMIT = 200;
         int _populationLimit = 15;
         std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
         std::list<Construction> _constructions{};
@@ -56,6 +57,7 @@ namespace Sc2 {
 
         void addBase() {
             _populationLimit += 15;
+            _populationLimit = _populationLimit >= MAX_POPULATION_LIMIT ? MAX_POPULATION_LIMIT : _populationLimit;
             _bases.emplace_back();
         }
 
@@ -66,6 +68,7 @@ namespace Sc2 {
 
         void addHouse() {
             _populationLimit += 8;
+            _populationLimit = _populationLimit >= MAX_POPULATION_LIMIT ? MAX_POPULATION_LIMIT : _populationLimit;
         }
 
     public:
