@@ -202,7 +202,7 @@ double Mcts::value(const std::shared_ptr<Node> &node) const {
 	switch (_valueHeuristic) {
 		case ValueHeuristic::UCT:
 			return uct(node);
-		case ValueHeuristic::UcbNormal:
+		case ValueHeuristic::Ucb1Normal2:
 			return ucb1Normal2(node);
 		default:
 			return 0;

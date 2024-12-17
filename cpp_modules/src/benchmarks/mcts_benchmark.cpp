@@ -110,7 +110,7 @@ int main() {
 	results.push_back(result);*/
 
 	// Benchmark 3: UCB1-Normal2 with random as the rollout heuristic
-	valueHeuristic = ValueHeuristic::UcbNormal;
+	valueHeuristic = ValueHeuristic::Ucb1Normal2;
 	rolloutHeuristic = RolloutHeuristic::Random;
 	result = benchmark(3, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
 						rolloutHeuristic);

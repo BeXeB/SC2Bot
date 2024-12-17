@@ -11,7 +11,6 @@
 #include "Node.h"
 #include "ValueHeuristicEnum.h"
 #include "RolloutHeuristicEnum.h"
-#include "Ucb1Normal2.h"
 
 
 namespace Sc2::Mcts {
