@@ -2,15 +2,13 @@
 // Created by marco on 07/11/2024.
 //
 
-#include "Mcts.h"
-
 #include <chrono>
 #include <complex>
 #include <random>
 #include <ranges>
 
+#include "Mcts.h"
 #include "Sc2State.h"
-
 
 using namespace Sc2::Mcts;
 using namespace std::chrono;
@@ -228,10 +226,24 @@ void Mcts::performAction(Action action) {
 }
 
 Action Mcts::getBestAction() {
-	const auto maxNodes = getMaxNodes(_rootNode->children);
+	auto bestNode = _rootNode->children.begin()->second;
 
-	const auto bestNode = randomChoice(maxNodes);
+	double maxValue = bestNode->Q / bestNode->N;
 
+	std::vector<std::shared_ptr<Node> > maxNodes = {};
+
+	for (const auto &child: std::ranges::views::values(_rootNode->children)) {
+		const auto childValue = child->Q / child->N;
+		if (childValue > maxValue) {
+			maxNodes.clear();
+			maxNodes.push_back(child);
+			maxValue = childValue;
+		} else if (childValue == maxValue) {
+			maxNodes.push_back(child);
+		}
+	}
+
+	bestNode = randomChoice(maxNodes);
 	return bestNode->getAction();
 }
 
