@@ -220,7 +220,7 @@ class WorkerManager:
 
         for worker in self.bot.workers:
             data: WorkerData = self.worker_data[worker.tag]
-            additional_weight: float = 2 if worker.is_carrying_resource else 1
+            additional_weight: float = 2 if worker.is_carrying_resource else 99 if worker.is_constructing_scv else 1
             weighted_distance: float = worker.distance_to(location) * role_weights[data.role] * additional_weight
             if weighted_distance < closest_distance:
                 closest_worker = worker

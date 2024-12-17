@@ -5,6 +5,7 @@
 #define CONSTRUCTION_H
 #include <memory>
 #include <utility>
+#include "ActionEnum.h"
 
 
 namespace Sc2 {
@@ -18,14 +19,16 @@ namespace Sc2 {
         std::shared_ptr<State> _state;
         ConstructionFunction _constructionFunction;
 
+    public:
         void setState(std::shared_ptr<State> state) { _state = std::move(state); }
 
-    public:
         Construction(const int constructionTime, std::shared_ptr<State> state,
                      const ConstructionFunction constructionFunction): _timeLeft(constructionTime),
                                                                        _state(std::move(state)),
                                                                        _constructionFunction(constructionFunction) {
         }
+
+        Construction(const int constructionTime, const Action action);
 
         [[nodiscard]] int getTimeLeft() const { return _timeLeft; }
         [[nodiscard]] bool getIsFinished() const { return _isFinished; }

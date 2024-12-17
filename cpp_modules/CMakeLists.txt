@@ -19,6 +19,7 @@ add_executable(RunTests
         ${TEST_SOURCE}/Sc2StateTest.cpp
         ${TEST_SOURCE}/MctsTest.cpp
         ${STATE_SOURCE}/Sc2State.cpp
+        ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
 )
 
@@ -33,18 +34,22 @@ pybind11_add_module(
         sc2_mcts
         ${MODULE_SOURCE}/Module.cpp
         ${STATE_SOURCE}/Sc2State.cpp
+        ${STATE_SOURCE}/Construction.cpp
+        ${MCTS_SOURCE}/Mcts.cpp
 )
 
 target_include_directories(
         sc2_mcts
         PRIVATE ${MODULE_SOURCE}
         PRIVATE ${STATE_SOURCE}
+        PRIVATE ${MCTS_SOURCE}
 )
 
 ## executables
 add_executable(MCTS_benchmark
         ${BENCHMARK_SOURCE}/mcts_benchmark.cpp
         ${STATE_SOURCE}/Sc2State.cpp
+        ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
         ${MCTS_SOURCE}/Ucb1Normal2.cpp
 )
