@@ -16,7 +16,7 @@ struct BenchmarkParams {
 	const unsigned int seed = 0;
 	const int numberOfRollouts = 0;
 	const int endTime = 0;
-	const double exploration = 0;
+	const double exploration = 1;
 	const ValueHeuristic valueHeuristic = ValueHeuristic::UCT;
 	const RolloutHeuristic rolloutHeuristic = RolloutHeuristic::Random;
 	bool shouldPrintActions = false;
@@ -227,7 +227,6 @@ int main() {
 		.exploration = sqrt(2),
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::Random,
-
 	});
 	results.push_back(result);
 
@@ -240,6 +239,7 @@ int main() {
 		.exploration = sqrt(2),
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::Random,
+		.shouldPrintActions = true
 	});
 	results.push_back(result);
 
@@ -280,18 +280,39 @@ int main() {
 	results.push_back(result);
 
 
+	// benchmarkIndex++;
+	// result = threadedMcts({
+	// 	.benchmarkIndex = benchmarkIndex,
+	// 	.seed = seed,
+	// 	.numberOfRollouts = 0,
+	// 	.endTime = 300,
+	// 	.exploration = sqrt(2),
+	// 	.valueHeuristic = ValueHeuristic::UCT,
+	// 	.rolloutHeuristic = RolloutHeuristic::Random,
+	// 	.shouldPrintActions = false
+	// });
+	// results.push_back(result);
+
 	benchmarkIndex++;
-	result = threadedMcts({
+	result = benchmarkOnTime({
 		.benchmarkIndex = benchmarkIndex,
 		.seed = seed,
-		.numberOfRollouts = 0,
+		.numberOfRollouts = 5000,
 		.endTime = 300,
-		.exploration = sqrt(2),
-		.valueHeuristic = ValueHeuristic::UCT,
+		.valueHeuristic = ValueHeuristic::Ucb1Normal2,
 		.rolloutHeuristic = RolloutHeuristic::Random,
-		.shouldPrintActions = false
 	});
+	results.push_back(result);
 
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 5000,
+		.endTime = 300,
+		.valueHeuristic = ValueHeuristic::Ucb1Normal2,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
 	results.push_back(result);
 
 	// Print all the results of our benchmarks

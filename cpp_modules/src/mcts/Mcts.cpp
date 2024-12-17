@@ -241,7 +241,6 @@ double Mcts::value(const std::shared_ptr<Node> &node) const {
 }
 
 
-
 void Mcts::performAction(Action action) {
 	// Check if the action matches any explored nodes
 	for (const auto childAction: _rootNode->children | std::views::keys) {
@@ -254,24 +253,20 @@ void Mcts::performAction(Action action) {
 }
 
 Action Mcts::getBestAction() {
-	// _mctsRequestsPending = true;
-	// _mctsMutex.lock();
-	// const auto maxNodes = getMaxNodes(_rootNode->children);
-	// _mctsMutex.unlock();
-	// _mctsRequestsPending = false;
-
-	// if (maxNodes.empty()) {
-	// 	return Action::none;
-	// }
-	// const auto bestNode = randomChoice(maxNodes);
+	_mctsRequestsPending = true;
+	_mctsMutex.lock();
 
 	auto bestNode = _rootNode->children.begin()->second;
-
 	double maxValue = bestNode->Q / bestNode->N;
-
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &child: std::ranges::views::values(_rootNode->children)) {
+		// only give an action if all children has been explored once
+		if (child->N < 1) {
+			maxNodes.clear();
+			break;
+		}
+
 		const auto childValue = child->Q / child->N;
 		if (childValue > maxValue) {
 			maxNodes.clear();
@@ -280,6 +275,13 @@ Action Mcts::getBestAction() {
 		} else if (childValue == maxValue) {
 			maxNodes.push_back(child);
 		}
+	}
+
+	_mctsMutex.unlock();
+	_mctsRequestsPending = false;
+
+	if (maxNodes.empty()) {
+		return Action::none;
 	}
 
 	bestNode = randomChoice(maxNodes);

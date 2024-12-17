@@ -131,8 +131,10 @@ bool Sc2::State::populationLimitReached() const {
 }
 
 bool Sc2::State::hasUnoccupiedGeyser() const {
+    auto incoming = incomingVespeneCollectors;
     for (auto &base: _bases) {
-        if (base.getUnoccupiedGeysers() - incomingVespeneCollectors > 0) {
+        incoming -= base.getUnoccupiedGeysers();
+        if (incoming < 0) {
             return true;
         }
     }
