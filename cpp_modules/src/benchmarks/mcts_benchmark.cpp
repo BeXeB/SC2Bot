@@ -106,6 +106,8 @@ float benchmarkOnTime(const BenchmarkParams &params) {
 	std::cout << "Benchmark " << params.benchmarkIndex << " State value: " << stateValue << std::endl
 			<< "number of actions taken: " << actionsTaken << std::endl
 			<< "Current time of state: " << state->getCurrentTime() << std::endl
+			<< "Final vespene: " << state->getVespene() << std::endl
+			<< "Final minerals: " << state->getMinerals() << std::endl
 			<< "Value per action: " << static_cast<float>(stateValue) / static_cast<float>(actionsTaken) << std::endl
 			<< "value per second: " << static_cast<float>(stateValue) / static_cast<float>(state->getCurrentTime()) <<
 			std::endl << std::endl

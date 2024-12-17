@@ -112,6 +112,7 @@ namespace pymodule {
 		.def("stop_search", &Sc2::Mcts::Mcts::stopSearchThread)
 		.def("get_best_action", &Sc2::Mcts::Mcts::getBestAction)
 		.def("perform_action", &Sc2::Mcts::Mcts::performAction,
-			py::arg("action"));
+			py::arg("action"))
+		.def("get_number_of_rollouts", &Sc2::Mcts::Mcts::getNumberOfRollouts); 
 	}
 }

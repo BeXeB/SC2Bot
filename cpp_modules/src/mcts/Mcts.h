@@ -40,7 +40,6 @@ namespace Sc2::Mcts {
 		std::discrete_distribution<int> _weightedDist = std::discrete_distribution<int>();
 
 
-
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] static double ucb1Normal2(const std::shared_ptr<Node> &node);
@@ -112,8 +111,13 @@ namespace Sc2::Mcts {
 			updateRootState(state);
 		}
 
-		[[nodiscard]] unsigned int getNumberOfRollouts() const {
-			return _numberOfRollouts;
+		[[nodiscard]] unsigned int getNumberOfRollouts() {
+			_mctsRequestsPending = true;
+			_mctsMutex.lock();
+			const auto n = _numberOfRollouts;
+			_mctsMutex.unlock();
+			_mctsRequestsPending = false;
+			return n;
 		}
 
 		[[nodiscard]] std::string toString() const {
