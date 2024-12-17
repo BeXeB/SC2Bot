@@ -33,12 +33,10 @@ namespace Sc2::Mcts {
 
 		const int MAX_DEPTH = 100;
 
-		// UCB
-		[[nodiscard]] static double ucb1Normal2(const std::shared_ptr<Node> &node);
-		mutable UCB1Normal2 _ucbBandit;
 
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
+		[[nodiscard]] static double ucb1Normal2(const std::shared_ptr<Node> &node);
 		[[nodiscard]] double value(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const;
 
@@ -113,15 +111,13 @@ namespace Sc2::Mcts {
 		                                                         _rolloutHeuristic(rolloutHeuristic),
 		                                                         _rootNode(std::make_shared<Node>(
 			                                                         Node(Action::none, nullptr,
-			                                                              State::DeepCopy(*rootState)))),
-		                                                         _ucbBandit(0) {
+			                                                              State::DeepCopy(*rootState)))) {
 			_rng = std::mt19937(seed);
 		}
 
 		Mcts(const std::shared_ptr<State> &rootState): _rootNode(
-			                                               std::make_shared<Node>(Node(
-				                                               Action::none, nullptr, State::DeepCopy(*rootState)))),
-		                                               _ucbBandit(0) {
+			std::make_shared<Node>(Node(
+				Action::none, nullptr, State::DeepCopy(*rootState)))) {
 			_rng = std::mt19937(std::random_device{}());
 		}
 	};

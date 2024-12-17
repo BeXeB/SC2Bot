@@ -94,11 +94,8 @@ std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shar
 std::shared_ptr<Node> Mcts::selectNode() {
 	auto node = _rootNode;
 
-	// Debug test for node
 	if (node->children.empty()) {
-		std::cout << "Expanding node because it has no children" << std::endl;
 		node->expand();
-		std::cout << "Note expanded. Number of children: " << node->children.size() << std::endl;
 	}
 
 	int iteration = 0;
