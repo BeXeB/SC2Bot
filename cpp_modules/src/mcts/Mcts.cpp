@@ -94,23 +94,12 @@ std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shar
 std::shared_ptr<Node> Mcts::selectNode() {
 	auto node = _rootNode;
 
-	if (node->children.empty()) {
-		node->expand();
-	}
-
-	int iteration = 0;
 	while (!node->children.empty()) {
 		std::vector<std::shared_ptr<Node> > maxNodes = getMaxNodes(node->children);
 
 		node = randomChoice(maxNodes);
 
 		if (node->N == 0) {
-			return node;
-		}
-
-		iteration++;
-		if (iteration > 100) {
-			std::cerr << "Too many iterations!" << std::endl;
 			return node;
 		}
 	}
