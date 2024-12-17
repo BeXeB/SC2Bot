@@ -88,7 +88,7 @@ int main() {
 	constexpr unsigned int seed = 3942438306;
 	// const unsigned int seed = std::random_device()();
 	int numberOfActions = 50;
-	int numberOfRollouts = 100;//2000;
+	int numberOfRollouts = 100; //2000;
 	int rolloutDepth = 100;
 	double exploration = sqrt(2);
 	auto valueHeuristic = ValueHeuristic::UCT;
@@ -113,7 +113,7 @@ int main() {
 	valueHeuristic = ValueHeuristic::Ucb1Normal2;
 	rolloutHeuristic = RolloutHeuristic::Random;
 	result = benchmark(3, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
-						rolloutHeuristic);
+	                   rolloutHeuristic);
 	results.push_back(result);
 
 	// Print all the results of our benchmarks
