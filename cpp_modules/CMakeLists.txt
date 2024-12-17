@@ -51,7 +51,6 @@ add_executable(MCTS_benchmark
         ${STATE_SOURCE}/Sc2State.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
-        ${MCTS_SOURCE}/Ucb1Normal2.cpp
 )
 
 target_include_directories(
