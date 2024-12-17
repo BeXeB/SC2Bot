@@ -44,7 +44,6 @@ namespace Sc2::Mcts {
 
 		void expand() {
 			const std::vector<Action> actions = _state->getLegalActions();
-
 			addChildren(actions);
 		}
 
