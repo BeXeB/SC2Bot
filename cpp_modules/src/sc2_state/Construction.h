@@ -16,13 +16,13 @@ namespace Sc2 {
     class Construction {
         int _timeLeft = 0;
         bool _isFinished = false;
-        std::shared_ptr<State> _state;
+        std::weak_ptr<State> _state;
         ConstructionFunction _constructionFunction;
 
     public:
-        void setState(std::shared_ptr<State> state) { _state = std::move(state); }
+        void setState(std::weak_ptr<State> state) { _state = std::move(state); }
 
-        Construction(const int constructionTime, std::shared_ptr<State> state,
+        Construction(const int constructionTime, std::weak_ptr<State> state,
                      const ConstructionFunction constructionFunction): _timeLeft(constructionTime),
                                                                        _state(std::move(state)),
                                                                        _constructionFunction(constructionFunction) {
@@ -37,8 +37,12 @@ namespace Sc2 {
         void advanceTime(const int time) {
             _timeLeft -= time;
             if (_timeLeft <= 0) {
-                (_state.get()->*_constructionFunction)();
-                _isFinished = true;
+                const auto s = _state.lock();
+
+                if (s != nullptr) {
+                    (s.get()->*_constructionFunction)();
+                    _isFinished = true;
+                }
             }
         }
 
