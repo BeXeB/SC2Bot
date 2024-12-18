@@ -17,7 +17,7 @@ namespace Sc2 {
         int _incomingVespeneCollectors = 0;
         const int MAX_POPULATION_LIMIT = 200;
         int _populationLimit = 15;
-        std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
+        std::vector<Base> _bases = std::vector{Base()};
         std::list<Construction> _constructions{};
         std::vector<int> _occupiedWorkerTimers{};
 
