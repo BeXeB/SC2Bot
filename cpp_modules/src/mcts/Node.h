@@ -26,6 +26,14 @@ namespace Sc2::Mcts {
 		int N = 0;
 		// The cumulative value of this node
 		double Q = 0;
+
+		// used to calculate variance, which is needed for UCB1normal2
+		double M2 = 0;
+
+		double getSampleVariance() const {
+			return M2 / N - 1;
+		}
+
 		std::map<Action, std::shared_ptr<Node> > children = {};
 
 		std::shared_ptr<State> getState() { return _state; }

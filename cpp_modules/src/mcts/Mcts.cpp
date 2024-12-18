@@ -2,20 +2,21 @@
 // Created by marco on 07/11/2024.
 //
 
-#include "Mcts.h"
-
 #include <chrono>
+#include <complex>
 #include <random>
 #include <ranges>
 
+#include "Mcts.h"
 #include "Sc2State.h"
+
 using namespace Sc2::Mcts;
 using namespace std::chrono;
 
 
 std::shared_ptr<Node> Mcts::randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes) {
 	if (nodes.empty()) {
-		throw std::runtime_error("Cannot select a random element from an empty container.");
+		throw std::runtime_error("Cannot select a random node from an empty container.");
 	}
 
 	std::uniform_int_distribution<std::mt19937::result_type> dist(0, nodes.size() - 1);
@@ -133,8 +134,16 @@ int Mcts::rollout(const std::shared_ptr<Node> &node) {
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
 	while (node != nullptr) {
+		const auto oldMean = node->N == 0 ? 0 : node->Q / node->N;
+
 		node->N += 1;
 		node->Q += outcome;
+
+		const auto newMean = node->Q / node->N;
+		const auto delta = outcome - oldMean;
+		// M2 is updated using Welfords online algorithm
+		node->M2 += delta * (outcome - newMean);
+
 		node = node->getParent();
 	}
 }
@@ -162,6 +171,22 @@ double Mcts::uct(const std::shared_ptr<Node> &node) const {
 		       log(static_cast<double>(node->getParent()->N) / static_cast<double>(node->N)));
 }
 
+// Upper confidence bound normalized
+double Mcts::ucb1Normal2(const std::shared_ptr<Node> &node) {
+
+	// If the node has not been explored at least twice we will divide by 0 when getting the variance
+	if (node->N < 2) {
+		return INFINITY;
+	}
+
+	const double totalTrials = node->getParent()->N;
+	const double trials = node->N;
+	const auto mean = node->Q / trials;
+	const auto variance = node->getSampleVariance();
+
+	return mean + variance + sqrt(2 * std::log(totalTrials));
+}
+
 double Mcts::value(const std::shared_ptr<Node> &node) const {
 	if (node->N == 0) {
 		if (EXPLORATION == 0) {
@@ -173,6 +198,8 @@ double Mcts::value(const std::shared_ptr<Node> &node) const {
 	switch (_valueHeuristic) {
 		case ValueHeuristic::UCT:
 			return uct(node);
+		case ValueHeuristic::Ucb1Normal2:
+			return ucb1Normal2(node);
 		default:
 			return 0;
 	}
@@ -183,6 +210,7 @@ void Mcts::searchRollout(const int rollouts) {
 		singleSearch();
 	}
 }
+
 
 void Mcts::performAction(Action action) {
 	// Check if the action matches any explored nodes
@@ -196,10 +224,24 @@ void Mcts::performAction(Action action) {
 }
 
 Action Mcts::getBestAction() {
-	const auto maxNodes = getMaxNodes(_rootNode->children);
+	auto bestNode = _rootNode->children.begin()->second;
 
-	const auto bestNode = randomChoice(maxNodes);
+	double maxValue = bestNode->Q / bestNode->N;
 
+	std::vector<std::shared_ptr<Node> > maxNodes = {};
+
+	for (const auto &child: std::ranges::views::values(_rootNode->children)) {
+		const auto childValue = child->Q / child->N;
+		if (childValue > maxValue) {
+			maxNodes.clear();
+			maxNodes.push_back(child);
+			maxValue = childValue;
+		} else if (childValue == maxValue) {
+			maxNodes.push_back(child);
+		}
+	}
+
+	bestNode = randomChoice(maxNodes);
 	return bestNode->getAction();
 }
 

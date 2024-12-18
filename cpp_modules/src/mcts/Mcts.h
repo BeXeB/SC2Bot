@@ -31,8 +31,10 @@ namespace Sc2::Mcts {
 
 		const int MAX_DEPTH = 100;
 
+
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
+		[[nodiscard]] static double ucb1Normal2(const std::shared_ptr<Node> &node);
 		[[nodiscard]] double value(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const;
 
@@ -124,7 +126,8 @@ namespace Sc2::Mcts {
 		}
 
 		Mcts(const std::shared_ptr<State> &rootState): _rootNode(
-			std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
+			std::make_shared<Node>(Node(
+				Action::none, nullptr, State::DeepCopy(*rootState)))) {
 			_rng = std::mt19937(std::random_device{}());
 		}
 

@@ -88,7 +88,7 @@ int main() {
 	constexpr unsigned int seed = 3942438306;
 	// const unsigned int seed = std::random_device()();
 	int numberOfActions = 50;
-	int numberOfRollouts = 2000;
+	int numberOfRollouts = 1000; //2000;
 	int rolloutDepth = 100;
 	double exploration = sqrt(2);
 	auto valueHeuristic = ValueHeuristic::UCT;
@@ -97,15 +97,29 @@ int main() {
 
 	int result;
 
-	result = benchmark(1, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
+	// Benchmark 1: UCT with Random as the rollout heuristic
+	/*result = benchmark(1, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
 	                   rolloutHeuristic);
 	results.push_back(result);
 
+	// Benchmark 2: UCT with weighted choice as the rollout heuristic
 	rolloutHeuristic = RolloutHeuristic::WeightedChoice;
 
 	result = benchmark(2, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
 	                   rolloutHeuristic, true);
+	results.push_back(result);*/
+
+	// Benchmark 3: UCB1-Normal2 with random as the rollout heuristic
+	rolloutHeuristic = RolloutHeuristic::Random;
+	result = benchmark(3, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
+	                   rolloutHeuristic);
 	results.push_back(result);
 
+	valueHeuristic = ValueHeuristic::Ucb1Normal2;
+	result = benchmark(3, seed, numberOfActions, numberOfRollouts, rolloutDepth, exploration, valueHeuristic,
+	                   rolloutHeuristic);
+	results.push_back(result);
+
+	// Print all the results of our benchmarks
 	printResults(results);
 }
