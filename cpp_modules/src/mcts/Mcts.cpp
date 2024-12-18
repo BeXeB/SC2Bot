@@ -75,11 +75,11 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 	return actions[index];
 }
 
-std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) const {
+std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) {
 	if (children.empty()) {
 		return {};
 	}
-	double maxValue = value(children.begin()->second);
+	double maxValue = -INFINITY;
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &child: std::ranges::views::values(children)) {
@@ -236,12 +236,14 @@ double Mcts::ucb1Normal(const std::shared_ptr<Node> &node) {
 	return mean + variance * std::sqrt((16 * std::log(totalTrials - 1)) / trials);
 }
 
-double Mcts::epsilonGreedy(const std::shared_ptr<Node> &node) const {
-	std::random_device rd;
-	std::mt19937 gen(0);
-	std::uniform_real_distribution<float> dist(0.0f, 1.0f); // Range [0, 1)
+double Mcts::epsilonGreedy(const std::shared_ptr<Node> &node) {
+	if (node->N < 1) {
+		return INFINITY;
+	}
 
-	if (dist(gen) > EXPLORATION) {
+	std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+	if (dist(_rng) > EXPLORATION) {
 		//exploit
 		return node->Q / node->N;
 	} else {
@@ -250,7 +252,7 @@ double Mcts::epsilonGreedy(const std::shared_ptr<Node> &node) const {
 	}
 }
 
-double Mcts::value(const std::shared_ptr<Node> &node) const {
+double Mcts::value(const std::shared_ptr<Node> &node) {
 	if (node->N == 0) {
 		if (EXPLORATION == 0) {
 			return 0;

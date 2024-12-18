@@ -44,12 +44,11 @@ namespace Sc2::Mcts {
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] static double ucb1Normal2(const std::shared_ptr<Node> &node);
 		[[nodiscard]] static double ucb1Normal(const std::shared_ptr<Node> &node);
-		[[nodiscard]] double epsilonGreedy(const std::shared_ptr<Node> &node) const;
-		[[nodiscard]] double value(const std::shared_ptr<Node> &node) const;
-		[[nodiscard]] double getMaxNodeValue(const std::map<Action, std::shared_ptr<Node> > &nodes) const;
+		[[nodiscard]] double epsilonGreedy(const std::shared_ptr<Node> &node);
+		[[nodiscard]] double value(const std::shared_ptr<Node> &node);
 
 		std::vector<std::shared_ptr<Node> > getMaxNodes(
-			std::map<Action, std::shared_ptr<Node> > &children) const;
+			std::map<Action, std::shared_ptr<Node> > &children);
 		void singleSearch();
 		void threadedSearch();
 

@@ -280,21 +280,21 @@ int main() {
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
 	});
 	results.push_back(result);
-
-
-	// benchmarkIndex++;
-	// result = threadedMcts({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = 0,
-	// 	.endTime = 300,
-	// 	.exploration = sqrt(2),
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// 	.shouldPrintActions = false
-	// });
-	// results.push_back(result);
-
+	//
+	//
+	// // benchmarkIndex++;
+	// // result = threadedMcts({
+	// // 	.benchmarkIndex = benchmarkIndex,
+	// // 	.seed = seed,
+	// // 	.numberOfRollouts = 0,
+	// // 	.endTime = 300,
+	// // 	.exploration = sqrt(2),
+	// // 	.valueHeuristic = ValueHeuristic::UCT,
+	// // 	.rolloutHeuristic = RolloutHeuristic::Random,
+	// // 	.shouldPrintActions = false
+	// // });
+	// // results.push_back(result);
+	//
 	benchmarkIndex++;
 	result = benchmarkOnTime({
 		.benchmarkIndex = benchmarkIndex,
@@ -345,6 +345,32 @@ int main() {
 		.seed = seed,
 		.numberOfRollouts = 2000,
 		.endTime = 300,
+		.exploration = 0.2,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+		.shouldPrintActions = true
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.exploration = 0.2,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.exploration = 0.4,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::Random,
 		.shouldPrintActions = false
@@ -357,11 +383,86 @@ int main() {
 		.seed = seed,
 		.numberOfRollouts = 2000,
 		.endTime = 300,
+		.exploration = 0.4,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
 	});
 	results.push_back(result);
 
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.exploration = 0.6,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+		.shouldPrintActions = false
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.exploration = 0.6,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.exploration = 0.8,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+		.shouldPrintActions = false
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.exploration = 0.8,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.exploration = 0.9,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+		.shouldPrintActions = false
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = 2000,
+		.endTime = 300,
+		.exploration = 0.9,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
 	// Print all the results of our benchmarks
 	printResults(results);
 }
