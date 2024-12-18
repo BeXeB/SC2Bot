@@ -102,42 +102,6 @@ void printRootNode(const std::shared_ptr<Node> &rootNode) {
 	}
 }
 
-int benchmarkOnActions(const int benchmarkIndex, const unsigned int seed, const int numberOfActions,
-                       const int numberOfRollouts,
-                       const int rolloutEndTime, const double exploration, const ValueHeuristic valueHeuristic,
-                       const RolloutHeuristic rolloutHeuristic, const bool shouldPrintActions = false) {
-	auto state = std::make_shared<Sc2::State>(rolloutEndTime);
-
-	const auto mcts = new Mcts(state, seed, rolloutEndTime, exploration, valueHeuristic, rolloutHeuristic);
-
-	std::cout << "MCTS Benchmark " << benchmarkIndex << ": {" << std::endl
-			<< "\t" << "Seed: " << seed << std::endl
-			<< "\t" << "Number of actions: " << numberOfActions << std::endl
-			<< "\t" << "Number of rollouts: " << numberOfRollouts << std::endl
-			<< "\t" << "Exploration: " << exploration << std::endl
-			<< "\t" << "Rollout depth: " << rolloutEndTime << std::endl
-			<< "\t" << "Value heuristic: " << valueHeuristic << std::endl
-			<< "\t" << "Rollout heuristic: " << rolloutHeuristic << std::endl
-			<< "}" << std::endl;
-
-	for (auto i = 0; i < numberOfActions; i++) {
-		mcts->updateRootState(state);
-
-		mcts->searchRollout(numberOfRollouts);
-		const Action action = mcts->getBestAction();
-
-		if (shouldPrintActions)
-			std::cout << "Action: " << action << ", Index: " << i << std::endl;
-
-		state->performAction(action);
-	}
-	const int stateValue = state->getValue();
-	std::cout << "Benchmark " << benchmarkIndex << " State value: " << stateValue << std::endl << std::endl
-			<< "Current time of state: " << state->getCurrentTime() << std::endl << std::endl
-			<< "------------------------------------------------------------------" << std::endl << std::endl;
-
-	return stateValue;
-}
 
 BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 	BenchmarkResult result = {
@@ -666,20 +630,16 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 			averageBenchmarkResult[benchIndex].valuePerSecond / static_cast<double>(numberOfRuns));
 	}
 
-
 	return averageBenchmarkResult;
 }
 
 int main() {
 	unsigned int seed = 3942438306;
-	int numberOfRuns = 3;
+	int numberOfRuns = 5;
 	std::mt19937_64 rng(seed);
 	std::uniform_int_distribution<unsigned int> dist;
 	std::vector<std::vector<BenchmarkResult> > benchmarkRuns = {};
 
-	// const auto res = RunBenchmarks(seed);
-	//
-	// printBenchmarks(res);
 	for (auto i = 0; i < numberOfRuns; i++) {
 		seed = dist(rng);
 		auto benchmarkRun = RunBenchmarks(seed);
@@ -687,7 +647,7 @@ int main() {
 	}
 
 
-	auto res = calculateAverageBenchmarks(benchmarkRuns);
+	const auto res = calculateAverageBenchmarks(benchmarkRuns);
 
 	printBenchmarks(res);
 	writeBenchmarksToFile(res);
