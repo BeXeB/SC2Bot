@@ -12,6 +12,28 @@ enum class ValueHeuristic {
 	EpsilonGreedy,
 };
 
+inline std::string valueHeuristicToString(const ValueHeuristic heuristic) {
+	std::string str;
+	switch (heuristic) {
+		case ValueHeuristic::UCT:
+			str = "UCT";
+			break;
+		case ValueHeuristic::UCB1Normal2:
+			str = "Ucb1-Normal2";
+			break;
+		case ValueHeuristic::UCB1Normal:
+			str = "Ucb1-Normal";
+			break;
+		case ValueHeuristic::EpsilonGreedy:
+			str = "EpsilonGreedy";
+			break;
+		default:
+			str = "Unknown";
+			break;
+	}
+	return str;
+};
+
 inline std::ostream &operator<<(std::ostream &os, const ValueHeuristic &heuristic) {
 	switch (heuristic) {
 		case ValueHeuristic::UCT:
