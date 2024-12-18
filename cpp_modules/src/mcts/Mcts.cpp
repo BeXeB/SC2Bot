@@ -184,9 +184,7 @@ double Mcts::ucb1Normal2(const std::shared_ptr<Node> &node) {
 	const auto mean = node->Q / trials;
 	const auto variance = node->getSampleVariance();
 
-	// const double value = mean + std::sqrt(2 * std::log(totalTrials) / trials) * std::sqrt(node->variance);
-	const double value = mean + variance + sqrt(2 * std::log(totalTrials));
-	return value;
+	return mean + variance + sqrt(2 * std::log(totalTrials));
 }
 
 double Mcts::value(const std::shared_ptr<Node> &node) const {
