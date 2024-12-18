@@ -68,6 +68,10 @@ namespace Sc2::Mcts {
 			return str;
 		}
 
+		bool gameOver() const {
+			return _state->endTimeReached();
+		}
+
 		explicit Node(std::shared_ptr<State> state): _action(Action::none),
 		                                             _parent(nullptr), _state(std::move(state)) {
 		}
