@@ -8,9 +8,6 @@
 #include <ranges>
 
 #include "Mcts.h"
-
-// #include <valarray>
-
 #include "Sc2State.h"
 
 using namespace Sc2::Mcts;
