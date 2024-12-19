@@ -8,9 +8,6 @@
 #include <ranges>
 
 #include "Mcts.h"
-
-// #include <valarray>
-
 #include "Sc2State.h"
 
 using namespace Sc2::Mcts;
@@ -174,9 +171,25 @@ void Mcts::threadedSearch() {
 	}
 }
 
+void Mcts::threadedSearchRollout(const int numberOfRollouts) {
+	while (_numberOfRollouts < numberOfRollouts) {
+		if (!_mctsRequestsPending) {
+			_mctsMutex.lock();
+			singleSearch();
+			_mctsMutex.unlock();
+		}
+	}
+}
+
+
 void Mcts::stopSearchThread() {
 	_running = false;
 	_searchThread.join();
+}
+
+void Mcts::startSearchRolloutThread(int numberOfRollouts) {
+	_running = true;
+	_searchThread = std::thread(&Mcts::threadedSearchRollout, this, numberOfRollouts);
 }
 
 void Mcts::startSearchThread() {
@@ -220,9 +233,7 @@ double Mcts::ucb1Normal2(const std::shared_ptr<Node> &node) {
 	const auto mean = node->Q / trials;
 	const auto variance = node->getSampleVariance();
 
-	// const double value = mean + std::sqrt(2 * std::log(totalTrials) / trials) * std::sqrt(node->variance);
-	const double value = mean + variance + sqrt(2 * std::log(totalTrials));
-	return value;
+	return mean + variance + sqrt(2 * std::log(totalTrials));
 }
 
 double Mcts::ucb1Normal(const std::shared_ptr<Node> &node) {
