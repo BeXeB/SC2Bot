@@ -110,7 +110,8 @@ namespace pymodule {
 		.def("to_string", &Sc2::Mcts::Mcts::toString)
 		.def("start_search", &Sc2::Mcts::Mcts::startSearchThread)
 		.def("stop_search", &Sc2::Mcts::Mcts::stopSearchThread)
-		.def(")
+		.def("start_search_rollout", &Sc2::Mcts::Mcts::startSearchRolloutThread,
+			py::arg("number_of_rollouts"))
 		.def("get_best_action", &Sc2::Mcts::Mcts::getBestAction)
 		.def("perform_action", &Sc2::Mcts::Mcts::performAction,
 			py::arg("action"))
