@@ -30,7 +30,9 @@ class MyBot(BotAI):
                  mcts_rollout_end_time: int = 300,
                  mcts_exploration: float = math.sqrt(2),
                  mcts_value_heuristics: ValueHeuristic = ValueHeuristic.UCT,
-                 mcts_rollout_heuristics: RolloutHeuristic = RolloutHeuristic.weighted_choice) -> None:
+                 mcts_rollout_heuristics: RolloutHeuristic = RolloutHeuristic.weighted_choice,
+                 use_fixed_search_rollouts: bool = False,
+                 fixed_search_rollouts: int = 300) -> None:
         self.completed_bases = set()
         self.busy_workers: dict[int, float] = {}
         self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics)
@@ -42,6 +44,8 @@ class MyBot(BotAI):
             mcts_rollout_heuristics,
         ]
         self.actions_taken: dict[int, Action] = {}
+        self.use_fixed_search_rollouts = use_fixed_search_rollouts
+        self.fixed_search_rollouts = fixed_search_rollouts
 
     async def on_start(self):
         # self.CC_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time
@@ -75,30 +79,40 @@ class MyBot(BotAI):
         self.update_busy_workers()
         self.manage_workers()
 
-
+        # TODO: Separate these into functions?
         match self.next_action:
             case Action.build_base:
                 if not self.can_afford(UnitTypeId.COMMANDCENTER):
                     return
                 new_base_location = await self.base_builder.find_next_base_location()
+                if not new_base_location:
+                    self.set_next_action()
+                    return
                 self.build_base(new_base_location)
                 self.actions_taken.update({iteration: Action.build_base})
                 self.set_next_action()
             case Action.build_vespene_collector:
                 if not self.can_afford(UnitTypeId.REFINERY):
                     return
-                th = self.townhalls.random
-                # TODO if we are unable to place an extractor to this base try another one
+                available_ths = self.townhalls.filter(lambda t: t.tag not in self.completed_bases)
+                if not available_ths:
+                    self.set_next_action()
+                    return
+                th = available_ths.first
                 if th.tag not in self.completed_bases and th.is_ready:
                     await self.vespene_builder.build_vespene_extractor(self.townhalls.random.position)
-                    # TODO only add to completed if all the vespene extractors are built
-                    self.completed_bases.add(th.tag)
+                    if len(self.vespene_geyser.closer_than(10, th.position)) == len(self.gas_buildings.closer_than(10, th.position)) + 1:
+                        self.completed_bases.add(th.tag)
                 self.actions_taken.update({iteration: Action.build_vespene_collector})
                 self.set_next_action()
             case Action.build_worker:
                 if not self.can_afford(UnitTypeId.SCV):
                     return
-                # TODO if we are unable to build an scv, wait
+                if self.supply_used == 200:
+                    self.set_next_action()
+                    return
+                if not self.townhalls.ready.filter(lambda t: len(t.orders) == 0):
+                    return
                 await self.worker_builder.build_worker()
                 self.actions_taken.update({iteration: Action.build_worker})
                 self.set_next_action()
@@ -109,10 +123,11 @@ class MyBot(BotAI):
                 self.actions_taken.update({iteration: Action.build_house})
                 self.set_next_action()
             case Action.none:
+                if self.use_fixed_search_rollouts and self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
+                    return
                 self.set_next_action(self.mcts.get_best_action())
                 self.mcts.update_root_state(translate_state(self))
                 print(self.next_action)
-
 
     def set_next_action(self, action: Action = Action.none):
         # with self.next_action_mutex:
@@ -156,5 +171,4 @@ class MyBot(BotAI):
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
-        if self.time > 1 * 60:
-            await self.client.quit()
+        pass

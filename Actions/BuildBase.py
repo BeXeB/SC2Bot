@@ -3,6 +3,9 @@ from sc2.position import Point2
 from sc2.ids.unit_typeid import UnitTypeId
 from typing import List, Optional
 
+from sc2.unit import Unit
+from sc2.units import Units
+
 
 class BaseBuilder():
     # Initialize the basebuilder to keep track of the occupied clusters, such that we can find the new ones
@@ -53,7 +56,7 @@ class BaseBuilder():
         # If there are no valid unoccupied mineral clusters, return None
         return None
 
-    async def __is_valid_build_position(self, position: Point2, existing_bases: List[UnitTypeId]) -> bool:
+    async def __is_valid_build_position(self, position: Point2, existing_bases: Units) -> bool:
         # Ensure the position is not too close to existing bases
         if any(base.distance_to(position) < 10 for base in existing_bases):
             return False
@@ -62,7 +65,7 @@ class BaseBuilder():
         valid_build = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, position)
         return valid_build is not None
 
-    def __group_minerals_into_clusters(self, minerals: List[UnitTypeId]) -> List['MineralCluster']:
+    def __group_minerals_into_clusters(self, minerals: Units) -> List['MineralCluster']:
         clusters = []
         for mineral in minerals:
             found_cluster = False
@@ -82,13 +85,13 @@ class BaseBuilder():
 
 
 class MineralCluster:
-    def __init__(self, mineral: UnitTypeId) -> None:
+    def __init__(self, mineral: Unit) -> None:
         # Start with the first mineral
         self.minerals = [mineral]
         # Initially, the center is the mineral's position
         self.center = mineral.position
 
-    def add(self, mineral: UnitTypeId) -> None:
+    def add(self, mineral: Unit) -> None:
         self.minerals.append(mineral)
         # Update the center of the cluster
         self.update_center()
