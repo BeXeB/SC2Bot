@@ -8,17 +8,18 @@ from testbot import MyBot, PeacefulBot
 from sc2_mcts import ValueHeuristic, RolloutHeuristic
 
 NUMBER_OF_GAMES: int = 2
-GAME_LENGTH: int = 60
+GAME_LENGTH: int = 300
 
 match = GameMatch(
     maps.get("KingsCoveLE"),
     [Bot(Race.Terran, MyBot(
         mcts_seed = 0,
         mcts_rollout_end_time = 300,
-        mcts_exploration = math.sqrt(2),
-        mcts_value_heuristics = ValueHeuristic.UCT,
+        mcts_exploration = 0.9,
+        mcts_value_heuristics = ValueHeuristic.EpsilonGreedy,
         mcts_rollout_heuristics = RolloutHeuristic.weighted_choice,
-        use_fixed_search_rollouts= False)),
+        use_fixed_search_rollouts = False,
+        fixed_search_rollouts = 5000)),
      Bot(Race.Zerg, PeacefulBot())],
     realtime = False,
     random_seed = 0,
@@ -37,9 +38,10 @@ file.write("Mcts Seed,"
            "Vespene,"
            "Workers,"
            "Bases,"
-           "Gas Buildings,"
-           "Actions,"
-           "Iterations\n")
+           "Gas Buildings"
+           # "Actions,"
+           # "Iterations"
+           "\n")
 file.close()
 
 run_multiple_games(

@@ -85,6 +85,7 @@ def translate_state(bot: 'MyBot') -> State:
         bases=bases,
         constructions=constructions,
         occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
-        end_time = 300
+        current_time=round(bot.time),
+        end_time = bot.time_limit
     )
     return state

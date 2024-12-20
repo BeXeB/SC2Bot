@@ -61,6 +61,9 @@ class Action(Enum):
 
 class ValueHeuristic(Enum):
      UCT = 0
+     UCB1Normal2 = 1
+     UCB1Normal = 2
+     EpsilonGreedy = 3
 
 class RolloutHeuristic(Enum):
     random = 0

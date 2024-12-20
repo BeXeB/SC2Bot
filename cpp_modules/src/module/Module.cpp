@@ -59,7 +59,10 @@ namespace pymodule {
 		.value("build_house", Action::buildHouse);
 
 		py::enum_<ValueHeuristic>(module, "ValueHeuristic")
-		.value("UCT", ValueHeuristic::UCT);
+		.value("UCT", ValueHeuristic::UCT)
+		.value("UCB1Normal2", ValueHeuristic::UCB1Normal2)
+		.value("UCB1Normal", ValueHeuristic::UCB1Normal)
+		.value("EpsilonGreedy", ValueHeuristic::EpsilonGreedy);
 
 		py::enum_<RolloutHeuristic>(module, "RolloutHeuristic")
 		.value("random", RolloutHeuristic::Random)

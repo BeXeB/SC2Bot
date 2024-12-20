@@ -31,8 +31,9 @@ class MyBot(BotAI):
                  mcts_exploration: float = math.sqrt(2),
                  mcts_value_heuristics: ValueHeuristic = ValueHeuristic.UCT,
                  mcts_rollout_heuristics: RolloutHeuristic = RolloutHeuristic.weighted_choice,
+                 time_limit: int = 600,
                  use_fixed_search_rollouts: bool = False,
-                 fixed_search_rollouts: int = 300) -> None:
+                 fixed_search_rollouts: int = 5000) -> None:
         self.completed_bases = set()
         self.busy_workers: dict[int, float] = {}
         self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics)
@@ -43,6 +44,7 @@ class MyBot(BotAI):
             mcts_value_heuristics,
             mcts_rollout_heuristics,
         ]
+        self.time_limit = time_limit
         self.actions_taken: dict[int, Action] = {}
         self.use_fixed_search_rollouts = use_fixed_search_rollouts
         self.fixed_search_rollouts = fixed_search_rollouts
@@ -67,7 +69,10 @@ class MyBot(BotAI):
         self.supply_builder = SupplyBuilder(self)
         self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
-        self.mcts.start_search()
+        if self.use_fixed_search_rollouts:
+            self.mcts.start_search_rollout(self.fixed_search_rollouts)
+        else:
+            self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
@@ -80,6 +85,8 @@ class MyBot(BotAI):
         self.manage_workers()
 
         # TODO: Separate these into functions?
+        # TODO: Maybe disable build base in mcts when there is no more base locations?
+        # TODO: Same with geysers and supply (if we reached the cap)
         match self.next_action:
             case Action.build_base:
                 if not self.can_afford(UnitTypeId.COMMANDCENTER):
@@ -127,10 +134,12 @@ class MyBot(BotAI):
                     return
                 self.set_next_action(self.mcts.get_best_action())
                 self.mcts.update_root_state(translate_state(self))
+                if self.use_fixed_search_rollouts:
+                    self.mcts.stop_search()
+                    self.mcts.start_search_rollout(self.fixed_search_rollouts)
                 print(self.next_action)
 
     def set_next_action(self, action: Action = Action.none):
-        # with self.next_action_mutex:
         self.next_action = action
 
     async def on_building_construction_complete(self, unit: Unit) -> None:
