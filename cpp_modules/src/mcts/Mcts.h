@@ -107,9 +107,10 @@ namespace Sc2::Mcts {
 		                     const std::vector<Base> &bases,
 		                     std::list<Construction> &constructions,
 		                     const std::vector<int> &occupiedWorkerTimers,
+		                     const int currentTime,
 		                     const int endTime) {
 			const auto state = State::StateBuilder(minerals, vespene, population, incomingPopulation, populationLimit,
-			                                       bases, constructions, occupiedWorkerTimers, endTime);
+			                                       bases, constructions, occupiedWorkerTimers, currentTime, endTime);
 
 			updateRootState(state);
 		}

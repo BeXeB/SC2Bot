@@ -23,6 +23,7 @@ def state_builder(minerals: int,
                   bases: list[Base],
                   constructions: list[Construction],
                   occupied_worker_timers: list[int],
+                  current_time: int,
                   end_time: int) -> State : ...
 
 class State:
