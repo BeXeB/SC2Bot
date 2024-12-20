@@ -38,6 +38,7 @@ namespace pymodule {
 				.def("get_mineral_workers", &Sc2::State::getMineralWorkers)
 				.def("get_vespene_workers", &Sc2::State::getVespeneWorkers)
 				.def("get_constructions", &Sc2::State::getConstructions)
+				.def("get_value", &Sc2::State::getValue)
 				.def_readwrite("id", &Sc2::State::id);
 
 		py::class_<Sc2::Base>(module, "Base")

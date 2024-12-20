@@ -130,7 +130,7 @@ namespace Sc2 {
 
         std::vector<Action> getLegalActions() const;
 
-        int getValue() const { return mineralGainedPerTimestep() + 1.5 * vespeneGainedPerTimestep(); }
+        double getValue() const { return mineralGainedPerTimestep() + 1.5 * vespeneGainedPerTimestep(); }
         std::vector<int> &getOccupiedWorkerTimers() { return _occupiedWorkerTimers; }
 
 
