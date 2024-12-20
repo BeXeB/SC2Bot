@@ -1,5 +1,7 @@
 import math
 import threading
+from enum import Enum
+from typing import Optional, Callable
 
 from sc2.data import Result
 from sc2.position import Point2
@@ -22,8 +24,14 @@ from worker_manager import WorkerManager, TownhallData, GasBuildingData, WorkerR
 
 STEPS_PER_SECOND = 22.4
 
+class ActionSelection(Enum):
+    BestAction = 0
+    BestActionFixed = 1
+    MultiBestAction = 2
+    MultiBestActionFixed = 3
+    MultiBestActionMin = 4
+
 class MyBot(BotAI):
-    next_action: Action = Action.none
     # Completed_bases is used to keep track of processed vespene extractors
     def __init__(self,
                  mcts_seed: int = 0,
@@ -32,8 +40,9 @@ class MyBot(BotAI):
                  mcts_value_heuristics: ValueHeuristic = ValueHeuristic.UCT,
                  mcts_rollout_heuristics: RolloutHeuristic = RolloutHeuristic.weighted_choice,
                  time_limit: int = 600,
-                 use_fixed_search_rollouts: bool = False,
+                 action_selection: ActionSelection = ActionSelection.BestAction,
                  fixed_search_rollouts: int = 5000) -> None:
+
         self.completed_bases = set()
         self.busy_workers: dict[int, float] = {}
         self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics)
@@ -46,8 +55,10 @@ class MyBot(BotAI):
         ]
         self.time_limit = time_limit
         self.actions_taken: dict[int, Action] = {}
-        self.use_fixed_search_rollouts = use_fixed_search_rollouts
+        self.action_selection = action_selection
         self.fixed_search_rollouts = fixed_search_rollouts
+        self.next_action: Action = Action.none
+        self.future_action: Action = Action.none
 
     async def on_start(self):
         # self.CC_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time
@@ -69,7 +80,7 @@ class MyBot(BotAI):
         self.supply_builder = SupplyBuilder(self)
         self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
-        if self.use_fixed_search_rollouts:
+        if self.action_selection is ActionSelection.MultiBestActionFixed or self.action_selection is ActionSelection.BestActionFixed:
             self.mcts.start_search_rollout(self.fixed_search_rollouts)
         else:
             self.mcts.start_search()
@@ -87,6 +98,7 @@ class MyBot(BotAI):
         # TODO: Separate these into functions?
         # TODO: Maybe disable build base in mcts when there is no more base locations?
         # TODO: Same with geysers and supply (if we reached the cap)
+        # TODO: Changable amount of future actions
         match self.next_action:
             case Action.build_base:
                 if not self.can_afford(UnitTypeId.COMMANDCENTER):
@@ -130,17 +142,73 @@ class MyBot(BotAI):
                 self.actions_taken.update({iteration: Action.build_house})
                 self.set_next_action()
             case Action.none:
-                if self.use_fixed_search_rollouts and self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
-                    return
-                self.set_next_action(self.mcts.get_best_action())
-                self.mcts.update_root_state(translate_state(self))
-                if self.use_fixed_search_rollouts:
-                    self.mcts.stop_search()
-                    self.mcts.start_search_rollout(self.fixed_search_rollouts)
-                print(self.next_action)
+                match self.action_selection:
+                    case ActionSelection.BestAction:
+                        self.get_best_action()
+                    case ActionSelection.BestActionFixed:
+                        self.get_best_action_fixed()
+                    case ActionSelection.MultiBestAction:
+                        self.get_multi_best_action()
+                    case ActionSelection.MultiBestActionFixed:
+                        self.get_multi_best_action_fixed()
+                    case ActionSelection.MultiBestActionMin:
+                        self.get_multi_best_action_min()
+
+    def get_best_action(self) -> None:
+        print(self.mcts.get_number_of_rollouts())
+        action = self.mcts.get_best_action()
+        self.set_next_action(action)
+        state = translate_state(self)
+        state.perform_action(action)
+        self.mcts.update_root_state(state)
+
+    def get_best_action_fixed(self) -> None:
+        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
+            return
+        self.get_best_action()
+        self.mcts.stop_search()
+        self.mcts.start_search_rollout(self.fixed_search_rollouts)
+
+    def get_multi_best_action(self) -> None:
+        if self.future_action is not Action.none:
+            self.set_next_action(self.future_action)
+            self.future_action = Action.none
+            return
+        print(self.mcts.get_number_of_rollouts())
+        action1 = self.mcts.get_best_action()
+        self.mcts.perform_action(action1)
+        action2 = self.mcts.get_best_action()
+        state = translate_state(self)
+        state.perform_action(action1)
+        state.perform_action(action2)
+        self.set_next_action(action1)
+        self.future_action = action2
+        self.mcts.update_root_state(state)
+
+    def get_multi_best_action_fixed(self) -> None:
+        if self.future_action is not Action.none:
+            self.set_next_action(self.future_action)
+            self.future_action = Action.none
+            return
+        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
+            return
+        self.get_multi_best_action()
+        self.mcts.stop_search()
+        self.mcts.start_search_rollout(self.fixed_search_rollouts)
+
+    def get_multi_best_action_min(self) -> None:
+        if self.future_action is not Action.none:
+            self.set_next_action(self.future_action)
+            self.future_action = Action.none
+            return
+        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
+            return
+        self.get_multi_best_action()
 
     def set_next_action(self, action: Action = Action.none):
         self.next_action = action
+        if action is not Action.none:
+            print(action)
 
     async def on_building_construction_complete(self, unit: Unit) -> None:
         if unit.type_id == UnitTypeId.COMMANDCENTER:

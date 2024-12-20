@@ -4,7 +4,7 @@ from sc2.player import Bot, Computer
 from sc2.data import Difficulty, Race
 from sc2.main import run_multiple_games, GameMatch
 from sc2 import maps
-from testbot import MyBot, PeacefulBot
+from testbot import MyBot, PeacefulBot, ActionSelection
 from sc2_mcts import ValueHeuristic, RolloutHeuristic
 
 NUMBER_OF_GAMES: int = 2
@@ -18,8 +18,8 @@ match = GameMatch(
         mcts_exploration = 0.9,
         mcts_value_heuristics = ValueHeuristic.EpsilonGreedy,
         mcts_rollout_heuristics = RolloutHeuristic.weighted_choice,
-        use_fixed_search_rollouts = False,
-        fixed_search_rollouts = 5000)),
+        action_selection = ActionSelection.MultiBestActionMin,
+        fixed_search_rollouts = 3000)),
      Bot(Race.Zerg, PeacefulBot())],
     realtime = False,
     random_seed = 0,
@@ -32,13 +32,16 @@ file.write("Mcts Seed,"
            "Mcts Exploration,"
            "Mcts Value Heuristic,"
            "Mcts Rollout Heuristic,"
+           "Action Selection,"
+           "Fixed Search Rollouts,"
            "Time,"
            "Minerals,"
            "Total Minerals,"
            "Vespene,"
            "Workers,"
            "Bases,"
-           "Gas Buildings"
+           "Gas Buildings,"
+           "Score"
            # "Actions,"
            # "Iterations"
            "\n")
