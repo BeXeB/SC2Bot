@@ -130,7 +130,7 @@ namespace Sc2 {
 
         std::vector<Action> getLegalActions() const;
 
-        int getValue() const { return mineralGainedPerTimestep() + 1.5 * vespeneGainedPerTimestep(); }
+        double getValue() const { return mineralGainedPerTimestep() + 1.5 * vespeneGainedPerTimestep(); }
         std::vector<int> &getOccupiedWorkerTimers() { return _occupiedWorkerTimers; }
 
 
@@ -211,6 +211,8 @@ namespace Sc2 {
             str += std::format("    PopulationLimit: {} \n", _populationLimit);
             str += std::format("    IncomingPopulation: {} \n", _incomingPopulation);
             str += std::format("    Number of bases: {} \n", _bases.size());
+            str += std::format("current_time: {} \n", _currentTime);
+            str += std::format("EndTime: {} \n", _endTime);
             str += "}\n";
 
             return str;

@@ -1,50 +1,19 @@
 ﻿from __future__ import annotations
+import typing
 
-from dataclasses import dataclass
+if typing.TYPE_CHECKING:
+    from testbot import MyBot
+
 import math
-from typing import Optional
 
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
-from sc2.unit import Unit
 
 from sc2_mcts import *
 
-# from testbot import MyBot
-
-
-# @dataclass
-# class Base:
-#     number_of_mineral_fields: int
-#     vespene_geysers: int
-#     # current number of collectors
-#     vespene_collectors: int
-#     # collectors under construction
-#     incoming_vespene_collectors: int
-#
-#
-# @dataclass
-# class Construction:
-#     time_left: int
-#     unit_type: UnitTypeId
-#
-# @dataclass
-# class State:
-#     minerals: int
-#     vespene: int
-#     # worker population
-#     population: int
-#     # workers under construction
-#     incoming_population: int
-#     population_limit: int
-#     bases: list[Base]
-#     constructions: list[Construction]
-#     # workers that are currently busy, and the time left
-#     busy_workers: list[int]
-
 def get_bases(bot: 'MyBot') -> list[Base]:
     bases = []
-    for townhall in bot.townhalls:
+    for townhall in bot.townhalls.filter(lambda th: th.build_progress == 1):
         vespene_collectors = bot.structures.filter(lambda s: s.type_id == UnitTypeId.REFINERY).closer_than(10, townhall)
         base = Base(
             # id=townhall.tag,
@@ -116,6 +85,7 @@ def translate_state(bot: 'MyBot') -> State:
         bases=bases,
         constructions=constructions,
         occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
-        end_time = 300
+        current_time=round(bot.time),
+        end_time = bot.time_limit
     )
     return state

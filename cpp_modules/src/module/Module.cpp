@@ -37,6 +37,8 @@ namespace pymodule {
 				.def("vespene_gained_per_time_step", &Sc2::State::vespeneGainedPerTimestep)
 				.def("get_mineral_workers", &Sc2::State::getMineralWorkers)
 				.def("get_vespene_workers", &Sc2::State::getVespeneWorkers)
+				.def("get_constructions", &Sc2::State::getConstructions)
+				.def("get_value", &Sc2::State::getValue)
 				.def_readwrite("id", &Sc2::State::id);
 
 		py::class_<Sc2::Base>(module, "Base")
@@ -59,7 +61,10 @@ namespace pymodule {
 		.value("build_house", Action::buildHouse);
 
 		py::enum_<ValueHeuristic>(module, "ValueHeuristic")
-		.value("UCT", ValueHeuristic::UCT);
+		.value("UCT", ValueHeuristic::UCT)
+		.value("UCB1Normal2", ValueHeuristic::UCB1Normal2)
+		.value("UCB1Normal", ValueHeuristic::UCB1Normal)
+		.value("EpsilonGreedy", ValueHeuristic::EpsilonGreedy);
 
 		py::enum_<RolloutHeuristic>(module, "RolloutHeuristic")
 		.value("random", RolloutHeuristic::Random)
@@ -69,7 +74,8 @@ namespace pymodule {
 		.def(py::init<const int, Action>(),
 			py::arg("time_left"),
 			py::arg("action"))
-		.def("get_time_left", &Sc2::Construction::getTimeLeft);
+		.def("get_time_left", &Sc2::Construction::getTimeLeft)
+		.def("to_string", &Sc2::Construction::toString);
 
 		py::class_<Sc2::Mcts::Node, std::shared_ptr<Sc2::Mcts::Node>>(module, "Node")
 		.def("to_string", &Sc2::Mcts::Node::toString)

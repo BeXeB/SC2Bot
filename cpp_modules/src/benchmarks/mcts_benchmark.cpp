@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <fstream>
 
 #include "Mcts.h"
 #include "Sc2State.h"
@@ -22,6 +23,74 @@ struct BenchmarkParams {
 	bool shouldPrintActions = false;
 };
 
+struct BenchmarkResult {
+	static constexpr int indexSize = 5;
+	static constexpr int rolloutSize = 8;
+	static constexpr int endTimeSize = 4;
+	static constexpr int explorationSize = 7;
+	static constexpr int valueHeuristicSize = 14;
+	static constexpr int rolloutHeuristicSize = 10;
+	static constexpr int timeElapsedSize = 7;
+	static constexpr int numberOfActionsSize = 7;
+	static constexpr int finalStateValueSize = 11;
+	static constexpr int finalVespeneSize = 7;
+	static constexpr int finalMineralSize = 7;
+	static constexpr int valuePerActionSize = 9;
+	static constexpr int valuePerSecondSize = 9;
+	int benchmarkIndex = 0;
+	int numberOfRollouts = 0;
+	int endTime = 0;
+	double exploration = 1;
+	ValueHeuristic valueHeuristic = ValueHeuristic::UCT;
+	RolloutHeuristic rolloutHeuristic = RolloutHeuristic::Random;
+	double timeElapsed = 0;
+	int numberOfActions = 0;
+	double finalStateValue = 0;
+	int finalVespene = 0;
+	int finalMinerals = 0;
+	float valuePerAction = 0;
+	float valuePerSecond = 0;
+
+	std::string toString() {
+		std::string str;
+		str += std::format(
+			"|{:<{}}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}.{}f}|",
+			benchmarkIndex, indexSize,
+			numberOfRollouts, numberOfActionsSize,
+			endTime, endTimeSize,
+			exploration, explorationSize, 4,
+			valueHeuristicToString(valueHeuristic), valueHeuristicSize,
+			rolloutHeuristicToString(rolloutHeuristic), rolloutHeuristicSize,
+			timeElapsed, timeElapsedSize, 2,
+			numberOfActions, numberOfActionsSize,
+			finalStateValue, finalStateValueSize, 4,
+			finalVespene, finalVespeneSize,
+			finalMinerals, finalMineralSize,
+			valuePerAction, valuePerActionSize, 4,
+			valuePerSecond, valuePerSecondSize, 4);
+		return str;
+	}
+
+	std::string toCsvLine() {
+		std::string str = std::format(
+			"{},{},{},{:.{}f},{},{},{:.{}f},{},{:.{}f},{},{},{:.{}f},{:.{}f}",
+			benchmarkIndex,
+			numberOfRollouts,
+			endTime,
+			exploration, 4,
+			valueHeuristicToString(valueHeuristic),
+			rolloutHeuristicToString(rolloutHeuristic),
+			timeElapsed, 4,
+			numberOfActions,
+			finalStateValue, 4,
+			finalVespene,
+			finalMinerals,
+			valuePerAction, 4,
+			valuePerSecond, 4);
+		return str;
+	}
+};
+
 void printRootNode(const std::shared_ptr<Node> &rootNode) {
 	std::cout << "-------ROOT-------\n"
 			<< *rootNode << std::endl;
@@ -33,44 +102,17 @@ void printRootNode(const std::shared_ptr<Node> &rootNode) {
 	}
 }
 
-int benchmarkOnActions(const int benchmarkIndex, const unsigned int seed, const int numberOfActions,
-                       const int numberOfRollouts,
-                       const int rolloutEndTime, const double exploration, const ValueHeuristic valueHeuristic,
-                       const RolloutHeuristic rolloutHeuristic, const bool shouldPrintActions = false) {
-	auto state = std::make_shared<Sc2::State>(rolloutEndTime);
 
-	const auto mcts = new Mcts(state, seed, rolloutEndTime, exploration, valueHeuristic, rolloutHeuristic);
+BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
+	BenchmarkResult result = {
+		.benchmarkIndex = params.benchmarkIndex,
+		.numberOfRollouts = params.numberOfRollouts,
+		.endTime = params.endTime,
+		.exploration = params.exploration,
+		.valueHeuristic = params.valueHeuristic,
+		.rolloutHeuristic = params.rolloutHeuristic,
+	};
 
-	std::cout << "MCTS Benchmark " << benchmarkIndex << ": {" << std::endl
-			<< "\t" << "Seed: " << seed << std::endl
-			<< "\t" << "Number of actions: " << numberOfActions << std::endl
-			<< "\t" << "Number of rollouts: " << numberOfRollouts << std::endl
-			<< "\t" << "Exploration: " << exploration << std::endl
-			<< "\t" << "Rollout depth: " << rolloutEndTime << std::endl
-			<< "\t" << "Value heuristic: " << valueHeuristic << std::endl
-			<< "\t" << "Rollout heuristic: " << rolloutHeuristic << std::endl
-			<< "}" << std::endl;
-
-	for (auto i = 0; i < numberOfActions; i++) {
-		mcts->updateRootState(state);
-
-		mcts->searchRollout(numberOfRollouts);
-		const Action action = mcts->getBestAction();
-
-		if (shouldPrintActions)
-			std::cout << "Action: " << action << ", Index: " << i << std::endl;
-
-		state->performAction(action);
-	}
-	const int stateValue = state->getValue();
-	std::cout << "Benchmark " << benchmarkIndex << " State value: " << stateValue << std::endl << std::endl
-			<< "Current time of state: " << state->getCurrentTime() << std::endl << std::endl
-			<< "------------------------------------------------------------------" << std::endl << std::endl;
-
-	return stateValue;
-}
-
-float benchmarkOnTime(const BenchmarkParams &params) {
 	auto state = std::make_shared<Sc2::State>(params.endTime);
 
 	const auto mcts = new Mcts(state, params.seed, params.endTime, params.exploration, params.valueHeuristic,
@@ -102,18 +144,21 @@ float benchmarkOnTime(const BenchmarkParams &params) {
 		state->performAction(action);
 		actionsTaken++;
 	}
-	const int stateValue = state->getValue();
-	std::cout << "Benchmark " << params.benchmarkIndex << " State value: " << stateValue << std::endl
-			<< "number of actions taken: " << actionsTaken << std::endl
-			<< "Current time of state: " << state->getCurrentTime() << std::endl
-			<< "Final vespene: " << state->getVespene() << std::endl
-			<< "Final minerals: " << state->getMinerals() << std::endl
-			<< "Value per action: " << static_cast<float>(stateValue) / static_cast<float>(actionsTaken) << std::endl
-			<< "value per second: " << static_cast<float>(stateValue) / static_cast<float>(state->getCurrentTime()) <<
+
+	const double stateValue = state->getValue();
+	result.finalMinerals = state->getMinerals();
+	result.finalVespene = state->getVespene();
+	result.finalStateValue = stateValue;
+	result.timeElapsed = state->getCurrentTime();
+	result.numberOfActions = actionsTaken;
+	result.valuePerAction = static_cast<float>(stateValue) / static_cast<float>(actionsTaken);
+	result.valuePerSecond = static_cast<float>(stateValue) / static_cast<float>(state->getCurrentTime());
+	std::cout << "Benchmark " << params.benchmarkIndex << " State value: " << stateValue <<
 			std::endl << std::endl
 			<< "------------------------------------------------------------------" << std::endl << std::endl;
 
-	return static_cast<float>(stateValue);
+	delete mcts;
+	return result;
 }
 
 void dumbBenchmark() {
@@ -199,270 +244,413 @@ float threadedMcts(const BenchmarkParams &params) {
 	return static_cast<float>(stateValue);
 }
 
+void printBenchmarks(const std::vector<BenchmarkResult> &results) {
+	std::cout << std::format(
+				"|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|",
+				"Index", BenchmarkResult::indexSize,
+				"Rollout", BenchmarkResult::numberOfActionsSize,
+				"end", BenchmarkResult::endTimeSize,
+				"explore", BenchmarkResult::explorationSize,
+				"value", BenchmarkResult::valueHeuristicSize,
+				"rollout", BenchmarkResult::rolloutHeuristicSize,
+				"time", BenchmarkResult::timeElapsedSize,
+				"actions", BenchmarkResult::numberOfActionsSize,
+				"final", BenchmarkResult::finalStateValueSize,
+				"final", BenchmarkResult::finalVespeneSize,
+				"final", BenchmarkResult::finalMineralSize,
+				"value per", BenchmarkResult::valuePerActionSize,
+				"value per", BenchmarkResult::valuePerSecondSize) << std::endl
+			<< std::format(
+				"|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|",
+				"", BenchmarkResult::indexSize,
+				"", BenchmarkResult::numberOfActionsSize,
+				"time", BenchmarkResult::endTimeSize,
+				"", BenchmarkResult::explorationSize,
+				"heuristic", BenchmarkResult::valueHeuristicSize,
+				"heuristic", BenchmarkResult::rolloutHeuristicSize,
+				"elapsed", BenchmarkResult::timeElapsedSize,
+				"taken", BenchmarkResult::numberOfActionsSize,
+				"state value", BenchmarkResult::finalStateValueSize,
+				"vespene", BenchmarkResult::finalVespeneSize,
+				"mineral", BenchmarkResult::finalMineralSize,
+				"action", BenchmarkResult::valuePerActionSize,
+				"second", BenchmarkResult::valuePerSecondSize) << std::endl
+			<< "-----------------------------------------------------------------------------------------------------------------------"
+			<<
+			std::endl;
+
+	for (auto result: results) {
+		std::cout << result.toString() << std::endl;
+	}
+
+	std::cout << std::endl << std::endl
+			<< "-------------------------------------------------------------------------------------"
+			<< std::endl << std::endl;
+}
+
+void writeBenchmarksToFile(const std::vector<BenchmarkResult> &results) {
+	std::string fileName = "benchmarks.csv";
+
+	std::ofstream file(fileName);
+
+	// Check if the file is open
+	if (!file.is_open()) {
+		std::cerr << "Error opening file: " << fileName << std::endl;
+	}
+
+	file << std::format("{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+	                    "index",
+	                    "rollout",
+	                    "end time",
+	                    "explore",
+	                    "value heuristics",
+	                    "rollout heuristic",
+	                    "time elapsed",
+	                    "actions taken",
+	                    "final state value",
+	                    "final vespene",
+	                    "final mineral",
+	                    "value per action",
+	                    "value per second");
+
+	for (auto result: results) {
+		file << result.toCsvLine() << std::endl;
+	}
+
+	file.close();
+}
+
+std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollouts, int endTime,
+                                            int benchmarkIndex = 0) {
+	std::vector<BenchmarkResult> results;
+	BenchmarkResult result = {};
+
+	// ------ UCT ------
+	//----- Random ------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = sqrt(2),
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.4,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.8,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 2,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
+
+	// ------ UCT ------
+	//----- weighted ------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = sqrt(2),
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.4,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.8,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 2,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+
+	});
+	results.push_back(result);
+
+	// ------ UCB normal --------
+	//--------- Random ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 1,
+		.valueHeuristic = ValueHeuristic::UCB1Normal,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
+
+	// ------ UCB1 normal --------
+	//--------- weighted choice ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 1,
+		.valueHeuristic = ValueHeuristic::UCB1Normal,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	// ------ UCB1 normal2 --------
+	//--------- Random ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 1,
+		.valueHeuristic = ValueHeuristic::UCB1Normal2,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+	});
+	results.push_back(result);
+
+	// ------ UCB1 normal2 --------
+	//--------- weighted choice ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 1,
+		.valueHeuristic = ValueHeuristic::UCB1Normal2,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	// ------ Epsilon greedy --------
+	//--------- Random ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.2,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.5,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.8,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+	});
+	results.push_back(result);
+
+	// ------ Epsilon greedy --------
+	//--------- Weighted choice ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.2,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.5,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.8,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	return results;
+}
+
+std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed) {
+	std::vector<BenchmarkResult> allResults;
+	int index = 0;
+	std::vector<BenchmarkResult> results = BenchmarkSuite(seed, 500, 300, index);
+	allResults.insert(allResults.end(), results.begin(), results.end());
+
+	index += 18;
+	results = BenchmarkSuite(seed, 1000, 300, index);
+	allResults.insert(allResults.end(), results.begin(), results.end());
+
+	index += 18;
+	results = BenchmarkSuite(seed, 2000, 300, index);
+	allResults.insert(allResults.end(), results.begin(), results.end());
+
+	index += 18;
+	results = BenchmarkSuite(seed, 5000, 300, index);
+	allResults.insert(allResults.end(), results.begin(), results.end());
+
+	return allResults;
+}
+
+std::vector<BenchmarkResult>
+calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &benchmarkRuns) {
+	const auto numberOfRuns = benchmarkRuns.size();
+	const auto numberOfBenchmarks = benchmarkRuns[0].size();
+	std::vector<BenchmarkResult> averageBenchmarkResult(numberOfBenchmarks);
+
+	for (int benchIndex = 0; benchIndex < numberOfBenchmarks; benchIndex++) {
+		for (int runIndex = 0; runIndex < numberOfRuns; runIndex++) {
+			averageBenchmarkResult[benchIndex].timeElapsed += benchmarkRuns[runIndex][benchIndex].timeElapsed;
+			averageBenchmarkResult[benchIndex].numberOfActions += benchmarkRuns[runIndex][benchIndex].numberOfActions;
+			averageBenchmarkResult[benchIndex].finalStateValue += benchmarkRuns[runIndex][benchIndex].finalStateValue;
+			averageBenchmarkResult[benchIndex].finalMinerals += benchmarkRuns[runIndex][benchIndex].finalMinerals;
+			averageBenchmarkResult[benchIndex].finalVespene += benchmarkRuns[runIndex][benchIndex].finalVespene;
+			averageBenchmarkResult[benchIndex].valuePerAction += benchmarkRuns[runIndex][benchIndex].valuePerAction;
+			averageBenchmarkResult[benchIndex].valuePerSecond += benchmarkRuns[runIndex][benchIndex].valuePerSecond;
+
+			averageBenchmarkResult[benchIndex].benchmarkIndex = benchmarkRuns[runIndex][benchIndex].benchmarkIndex;
+			averageBenchmarkResult[benchIndex].numberOfRollouts = benchmarkRuns[runIndex][benchIndex].numberOfRollouts;
+			averageBenchmarkResult[benchIndex].endTime = benchmarkRuns[runIndex][benchIndex].endTime;
+			averageBenchmarkResult[benchIndex].exploration = benchmarkRuns[runIndex][benchIndex].exploration;
+			averageBenchmarkResult[benchIndex].valueHeuristic = benchmarkRuns[runIndex][benchIndex].valueHeuristic;
+			averageBenchmarkResult[benchIndex].rolloutHeuristic = benchmarkRuns[runIndex][benchIndex].rolloutHeuristic;
+		}
+	}
+
+	for (auto benchIndex = 0; benchIndex < numberOfBenchmarks; benchIndex++) {
+		averageBenchmarkResult[benchIndex].timeElapsed /= static_cast<double>(numberOfRuns);
+		averageBenchmarkResult[benchIndex].numberOfActions = static_cast<int>(
+			averageBenchmarkResult[benchIndex].numberOfActions / static_cast<double>(numberOfRuns));
+		averageBenchmarkResult[benchIndex].finalStateValue /= static_cast<double>(numberOfRuns);
+		averageBenchmarkResult[benchIndex].finalMinerals = static_cast<int>(
+			averageBenchmarkResult[benchIndex].finalMinerals / static_cast<double>(numberOfRuns));
+		averageBenchmarkResult[benchIndex].finalVespene = static_cast<int>(
+			averageBenchmarkResult[benchIndex].finalVespene / static_cast<double>(numberOfRuns));
+		averageBenchmarkResult[benchIndex].valuePerAction = static_cast<float>(
+			averageBenchmarkResult[benchIndex].valuePerAction / static_cast<double>(numberOfRuns));
+		averageBenchmarkResult[benchIndex].valuePerSecond = static_cast<float>(
+			averageBenchmarkResult[benchIndex].valuePerSecond / static_cast<double>(numberOfRuns));
+	}
+
+	return averageBenchmarkResult;
+}
+
 int main() {
-	constexpr unsigned int seed = 3942438306;
+	unsigned int seed = 3942438306;
+	int numberOfRuns = 5;
+	std::mt19937_64 rng(seed);
+	std::uniform_int_distribution<unsigned int> dist;
+	std::vector<std::vector<BenchmarkResult> > benchmarkRuns = {};
 
-	std::vector<float> results;
+	for (auto i = 0; i < numberOfRuns; i++) {
+		seed = dist(rng);
+		auto benchmarkRun = RunBenchmarks(seed);
+		benchmarkRuns.push_back(benchmarkRun);
+	}
 
-	float result = 0;
-	int benchmarkIndex = 0;
 
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 500,
-		.endTime = 300,
-		.exploration = sqrt(2),
-		.valueHeuristic = ValueHeuristic::UCT,
-		.rolloutHeuristic = RolloutHeuristic::Random,
+	const auto res = calculateAverageBenchmarks(benchmarkRuns);
 
-	});
-	results.push_back(result);
+	printBenchmarks(res);
+	writeBenchmarksToFile(res);
 
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 1000,
-		.endTime = 300,
-		.exploration = sqrt(2),
-		.valueHeuristic = ValueHeuristic::UCT,
-		.rolloutHeuristic = RolloutHeuristic::Random,
-	});
-	results.push_back(result);
 
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = sqrt(2),
-		.valueHeuristic = ValueHeuristic::UCT,
-		.rolloutHeuristic = RolloutHeuristic::Random,
-		.shouldPrintActions = false
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 500,
-		.endTime = 300,
-		.exploration = sqrt(2),
-		.valueHeuristic = ValueHeuristic::UCT,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 1000,
-		.endTime = 300,
-		.exploration = sqrt(2),
-		.valueHeuristic = ValueHeuristic::UCT,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = sqrt(2),
-		.valueHeuristic = ValueHeuristic::UCT,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-	//
-	//
-	// // benchmarkIndex++;
-	// // result = threadedMcts({
-	// // 	.benchmarkIndex = benchmarkIndex,
-	// // 	.seed = seed,
-	// // 	.numberOfRollouts = 0,
-	// // 	.endTime = 300,
-	// // 	.exploration = sqrt(2),
-	// // 	.valueHeuristic = ValueHeuristic::UCT,
-	// // 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// // 	.shouldPrintActions = false
-	// // });
-	// // results.push_back(result);
-	//
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 5000,
-		.endTime = 300,
-		.valueHeuristic = ValueHeuristic::UCB1Normal2,
-		.rolloutHeuristic = RolloutHeuristic::Random,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 5000,
-		.endTime = 300,
-		.valueHeuristic = ValueHeuristic::UCB1Normal2,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 5000,
-		.endTime = 300,
-		.valueHeuristic = ValueHeuristic::UCB1Normal,
-		.rolloutHeuristic = RolloutHeuristic::Random,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 5000,
-		.endTime = 300,
-		.valueHeuristic = ValueHeuristic::UCB1Normal,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.2,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::Random,
-		.shouldPrintActions = true
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.2,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.4,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::Random,
-		.shouldPrintActions = false
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.4,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.6,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::Random,
-		.shouldPrintActions = false
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.6,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.8,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::Random,
-		.shouldPrintActions = false
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.8,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.9,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::Random,
-		.shouldPrintActions = false
-	});
-	results.push_back(result);
-
-	benchmarkIndex++;
-	result = benchmarkOnTime({
-		.benchmarkIndex = benchmarkIndex,
-		.seed = seed,
-		.numberOfRollouts = 2000,
-		.endTime = 300,
-		.exploration = 0.9,
-		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	});
-	results.push_back(result);
-	// Print all the results of our benchmarks
-	printResults(results);
 }

@@ -7,7 +7,7 @@
 //
 Sc2::Construction::Construction(const int constructionTime, const Action action) {
     _timeLeft = constructionTime;
-    _state = nullptr;
+    _action = action;
 
     switch (action) {
         case Action::buildWorker:
