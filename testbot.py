@@ -1,7 +1,6 @@
 import math
-import threading
+import queue
 from enum import Enum
-from typing import Optional, Callable
 
 from sc2.data import Result
 from sc2.position import Point2
@@ -41,6 +40,7 @@ class MyBot(BotAI):
                  mcts_rollout_heuristics: RolloutHeuristic = RolloutHeuristic.weighted_choice,
                  time_limit: int = 600,
                  action_selection: ActionSelection = ActionSelection.BestAction,
+                 future_action_queue_length: int = 1,
                  fixed_search_rollouts: int = 5000) -> None:
 
         self.completed_bases = set()
@@ -58,7 +58,7 @@ class MyBot(BotAI):
         self.action_selection = action_selection
         self.fixed_search_rollouts = fixed_search_rollouts
         self.next_action: Action = Action.none
-        self.future_action: Action = Action.none
+        self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):
         # self.CC_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time
@@ -98,7 +98,7 @@ class MyBot(BotAI):
         # TODO: Separate these into functions?
         # TODO: Maybe disable build base in mcts when there is no more base locations?
         # TODO: Same with geysers and supply (if we reached the cap)
-        # TODO: Changable amount of future actions
+        # TODO: Changeable amount of future actions
         match self.next_action:
             case Action.build_base:
                 if not self.can_afford(UnitTypeId.COMMANDCENTER):
@@ -170,25 +170,25 @@ class MyBot(BotAI):
         self.mcts.start_search_rollout(self.fixed_search_rollouts)
 
     def get_multi_best_action(self) -> None:
-        if self.future_action is not Action.none:
-            self.set_next_action(self.future_action)
-            self.future_action = Action.none
+        if not self.future_action_queue.empty():
+            self.set_next_action(self.future_action_queue.get())
             return
         print(self.mcts.get_number_of_rollouts())
-        action1 = self.mcts.get_best_action()
-        self.mcts.perform_action(action1)
-        action2 = self.mcts.get_best_action()
+        action = self.mcts.get_best_action()
+        self.mcts.perform_action(action)
+        for i in range(self.future_action_queue.maxsize):
+            a = self.mcts.get_best_action()
+            self.future_action_queue.put(a)
         state = translate_state(self)
-        state.perform_action(action1)
-        state.perform_action(action2)
-        self.set_next_action(action1)
-        self.future_action = action2
+        state.perform_action(action)
+        for a in list(self.future_action_queue.queue):
+            state.perform_action(a)
+        self.set_next_action(action)
         self.mcts.update_root_state(state)
 
     def get_multi_best_action_fixed(self) -> None:
-        if self.future_action is not Action.none:
-            self.set_next_action(self.future_action)
-            self.future_action = Action.none
+        if not self.future_action_queue.empty():
+            self.set_next_action(self.future_action_queue.get())
             return
         if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
             return
@@ -197,9 +197,8 @@ class MyBot(BotAI):
         self.mcts.start_search_rollout(self.fixed_search_rollouts)
 
     def get_multi_best_action_min(self) -> None:
-        if self.future_action is not Action.none:
-            self.set_next_action(self.future_action)
-            self.future_action = Action.none
+        if not self.future_action_queue.empty():
+            self.set_next_action(self.future_action_queue.get())
             return
         if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
             return

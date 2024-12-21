@@ -30,6 +30,7 @@ def save_result(bot: 'MyBot', final_state: State, game_time: float):
                f"{str(bot.mcts_settings[3])},"
                f"{str(bot.mcts_settings[4])},"
                f"{str(bot.action_selection)},"
+               f"{str(bot.future_action_queue.maxsize)},"
                f"{str(bot.fixed_search_rollouts)},"
                f"{str(game_time)},"
                f"{str(final_state.get_minerals())},"

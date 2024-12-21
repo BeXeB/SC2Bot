@@ -19,7 +19,8 @@ match = GameMatch(
         mcts_value_heuristics = ValueHeuristic.EpsilonGreedy,
         mcts_rollout_heuristics = RolloutHeuristic.weighted_choice,
         action_selection = ActionSelection.MultiBestActionMin,
-        fixed_search_rollouts = 3000)),
+        future_action_queue_length = 2,
+        fixed_search_rollouts = 5000)),
      Bot(Race.Zerg, PeacefulBot())],
     realtime = False,
     random_seed = 0,
@@ -33,6 +34,7 @@ file.write("Mcts Seed,"
            "Mcts Value Heuristic,"
            "Mcts Rollout Heuristic,"
            "Action Selection,"
+           "Future Action Queue Length,"
            "Fixed Search Rollouts,"
            "Time,"
            "Minerals,"
@@ -40,11 +42,11 @@ file.write("Mcts Seed,"
            "Vespene,"
            "Workers,"
            "Bases,"
-           "Gas Buildings,"
-           "Score"
+           "Gas Buildings," "Score"
            # "Actions,"
            # "Iterations"
            "\n")
+
 file.close()
 
 run_multiple_games(
