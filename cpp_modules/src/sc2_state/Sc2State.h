@@ -151,9 +151,10 @@ namespace Sc2 {
                                                    const std::vector<Base> &bases,
                                                    std::list<Construction> &constructions,
                                                    const std::vector<int> &occupiedWorkerTimers,
+                                                   int current_time,
                                                    int endTime) {
             auto state = std::make_shared<State>(minerals, vespene, population, incomingPopulation, populationLimit,
-                                                 bases, occupiedWorkerTimers, 0, endTime);
+                                                 bases, occupiedWorkerTimers, current_time, endTime);
 
             for (auto &construction: constructions) {
                 construction.setState(state);
@@ -210,6 +211,8 @@ namespace Sc2 {
             str += std::format("    PopulationLimit: {} \n", _populationLimit);
             str += std::format("    IncomingPopulation: {} \n", _incomingPopulation);
             str += std::format("    Number of bases: {} \n", _bases.size());
+            str += std::format("current_time: {} \n", _currentTime);
+            str += std::format("EndTime: {} \n", _endTime);
             str += "}\n";
 
             return str;

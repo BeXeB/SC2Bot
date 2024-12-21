@@ -14,6 +14,29 @@ enum class Action {
     buildVespeneCollector,
 };
 
+inline std::string actionToString(Action action) {
+    std::string actionString;
+    switch (action) {
+        case Action::none:
+            actionString = std::string("none");
+            break;
+        case Action::buildWorker:
+            actionString = std::string("buildWorker");
+            break;
+        case Action::buildHouse:
+            actionString = std::string("buildHouse");
+            break;
+        case Action::buildBase:
+            actionString = std::string("buildBase");
+            break;
+        case Action::buildVespeneCollector:
+            actionString = std::string("buildVespeneCollector");
+            break;
+    }
+
+    return actionString;
+}
+
 inline std::ostream &operator<<(std::ostream &os, const Action &action) {
     switch (action) {
         case Action::none:

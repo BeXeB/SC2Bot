@@ -3,6 +3,7 @@
 //
 #ifndef CONSTRUCTION_H
 #define CONSTRUCTION_H
+#include <format>
 #include <memory>
 #include <utility>
 #include "ActionEnum.h"
@@ -17,6 +18,7 @@ namespace Sc2 {
         int _timeLeft = 0;
         bool _isFinished = false;
         std::weak_ptr<State> _state;
+        Action _action = Action::none;
         ConstructionFunction _constructionFunction;
 
     public:
@@ -45,6 +47,16 @@ namespace Sc2 {
                 }
             }
         }
+
+        [[nodiscard]] std::string toString() const {
+            std::string str = "Construction: {\n";
+            str += std::format("    timeLeft: {} \n", _timeLeft);
+            str += std::format("    action: {} \n", actionToString(_action));
+            str += "}";
+
+            return str;
+        }
+
 
         friend State;
     };

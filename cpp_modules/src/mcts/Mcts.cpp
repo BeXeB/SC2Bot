@@ -171,9 +171,25 @@ void Mcts::threadedSearch() {
 	}
 }
 
+void Mcts::threadedSearchRollout(const int numberOfRollouts) {
+	while (_numberOfRollouts < numberOfRollouts) {
+		if (!_mctsRequestsPending) {
+			_mctsMutex.lock();
+			singleSearch();
+			_mctsMutex.unlock();
+		}
+	}
+}
+
+
 void Mcts::stopSearchThread() {
 	_running = false;
 	_searchThread.join();
+}
+
+void Mcts::startSearchRolloutThread(int numberOfRollouts) {
+	_running = true;
+	_searchThread = std::thread(&Mcts::threadedSearchRollout, this, numberOfRollouts);
 }
 
 void Mcts::startSearchThread() {

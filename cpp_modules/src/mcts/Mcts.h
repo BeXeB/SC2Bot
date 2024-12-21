@@ -51,6 +51,7 @@ namespace Sc2::Mcts {
 			std::map<Action, std::shared_ptr<Node> > &children);
 		void singleSearch();
 		void threadedSearch();
+		void threadedSearchRollout(int numberOfRollouts);
 
 	public:
 		[[nodiscard]] std::shared_ptr<Node> getRootNode() {
@@ -87,6 +88,7 @@ namespace Sc2::Mcts {
 
 		static void backPropagate(std::shared_ptr<Node> node, int outcome);
 
+		void startSearchRolloutThread(int numberOfRollouts);
 		void search(int timeLimit);
 		void searchRollout(int rollouts);
 		void stopSearchThread();
@@ -105,9 +107,10 @@ namespace Sc2::Mcts {
 		                     const std::vector<Base> &bases,
 		                     std::list<Construction> &constructions,
 		                     const std::vector<int> &occupiedWorkerTimers,
+		                     const int currentTime,
 		                     const int endTime) {
 			const auto state = State::StateBuilder(minerals, vespene, population, incomingPopulation, populationLimit,
-			                                       bases, constructions, occupiedWorkerTimers, endTime);
+			                                       bases, constructions, occupiedWorkerTimers, currentTime, endTime);
 
 			updateRootState(state);
 		}
