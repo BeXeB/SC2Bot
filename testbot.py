@@ -1,4 +1,10 @@
 import math
+import threading
+
+from sc2.data import Result
+from sc2.position import Point2
+
+from sc2_mcts import *
 
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
@@ -17,6 +23,7 @@ from worker_manager import WorkerManager, TownhallData, GasBuildingData, WorkerR
 STEPS_PER_SECOND = 22.4
 
 class MyBot(BotAI):
+    next_action: Action = Action.none
     # Initializing our bot with the BaseBuilder, such that we don't initialize a new BaseBuilder instance on every step.
     # Furthermore, we initialize the vespene_builder
     # Completed_bases is used to keep track of processed vespene extractors
@@ -44,6 +51,23 @@ class MyBot(BotAI):
         self.supply_builder = SupplyBuilder(self)
         self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
+        self.mcts = Mcts(State(), 0, 300, math.sqrt(2), ValueHeuristic.UCT, RolloutHeuristic.weighted_choice)
+        self.mcts.start_search()
+        # self.mcts_thread = threading.Thread(target=self.mcts_search_thread)
+        # self.mcts_thread.start()
+        # self.next_action_mutex = threading.Lock()
+
+    # def mcts_search_thread(self):
+    #     while True:
+    #         self.mcts.search(100)
+    #         while not self.next_action == Action.none:
+    #             self.mcts.search(500)
+    #             print("Search")
+    #         with self.next_action_mutex:
+    #             self.next_action = self.mcts.get_best_action()
+    #             print(f"Best action: {self.next_action}")
+    #         self.mcts.update_root_state(translate_state(self))
+
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
@@ -52,33 +76,48 @@ class MyBot(BotAI):
             for townhall in self.townhalls:
                 townhall(AbilityId.RALLY_WORKERS, self.start_location)
 
-        translated_state = translate_state(self)
-        print(translated_state)
+        # print("Iteration ", iteration)
 
         self.update_busy_workers()
         self.manage_workers()
 
-        # Bot code to automatically find next base location, and build a command center, if possible/affordable.
-        # We'll have to update this later for the monte carlo tree search, but it will not be difficult whatsoever
-        if self.can_afford(UnitTypeId.COMMANDCENTER) and not self.already_pending(UnitTypeId.COMMANDCENTER):
-            new_base_location = await self.base_builder.find_next_base_location()
-            if new_base_location:
-                worker = self.worker_manager.select_worker(new_base_location, WorkerRole.BUILD)
-                worker.build(UnitTypeId.COMMANDCENTER, new_base_location)
-                # self.busy_workers.update({worker.tag: self.CC_BUILD_TIME_STEPS + self.CC_TRAVEL_TIME_STEPS})
-                self.busy_workers.update({worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
 
-        # Handle vespene extractor building for each completed base
-        for townhall in self.townhalls:
-            if townhall.tag not in self.completed_bases and townhall.is_ready:
-                await self.vespene_builder.build_vespene_extractor(townhall.position)
-                self.completed_bases.add(townhall.tag)
+        match self.next_action:
+            case Action.build_base:
+                if not self.can_afford(UnitTypeId.COMMANDCENTER):
+                    return
+                new_base_location = await self.base_builder.find_next_base_location()
+                self.build_base(new_base_location)
+                self.set_next_action()
+            case Action.build_vespene_collector:
+                if not self.can_afford(UnitTypeId.REFINERY):
+                    return
+                th = self.townhalls.random
+                # TODO if we are unable to place an extractor to this base try another one
+                if th.tag not in self.completed_bases and th.is_ready:
+                    await self.vespene_builder.build_vespene_extractor(self.townhalls.random.position)
+                    # TODO only add to completed if all the vespene extractors are built
+                    self.completed_bases.add(th.tag)
+                self.set_next_action()
+            case Action.build_worker:
+                if not self.can_afford(UnitTypeId.SCV):
+                    return
+                # TODO if we are unable to build an scv, wait
+                await self.worker_builder.build_worker()
+                self.set_next_action()
+            case Action.build_house:
+                if not self.can_afford(UnitTypeId.SUPPLYDEPOT):
+                    return
+                await self.supply_builder.build_supply()
+                self.set_next_action()
+            case Action.none:
+                self.next_action = self.mcts.get_best_action()
+                print(self.next_action)
+                self.mcts.update_root_state(translate_state(self))
 
-        if self.can_afford(UnitTypeId.SCV) and self.supply_left > 0:
-            await self.worker_builder.build_worker()
-
-        if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_cap < 200:
-            await self.supply_builder.build_supply()
+    def set_next_action(self, action: Action = Action.none):
+        # with self.next_action_mutex:
+        self.next_action = action
 
     async def on_building_construction_complete(self, unit: Unit) -> None:
         if unit.type_id == UnitTypeId.COMMANDCENTER:
@@ -105,6 +144,14 @@ class MyBot(BotAI):
         self.worker_manager.distribute_workers()
         self.worker_manager.speed_mine()
 
+    def build_base(self, position: Point2):
+        if position:
+            worker = self.worker_manager.select_worker(position, WorkerRole.BUILD)
+            worker.build(UnitTypeId.COMMANDCENTER, position)
+            self.busy_workers.update({worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
+
+    def on_end(self, game_result: Result):
+        self.mcts.stop_search()
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:

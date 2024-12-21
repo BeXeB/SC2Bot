@@ -45,34 +45,38 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 }
 
 Action Mcts::weightedChoice(const std::vector<Action> &actions) {
-	std::vector<double> weights(actions.size());
+	_actionWeights.resize(actions.size());
 
 	for (int i = 0; i < actions.size(); ++i) {
 		switch (actions[i]) {
 			case Action::none:
 				throw std::runtime_error("Cannot choose none as an action.");
 			case Action::buildWorker:
-				weights[i] = 22.0;
+				_actionWeights[i] = 22.0;
 				break;
 			case Action::buildHouse:
-				weights[i] = 1.0;
+				_actionWeights[i] = 1.0;
 				break;
 			case Action::buildBase:
-				weights[i] = 1.0;
+				_actionWeights[i] = 1.0;
 				break;
 			case Action::buildVespeneCollector:
-				weights[i] = 2.0;
+				_actionWeights[i] = 2.0;
 				break;
 		}
 	}
 
-	std::discrete_distribution<int> dist(weights.begin(), weights.end());
+	std::discrete_distribution<int> dist(_actionWeights.begin(), _actionWeights.end());
 	const auto index = dist(_rng);
+
 	return actions[index];
 }
 
-std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) const {
-	double maxValue = value(children.begin()->second);
+std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) {
+	if (children.empty()) {
+		return {};
+	}
+	double maxValue = -INFINITY;
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &child: std::ranges::views::values(children)) {
@@ -102,8 +106,10 @@ std::shared_ptr<Node> Mcts::selectNode() {
 		}
 	}
 
-	node->expand();
-	node = randomChoice(node->children);
+	if (!node->gameOver()) {
+		node->expand();
+		node = randomChoice(node->children);
+	}
 
 	return node;
 }
@@ -111,7 +117,7 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 int Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState());
-	for (int i = 0; i <= MAX_DEPTH; i++) {
+	while (!state->endTimeReached()) {
 		auto legalActions = state->getLegalActions();
 
 		Action action;
@@ -152,6 +158,43 @@ void Mcts::singleSearch() {
 	const auto node = selectNode();
 	const auto outcome = rollout(node);
 	backPropagate(node, outcome);
+	_numberOfRollouts++;
+}
+
+void Mcts::threadedSearch() {
+	while (_running) {
+		if (!_mctsRequestsPending) {
+			_mctsMutex.lock();
+			singleSearch();
+			_mctsMutex.unlock();
+		}
+	}
+}
+
+void Mcts::threadedSearchRollout(const int numberOfRollouts) {
+	while (_numberOfRollouts < numberOfRollouts) {
+		if (!_mctsRequestsPending) {
+			_mctsMutex.lock();
+			singleSearch();
+			_mctsMutex.unlock();
+		}
+	}
+}
+
+
+void Mcts::stopSearchThread() {
+	_running = false;
+	_searchThread.join();
+}
+
+void Mcts::startSearchRolloutThread(int numberOfRollouts) {
+	_running = true;
+	_searchThread = std::thread(&Mcts::threadedSearchRollout, this, numberOfRollouts);
+}
+
+void Mcts::startSearchThread() {
+	_running = true;
+	_searchThread = std::thread(&Mcts::threadedSearch, this);
 }
 
 void Mcts::search(const int timeLimit) {
@@ -160,6 +203,12 @@ void Mcts::search(const int timeLimit) {
 
 	while (duration_cast<milliseconds>(system_clock::now().time_since_epoch())
 	       .count() < endTime) {
+		singleSearch();
+	}
+}
+
+void Mcts::searchRollout(const int rollouts) {
+	for (int i = 0; i < rollouts; i++) {
 		singleSearch();
 	}
 }
@@ -187,7 +236,34 @@ double Mcts::ucb1Normal2(const std::shared_ptr<Node> &node) {
 	return mean + variance + sqrt(2 * std::log(totalTrials));
 }
 
-double Mcts::value(const std::shared_ptr<Node> &node) const {
+double Mcts::ucb1Normal(const std::shared_ptr<Node> &node) {
+	if (node->N < 2) {
+		return INFINITY;
+	}
+	const auto totalTrials = node->getParent()->N;
+	const auto trials = node->N;
+	const auto variance = node->getSampleVariance();
+	const auto mean = node->Q / trials;
+	return mean + variance * std::sqrt((16 * std::log(totalTrials - 1)) / trials);
+}
+
+double Mcts::epsilonGreedy(const std::shared_ptr<Node> &node) {
+	if (node->N < 1) {
+		return INFINITY;
+	}
+
+	std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+	if (dist(_rng) > EXPLORATION) {
+		//exploit
+		return node->Q / node->N;
+	} else {
+		// explore
+		return INFINITY;
+	}
+}
+
+double Mcts::value(const std::shared_ptr<Node> &node) {
 	if (node->N == 0) {
 		if (EXPLORATION == 0) {
 			return 0;
@@ -198,16 +274,14 @@ double Mcts::value(const std::shared_ptr<Node> &node) const {
 	switch (_valueHeuristic) {
 		case ValueHeuristic::UCT:
 			return uct(node);
-		case ValueHeuristic::Ucb1Normal2:
+		case ValueHeuristic::UCB1Normal2:
 			return ucb1Normal2(node);
+		case ValueHeuristic::UCB1Normal:
+			return ucb1Normal(node);
+		case ValueHeuristic::EpsilonGreedy:
+			return epsilonGreedy(node);
 		default:
 			return 0;
-	}
-}
-
-void Mcts::searchRollout(const int rollouts) {
-	for (int i = 0; i < rollouts; i++) {
-		singleSearch();
 	}
 }
 
@@ -224,13 +298,20 @@ void Mcts::performAction(Action action) {
 }
 
 Action Mcts::getBestAction() {
+	_mctsRequestsPending = true;
+	_mctsMutex.lock();
+
 	auto bestNode = _rootNode->children.begin()->second;
-
 	double maxValue = bestNode->Q / bestNode->N;
-
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &child: std::ranges::views::values(_rootNode->children)) {
+		// only give an action if all children has been explored once
+		if (child->N < 1) {
+			maxNodes.clear();
+			break;
+		}
+
 		const auto childValue = child->Q / child->N;
 		if (childValue > maxValue) {
 			maxNodes.clear();
@@ -241,10 +322,22 @@ Action Mcts::getBestAction() {
 		}
 	}
 
+	_mctsMutex.unlock();
+	_mctsRequestsPending = false;
+
+	if (maxNodes.empty()) {
+		return Action::none;
+	}
+
 	bestNode = randomChoice(maxNodes);
 	return bestNode->getAction();
 }
 
 void Mcts::updateRootState(const std::shared_ptr<State> &state) {
+	_mctsRequestsPending = true;
+	_mctsMutex.lock();
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
+	_numberOfRollouts = 0;
+	_mctsMutex.unlock();
+	_mctsRequestsPending = false;
 }

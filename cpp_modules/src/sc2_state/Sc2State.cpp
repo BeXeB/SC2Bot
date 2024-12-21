@@ -52,20 +52,21 @@ void Sc2::State::advanceOccupiedWorkers() {
     }
 }
 
-void Sc2::State::advanceTime(int amount) {
-    for (int i = 0; i < amount; i++) {
-        advanceResources();
-        advanceOccupiedWorkers();
-        advanceConstructions();
-    }
+void Sc2::State::advanceTime() {
+    _currentTime++;
+    advanceResources();
+    advanceOccupiedWorkers();
+    advanceConstructions();
 }
 
 void Sc2::State::wait() {
-    advanceTime(1);
+    advanceTime();
 }
 
 void Sc2::State::wait(const int amount) {
-    advanceTime(amount);
+    for (int i = 0; i < amount; i++) {
+        advanceTime();
+    }
 }
 
 int Sc2::State::getVespeneCollectorsAmount() {
@@ -129,9 +130,15 @@ bool Sc2::State::populationLimitReached() const {
     return _incomingPopulation + _population >= _populationLimit;
 }
 
+bool Sc2::State::hasFreeBase() const {
+    return _bases.size() > _incomingPopulation;
+}
+
 bool Sc2::State::hasUnoccupiedGeyser() const {
+    auto incoming = _incomingVespeneCollectors;
     for (auto &base: _bases) {
-        if (base.getUnoccupiedGeysers() - incomingVespeneCollectors > 0) {
+        incoming -= base.getUnoccupiedGeysers();
+        if (incoming < 0) {
             return true;
         }
     }
@@ -160,26 +167,26 @@ void Sc2::State::addVespeneCollector() {
             break;
         }
     }
-    incomingVespeneCollectors--;
+    _incomingVespeneCollectors--;
 }
 
 void Sc2::State::buildVespeneCollector() {
     while (!canAffordConstruction(buildVespeneCollectorCost)) {
         const auto initialMineral = _minerals;
-        advanceTime(1);
+        advanceTime();
         if (initialMineral == _minerals) {
             return;
         }
     }
 
     while (!hasUnoccupiedWorker()) {
-        advanceTime(1);
+        advanceTime();
     }
 
     if (hasUnoccupiedGeyser()) {
         _minerals -= buildVespeneCollectorCost.minerals;
         _vespene -= buildVespeneCollectorCost.vespene;
-        incomingVespeneCollectors++;
+        _incomingVespeneCollectors++;
 
         _occupiedWorkerTimers.emplace_back(buildVespeneCollectorCost.buildTime);
         _constructions.emplace_back(
@@ -192,14 +199,14 @@ void Sc2::State::buildVespeneCollector() {
 void Sc2::State::buildBase() {
     while (!canAffordConstruction(buildBaseCost)) {
         const auto initialMineral = _minerals;
-        advanceTime(1);
+        advanceTime();
         if (initialMineral == _minerals) {
             return;
         }
     }
 
     while (!hasUnoccupiedWorker()) {
-        advanceTime(1);
+        advanceTime();
     }
 
     _minerals -= buildBaseCost.minerals;
@@ -212,10 +219,14 @@ void Sc2::State::buildBase() {
 void Sc2::State::buildWorker() {
     while (!canAffordConstruction(buildWorkerCost)) {
         const auto initialMineral = _minerals;
-        advanceTime(1);
+        advanceTime();
         if (initialMineral == _minerals) {
             return;
         }
+    }
+
+    while (!hasFreeBase()) {
+        advanceTime();
     }
 
     if (!populationLimitReached()) {
@@ -231,14 +242,14 @@ void Sc2::State::buildWorker() {
 void Sc2::State::buildHouse() {
     while (!canAffordConstruction(buildHouseCost)) {
         const auto initialMineral = _minerals;
-        advanceTime(1);
+        advanceTime();
         if (initialMineral == _minerals) {
             return;
         }
     }
 
     while (!hasUnoccupiedWorker()) {
-        advanceTime(1);
+        advanceTime();
     }
 
     _minerals -= buildHouseCost.minerals;

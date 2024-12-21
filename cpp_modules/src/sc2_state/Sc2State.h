@@ -14,11 +14,15 @@ namespace Sc2 {
         int _vespene = 0;
         int _population = 5;
         int _incomingPopulation = 0;
-        int incomingVespeneCollectors = 0;
+        int _incomingVespeneCollectors = 0;
+        const int MAX_POPULATION_LIMIT = 200;
         int _populationLimit = 15;
-        std::vector<Base> _bases = std::vector{Base()}; // (maybe) Replace with list
+        std::vector<Base> _bases = std::vector{Base()};
         std::list<Construction> _constructions{};
         std::vector<int> _occupiedWorkerTimers{};
+
+        const int _endTime;
+        int _currentTime = 0;
 
         struct ActionCost {
             int minerals;
@@ -39,7 +43,7 @@ namespace Sc2 {
         void advanceConstructions();
         void advanceResources();
         void advanceOccupiedWorkers();
-        void advanceTime(int amount);
+        void advanceTime();
 
         bool hasEnoughMinerals(const int cost) const { return _minerals >= cost; };
         bool hasEnoughVespene(const int cost) const { return _vespene >= cost; }
@@ -53,6 +57,7 @@ namespace Sc2 {
 
         void addBase() {
             _populationLimit += 15;
+            _populationLimit = _populationLimit >= MAX_POPULATION_LIMIT ? MAX_POPULATION_LIMIT : _populationLimit;
             _bases.emplace_back();
         }
 
@@ -63,6 +68,7 @@ namespace Sc2 {
 
         void addHouse() {
             _populationLimit += 8;
+            _populationLimit = _populationLimit >= MAX_POPULATION_LIMIT ? MAX_POPULATION_LIMIT : _populationLimit;
         }
 
     public:
@@ -84,6 +90,7 @@ namespace Sc2 {
         bool hasUnoccupiedGeyser() const;
         bool canAffordConstruction(const ActionCost &actionCost) const;
         bool populationLimitReached() const;
+        bool hasFreeBase() const;
 
         int mineralGainedPerTimestep() const;
         int vespeneGainedPerTimestep() const;
@@ -123,20 +130,31 @@ namespace Sc2 {
 
         std::vector<Action> getLegalActions() const;
 
-        int getValue() const { return mineralGainedPerTimestep() + vespeneGainedPerTimestep(); }
-        std::vector<int> &getOccupiedWorkerTimers() { return _occupiedWorkerTimers; };
+        int getValue() const { return mineralGainedPerTimestep() + 1.5 * vespeneGainedPerTimestep(); }
+        std::vector<int> &getOccupiedWorkerTimers() { return _occupiedWorkerTimers; }
+
+
+        bool endTimeReached() const {
+            return _currentTime >= _endTime;
+        }
+
+        int getCurrentTime() const { return _currentTime; }
+        void resetCurrentTime() { _currentTime = 0; }
 
         static std::shared_ptr<State> DeepCopy(const State &state);
 
-        static std::shared_ptr<State> StateBuilder(const int minerals, const int vespene, const int population,
+        static std::shared_ptr<State> StateBuilder(const int minerals,
+                                                   const int vespene,
+                                                   const int population,
                                                    const int incomingPopulation,
                                                    const int populationLimit,
                                                    const std::vector<Base> &bases,
                                                    std::list<Construction> &constructions,
-                                                   const std::vector<int> &occupiedWorkerTimers) {
+                                                   const std::vector<int> &occupiedWorkerTimers,
+                                                   int current_time,
+                                                   int endTime) {
             auto state = std::make_shared<State>(minerals, vespene, population, incomingPopulation, populationLimit,
-                                                 bases,
-                                                 occupiedWorkerTimers);
+                                                 bases, occupiedWorkerTimers, current_time, endTime);
 
             for (auto &construction: constructions) {
                 construction.setState(state);
@@ -147,24 +165,24 @@ namespace Sc2 {
         };
 
         State(const int minerals, const int vespene, const int population, const int incomingPopulation,
-              const int populationLimit,
-              std::vector<Base> bases, std::vector<int> occupiedWorkerTimers) {
-            _minerals = minerals;
-            _vespene = vespene;
-            _population = population;
-            _incomingPopulation = incomingPopulation;
-            _populationLimit = populationLimit;
-            _bases = std::move(bases);
-            _constructions = std::list<Construction>();
-            _occupiedWorkerTimers = std::move(occupiedWorkerTimers);
+              const int populationLimit, std::vector<Base> bases, std::vector<int> occupiedWorkerTimers,
+              const int currentTime, const int endTime): _minerals(minerals), _vespene(vespene),
+                                                         _population(population),
+                                                         _incomingPopulation(incomingPopulation),
+                                                         _populationLimit(populationLimit), _bases(std::move(bases)),
+                                                         _constructions(std::list<Construction>()),
+                                                         _occupiedWorkerTimers(std::move(occupiedWorkerTimers)),
+                                                         _endTime(endTime), _currentTime(currentTime) {
         };
 
-        State(const State &state) : enable_shared_from_this(state) {
+        State(const State &state) : enable_shared_from_this(state), _endTime(state._endTime),
+                                    _currentTime(state._currentTime) {
             _minerals = state._minerals;
             _vespene = state._vespene;
             _population = state._population;
             _incomingPopulation = state._incomingPopulation;
             _populationLimit = state._populationLimit;
+            _incomingVespeneCollectors = state._incomingVespeneCollectors;
 
             buildWorkerCost = state.buildWorkerCost;
             buildBaseCost = state.buildBaseCost;
@@ -176,7 +194,11 @@ namespace Sc2 {
             _occupiedWorkerTimers = state._occupiedWorkerTimers;
         };
 
-        State() = default;
+        explicit State(const int endTime): _endTime(endTime) {
+        }
+
+        State(): _endTime(1000) {
+        }
 
         std::string toString() const {
             std::string str;
