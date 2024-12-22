@@ -95,9 +95,8 @@ class MyBot(BotAI):
         self.update_busy_workers()
         self.manage_workers()
 
-        # TODO: Separate these into functions?
         # TODO: Maybe disable build base in mcts when there is no more base locations?
-        # TODO: Same with geysers and supply (if we reached the cap)
+        # TODO: Same with geysers and supply (if we reached the cap) the bot keeps wanting to build when there is no more place or already at 200 supply
         # TODO: Changeable amount of future actions
         match self.next_action:
             case Action.build_base:
@@ -176,6 +175,7 @@ class MyBot(BotAI):
         print(self.mcts.get_number_of_rollouts())
         action = self.mcts.get_best_action()
         self.mcts.perform_action(action)
+        # TODO: If its unable to search deep enough it stops working
         for i in range(self.future_action_queue.maxsize):
             a = self.mcts.get_best_action()
             self.future_action_queue.put(a)
