@@ -569,22 +569,22 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 	return results;
 }
 
-std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed) {
+std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed, const int endTime) {
 	std::vector<BenchmarkResult> allResults;
 	int index = 0;
-	std::vector<BenchmarkResult> results = BenchmarkSuite(seed, 500, 300, index);
+	std::vector<BenchmarkResult> results = BenchmarkSuite(seed, 500, endTime, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 18;
-	results = BenchmarkSuite(seed, 1000, 300, index);
+	results = BenchmarkSuite(seed, 1000, endTime, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 18;
-	results = BenchmarkSuite(seed, 2000, 300, index);
+	results = BenchmarkSuite(seed, 2000, endTime, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 18;
-	results = BenchmarkSuite(seed, 5000, 300, index);
+	results = BenchmarkSuite(seed, 5000, endTime, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	return allResults;
@@ -636,13 +636,14 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 int main() {
 	unsigned int seed = 3942438306;
 	int numberOfRuns = 5;
+	int runTime = 300;
 	std::mt19937_64 rng(seed);
 	std::uniform_int_distribution<unsigned int> dist;
 	std::vector<std::vector<BenchmarkResult> > benchmarkRuns = {};
 
 	for (auto i = 0; i < numberOfRuns; i++) {
 		seed = dist(rng);
-		auto benchmarkRun = RunBenchmarks(seed);
+		auto benchmarkRun = RunBenchmarks(seed, runTime);
 		benchmarkRuns.push_back(benchmarkRun);
 	}
 
