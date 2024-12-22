@@ -1,4 +1,5 @@
 import math
+import sys
 
 from sc2.player import Bot, Computer, Human
 from sc2.data import Difficulty, Race
@@ -7,10 +8,7 @@ from sc2 import maps
 from testbot import MyBot, PeacefulBot, ActionSelection
 from sc2_mcts import ValueHeuristic, RolloutHeuristic
 
-import sys
-
-
-ROLLOUT_END_TIMES: list[int] = [300, 600, 900]
+ROLLOUT_END_TIMES: list[int] = [300, 600]
 EXPLORATIONS: list[float] = [0.5, 0.9, math.sqrt(2)]
 VALUE_HEURISTICS: list[ValueHeuristic] = [ValueHeuristic.UCT, ValueHeuristic.EpsilonGreedy]
 ACTION_SELECTIONS: list[ActionSelection] = [ActionSelection.BestAction,
@@ -65,7 +63,7 @@ for ROLLOUT_END_TIME in ROLLOUT_END_TIMES:
         )), Bot(Race.Zerg, PeacefulBot())],
         realtime=False,
         random_seed=0,
-        game_time_limit=900,
+        game_time_limit=600,
     )
 
     for _ in range(REPEAT_AMOUNT):

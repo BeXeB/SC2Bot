@@ -29,7 +29,7 @@ def save_result(bot: 'MyBot', final_state: State, game_time: float):
                f"{str(final_state.get_minerals())},"
                f"{str(total_minerals_mined)},"
                f"{str(final_state.get_vespene())},"
-               f"{str(final_state.get_population())},"
+               f"{str(bot.supply_workers)},"
                f"{str(len(bot.townhalls))},"
                f"{str(len(bot.gas_buildings))},"
                f"{str(final_state.get_value())}"

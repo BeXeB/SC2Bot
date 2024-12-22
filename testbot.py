@@ -124,9 +124,9 @@ class MyBot(BotAI):
                 self.actions_taken.update({iteration: Action.build_vespene_collector})
                 self.set_next_action()
             case Action.build_worker:
-                if not self.can_afford(UnitTypeId.SCV):
+                if not self.can_afford(UnitTypeId.SCV, check_supply_cost=False):
                     return
-                if self.supply_used == 200:
+                if not self.can_afford(UnitTypeId.SCV):
                     self.set_next_action()
                     return
                 if not self.townhalls.ready.filter(lambda t: len(t.orders) == 0):
@@ -141,17 +141,20 @@ class MyBot(BotAI):
                 self.actions_taken.update({iteration: Action.build_house})
                 self.set_next_action()
             case Action.none:
-                match self.action_selection:
-                    case ActionSelection.BestAction:
-                        self.get_best_action()
-                    case ActionSelection.BestActionFixed:
-                        self.get_best_action_fixed()
-                    case ActionSelection.MultiBestAction:
-                        self.get_multi_best_action()
-                    case ActionSelection.MultiBestActionFixed:
-                        self.get_multi_best_action_fixed()
-                    case ActionSelection.MultiBestActionMin:
-                        self.get_multi_best_action_min()
+                try:
+                    match self.action_selection:
+                        case ActionSelection.BestAction:
+                            self.get_best_action()
+                        case ActionSelection.BestActionFixed:
+                            self.get_best_action_fixed()
+                        case ActionSelection.MultiBestAction:
+                            self.get_multi_best_action()
+                        case ActionSelection.MultiBestActionFixed:
+                            self.get_multi_best_action_fixed()
+                        case ActionSelection.MultiBestActionMin:
+                            self.get_multi_best_action_min()
+                except:
+                    return
 
     def get_best_action(self) -> None:
         print(self.mcts.get_number_of_rollouts())
