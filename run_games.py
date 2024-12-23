@@ -5,49 +5,26 @@ from sc2.player import Bot, Computer, Human
 from sc2.data import Difficulty, Race
 from sc2.main import run_multiple_games, GameMatch
 from sc2 import maps
+
 from testbot import MyBot, PeacefulBot, ActionSelection
 from sc2_mcts import ValueHeuristic, RolloutHeuristic
 
-ROLLOUT_END_TIMES: list[int] = [300, 600]
+GAME_LENGTH = 60*8
+ROLLOUT_END_TIMES: list[int] = [300, 60*8]
 EXPLORATIONS: list[float] = [0.5, 0.9, math.sqrt(2)]
 VALUE_HEURISTICS: list[ValueHeuristic] = [ValueHeuristic.UCT, ValueHeuristic.EpsilonGreedy]
 ACTION_SELECTIONS: list[ActionSelection] = [ActionSelection.BestAction,
-                                            ActionSelection.BestActionFixed,
                                             ActionSelection.MultiBestAction,
-                                            ActionSelection.MultiBestActionFixed,
                                             ActionSelection.MultiBestActionMin]
-FUTURE_ACTION_QUEUE_LENGTHS: list[int] = [1, 2, 3, 4]
+FUTURE_ACTION_QUEUE_LENGTHS: list[int] = [2, 3, 4]
 
 # generate matches
 # test each argument separately, with no changes to the others
 matches: list[GameMatch] = []
-REPEAT_AMOUNT: int = 2
-# rollout end tome test, when we look ahead to the end of the game
-for ROLLOUT_END_TIME in ROLLOUT_END_TIMES:
-    match = GameMatch(
-        maps.get("KingsCoveLE"),
-        [Bot(Race.Terran, MyBot(
-            mcts_seed=0,
-            mcts_rollout_end_time=ROLLOUT_END_TIME,
-            mcts_exploration=0.9,
-            mcts_value_heuristics=ValueHeuristic.EpsilonGreedy,
-            mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
-            action_selection=ActionSelection.MultiBestActionMin,
-            future_action_queue_length=2,
-            fixed_search_rollouts=5000
-        )), Bot(Race.Zerg, PeacefulBot())],
-        realtime=False,
-        random_seed=0,
-        game_time_limit=ROLLOUT_END_TIME,
-    )
-
-    for _ in range(REPEAT_AMOUNT):
-        matches.append(match)
+REPEAT_AMOUNT: int = 5
 
 # rollout end time test, when we dont look ahead to the end of the game
 for ROLLOUT_END_TIME in ROLLOUT_END_TIMES:
-    if ROLLOUT_END_TIME == ROLLOUT_END_TIMES[-1]:
-        continue
 
     match = GameMatch(
         maps.get("KingsCoveLE"),
@@ -63,7 +40,7 @@ for ROLLOUT_END_TIME in ROLLOUT_END_TIMES:
         )), Bot(Race.Zerg, PeacefulBot())],
         realtime=False,
         random_seed=0,
-        game_time_limit=600,
+        game_time_limit=GAME_LENGTH,
     )
 
     for _ in range(REPEAT_AMOUNT):
@@ -85,7 +62,7 @@ for EXPLORATION in EXPLORATIONS:
         )), Bot(Race.Zerg, PeacefulBot())],
         realtime=False,
         random_seed=0,
-        game_time_limit=600,
+        game_time_limit=GAME_LENGTH,
     )
 
     for _ in range(REPEAT_AMOUNT):
@@ -107,7 +84,7 @@ for VALUE_HEURISTIC in VALUE_HEURISTICS:
         )), Bot(Race.Zerg, PeacefulBot())],
         realtime=False,
         random_seed=0,
-        game_time_limit=600,
+        game_time_limit=GAME_LENGTH,
     )
 
     for _ in range(REPEAT_AMOUNT):
@@ -129,7 +106,7 @@ for ACTION_SELECTION in ACTION_SELECTIONS:
         )), Bot(Race.Zerg, PeacefulBot())],
         realtime=False,
         random_seed=0,
-        game_time_limit=600,
+        game_time_limit=GAME_LENGTH,
     )
 
     for _ in range(REPEAT_AMOUNT):
@@ -151,7 +128,7 @@ for FUTURE_ACTION_QUEUE_LENGTH in FUTURE_ACTION_QUEUE_LENGTHS:
         )), Bot(Race.Zerg, PeacefulBot())],
         realtime=False,
         random_seed=0,
-        game_time_limit=600,
+        game_time_limit=GAME_LENGTH,
     )
 
     for _ in range(REPEAT_AMOUNT):
