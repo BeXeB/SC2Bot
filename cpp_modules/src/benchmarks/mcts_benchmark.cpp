@@ -45,6 +45,9 @@ struct BenchmarkResult {
 	RolloutHeuristic rolloutHeuristic = RolloutHeuristic::Random;
 	double timeElapsed = 0;
 	int numberOfActions = 0;
+	float numberOfWorkers = 0;
+	float numberOfBases = 0;
+	float numberOfVespeneCollectors = 0;
 	double finalStateValue = 0;
 	int finalVespene = 0;
 	int finalMinerals = 0;
@@ -73,7 +76,7 @@ struct BenchmarkResult {
 
 	std::string toCsvLine() {
 		std::string str = std::format(
-			"{},{},{},{:.{}f},{},{},{:.{}f},{},{:.{}f},{},{},{:.{}f},{:.{}f}",
+			"{},{},{},{:.{}f},{},{},{:.{}f},{},{:.{}f},{},{},{:.{}f},{:.{}f},{:.{}f},{:.{}f},{:.{}f}",
 			benchmarkIndex,
 			numberOfRollouts,
 			endTime,
@@ -86,7 +89,10 @@ struct BenchmarkResult {
 			finalVespene,
 			finalMinerals,
 			valuePerAction, 4,
-			valuePerSecond, 4);
+			valuePerSecond, 4,
+			numberOfWorkers, 1,
+			numberOfBases, 1,
+			numberOfVespeneCollectors, 1);
 		return str;
 	}
 };
@@ -153,6 +159,9 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 	result.numberOfActions = actionsTaken;
 	result.valuePerAction = static_cast<float>(stateValue) / static_cast<float>(actionsTaken);
 	result.valuePerSecond = static_cast<float>(stateValue) / static_cast<float>(state->getCurrentTime());
+	result.numberOfWorkers = state->getPopulation();
+	result.numberOfBases = static_cast<int>(state->getBases().size());
+	result.numberOfVespeneCollectors = state->getVespeneCollectorsAmount();
 	std::cout << "Benchmark " << params.benchmarkIndex << " State value: " << stateValue <<
 			std::endl << std::endl
 			<< "------------------------------------------------------------------" << std::endl << std::endl;
@@ -298,7 +307,7 @@ void writeBenchmarksToFile(const std::vector<BenchmarkResult> &results) {
 		std::cerr << "Error opening file: " << fileName << std::endl;
 	}
 
-	file << std::format("{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+	file << std::format("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
 	                    "index",
 	                    "rollout",
 	                    "end time",
@@ -311,7 +320,10 @@ void writeBenchmarksToFile(const std::vector<BenchmarkResult> &results) {
 	                    "final vespene",
 	                    "final mineral",
 	                    "value per action",
-	                    "value per second");
+	                    "value per second",
+	                    "workers",
+	                    "bases",
+	                    "vespene collectors");
 
 	for (auto result: results) {
 		file << result.toCsvLine() << std::endl;
@@ -569,22 +581,22 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 	return results;
 }
 
-std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed) {
+std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed, const int endTime) {
 	std::vector<BenchmarkResult> allResults;
 	int index = 0;
-	std::vector<BenchmarkResult> results = BenchmarkSuite(seed, 500, 300, index);
+	std::vector<BenchmarkResult> results = BenchmarkSuite(seed, 500, endTime, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 18;
-	results = BenchmarkSuite(seed, 1000, 300, index);
+	results = BenchmarkSuite(seed, 1000, endTime, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 18;
-	results = BenchmarkSuite(seed, 2000, 300, index);
+	results = BenchmarkSuite(seed, 2000, endTime, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 18;
-	results = BenchmarkSuite(seed, 5000, 300, index);
+	results = BenchmarkSuite(seed, 5000, endTime, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	return allResults;
@@ -605,6 +617,10 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 			averageBenchmarkResult[benchIndex].finalVespene += benchmarkRuns[runIndex][benchIndex].finalVespene;
 			averageBenchmarkResult[benchIndex].valuePerAction += benchmarkRuns[runIndex][benchIndex].valuePerAction;
 			averageBenchmarkResult[benchIndex].valuePerSecond += benchmarkRuns[runIndex][benchIndex].valuePerSecond;
+			averageBenchmarkResult[benchIndex].numberOfWorkers += benchmarkRuns[runIndex][benchIndex].numberOfWorkers;
+			averageBenchmarkResult[benchIndex].numberOfBases += benchmarkRuns[runIndex][benchIndex].numberOfBases;
+			averageBenchmarkResult[benchIndex].numberOfVespeneCollectors += benchmarkRuns[runIndex][benchIndex].
+					numberOfVespeneCollectors;
 
 			averageBenchmarkResult[benchIndex].benchmarkIndex = benchmarkRuns[runIndex][benchIndex].benchmarkIndex;
 			averageBenchmarkResult[benchIndex].numberOfRollouts = benchmarkRuns[runIndex][benchIndex].numberOfRollouts;
@@ -619,6 +635,9 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 		averageBenchmarkResult[benchIndex].timeElapsed /= static_cast<double>(numberOfRuns);
 		averageBenchmarkResult[benchIndex].numberOfActions = static_cast<int>(
 			averageBenchmarkResult[benchIndex].numberOfActions / static_cast<double>(numberOfRuns));
+		averageBenchmarkResult[benchIndex].numberOfWorkers /= static_cast<float>(numberOfRuns);
+		averageBenchmarkResult[benchIndex].numberOfBases /= static_cast<float>(numberOfRuns);
+		averageBenchmarkResult[benchIndex].numberOfVespeneCollectors /= static_cast<float>(numberOfRuns);
 		averageBenchmarkResult[benchIndex].finalStateValue /= static_cast<double>(numberOfRuns);
 		averageBenchmarkResult[benchIndex].finalMinerals = static_cast<int>(
 			averageBenchmarkResult[benchIndex].finalMinerals / static_cast<double>(numberOfRuns));
@@ -634,15 +653,16 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 }
 
 int main() {
-	unsigned int seed = 3942438306;
-	int numberOfRuns = 5;
+	unsigned int seed = 3942438310;
+	constexpr int numberOfRuns = 1;
+	constexpr int runTime = 480;
 	std::mt19937_64 rng(seed);
 	std::uniform_int_distribution<unsigned int> dist;
 	std::vector<std::vector<BenchmarkResult> > benchmarkRuns = {};
 
 	for (auto i = 0; i < numberOfRuns; i++) {
 		seed = dist(rng);
-		auto benchmarkRun = RunBenchmarks(seed);
+		auto benchmarkRun = RunBenchmarks(seed, runTime);
 		benchmarkRuns.push_back(benchmarkRun);
 	}
 
