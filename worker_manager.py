@@ -80,8 +80,14 @@ class WorkerManager:
                 if th_data.current_harvesters < th.ideal_harvesters:
                     self.assign_worker(worker.tag, WorkerRole.MINERALS, th.tag)
                     # TODO: change the random selection when we have a better way to select the mineral field
-                    worker(AbilityId.SMART, self.bot.mineral_field.closer_than(10, th).random, queue=True)
-                    return True
+                    fields = self.bot.mineral_field.closer_than(10, th)
+                    if fields.amount > 0:
+                        mf = fields.random
+                        if mf is not None:
+                            worker(AbilityId.SMART, mf, queue=True)
+                        else:
+                            self.assign_worker(worker.tag, WorkerRole.IDLE, None)
+                        return True
             return False
 
         def __assign_idle_worker(worker: Unit) -> None:
@@ -172,12 +178,14 @@ class WorkerManager:
             __move_worker_to_target(worker, th, target)
 
         if not worker.is_returning and len(worker.orders) == 1 and isinstance(worker.order_target, int):
-            mf: Unit = self.bot.mineral_field.by_tag(worker.order_target)
-            if mf is not None and mf.is_mineral_field:
-                if not self.mineral_targets.__contains__(mf.tag):
-                    self.mineral_targets.update({mf.tag: mf.position.towards(th, MINING_RADIUS)})
-                target = self.mineral_targets[mf.tag]
-                __move_worker_to_target(worker, mf, target)
+            target = worker.order_target
+            if self.bot.mineral_field.__contains__(target):
+                mf: Unit = self.bot.mineral_field.by_tag(worker.order_target)
+                if mf is not None and mf.is_mineral_field:
+                    if not self.mineral_targets.__contains__(mf.tag):
+                        self.mineral_targets.update({mf.tag: mf.position.towards(th, MINING_RADIUS)})
+                    target = self.mineral_targets[mf.tag]
+                    __move_worker_to_target(worker, mf, target)
 
     # This method selects all the workers that should be mining minerals
     def __find_mineral_workers(self) -> Units:

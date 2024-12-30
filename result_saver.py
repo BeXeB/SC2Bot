@@ -1,6 +1,7 @@
 from __future__ import annotations
 import typing
 
+from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 
 if typing.TYPE_CHECKING:
@@ -17,13 +18,6 @@ def save_result(bot: 'MyBot', final_state: State, game_time: float):
     total_minerals_mined += (len(bot.workers) - 12) * 50
     total_minerals_mined += len(bot.structures.filter(lambda s: s.type_id == UnitTypeId.SUPPLYDEPOT)) * 100
     total_minerals_mined += (len(bot.townhalls) - 1) * 400
-    # actions = ""
-    # times = ""
-    # for time, action in bot.actions_taken.items():
-    #     actions += f"{str(action)};"
-    #     times += f"{str(time)};"
-    # actions = actions[:-1]
-    # times = times[:-1]
     file.write(f"{str(bot.mcts_settings[0])},"
                f"{str(bot.mcts_settings[1])},"
                f"{str(bot.mcts_settings[2])},"
@@ -36,11 +30,27 @@ def save_result(bot: 'MyBot', final_state: State, game_time: float):
                f"{str(final_state.get_minerals())},"
                f"{str(total_minerals_mined)},"
                f"{str(final_state.get_vespene())},"
-               f"{str(final_state.get_population())},"
+               f"{str(bot.supply_workers)},"
                f"{str(len(bot.townhalls))},"
                f"{str(len(bot.gas_buildings))},"
                f"{str(final_state.get_value())}"
-               # f"{actions},"
-               # f"{times}"
+               f"\n")
+    file.close()
+
+def save_human_result(bot: BotAI, final_state: State, game_time: float):
+    file = open('human_result.csv', 'a')
+    total_minerals_mined = bot.minerals - 50
+    total_minerals_mined += len(bot.gas_buildings) * 75
+    total_minerals_mined += (len(bot.workers) - 12) * 50
+    total_minerals_mined += len(bot.structures.filter(lambda s: s.type_id == UnitTypeId.SUPPLYDEPOT)) * 100
+    total_minerals_mined += (len(bot.townhalls) - 1) * 400
+    file.write(f"{str(game_time)},"
+               f"{str(final_state.get_minerals())},"
+               f"{str(total_minerals_mined)},"
+               f"{str(final_state.get_vespene())},"
+               f"{str(bot.supply_workers)},"
+               f"{str(len(bot.townhalls))},"
+               f"{str(len(bot.gas_buildings))},"
+               f"{str(final_state.get_value())}"
                f"\n")
     file.close()
