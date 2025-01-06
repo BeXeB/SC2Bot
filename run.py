@@ -56,6 +56,6 @@ file.write("Mcts Seed,"
            "\n")
 file.close()
 
-for i in range(1):
+for i in range(20):
     args = [str(i)]
     subprocess.run(["venv/Scripts/python", "run_games.py", *args])

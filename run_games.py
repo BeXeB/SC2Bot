@@ -11,18 +11,58 @@ from testbot import MyBot, PeacefulBot, ActionSelection
 from sc2_mcts import ValueHeuristic, RolloutHeuristic
 
 GAME_LENGTH = 60*8
-ROLLOUT_END_TIMES: list[int] = [300, 60*8]
-EXPLORATIONS: list[float] = [0.5, 0.9, math.sqrt(2)]
-VALUE_HEURISTICS: list[ValueHeuristic] = [ValueHeuristic.UCT, ValueHeuristic.EpsilonGreedy]
-ACTION_SELECTIONS: list[ActionSelection] = [ActionSelection.BestAction,
-                                            ActionSelection.MultiBestAction,
-                                            ActionSelection.MultiBestActionMin]
-FUTURE_ACTION_QUEUE_LENGTHS: list[int] = [2, 3, 4]
+ROLLOUT_END_TIMES: list[int] = [60*8]
+EXPLORATIONS: list[float] = [0.2]
+VALUE_HEURISTICS: list[ValueHeuristic] = [ValueHeuristic.EpsilonGreedy]
+ACTION_SELECTIONS: list[ActionSelection] = [ActionSelection.MultiBestActionMin]
+FUTURE_ACTION_QUEUE_LENGTHS: list[int] = [2]
 
 # generate matches
 # test each argument separately, with no changes to the others
 matches: list[GameMatch] = []
 REPEAT_AMOUNT: int = 5
+
+match = GameMatch(
+        maps.get("KingsCoveLE"),
+        [Bot(Race.Terran, MyBot(
+            mcts_seed=0,
+            mcts_rollout_end_time=480,
+            mcts_exploration=0.2,
+            mcts_value_heuristics=ValueHeuristic.EpsilonGreedy,
+            mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
+            action_selection=ActionSelection.MultiBestActionMin,
+            future_action_queue_length=2,
+            fixed_search_rollouts=5000
+        )), Bot(Race.Zerg, PeacefulBot())],
+        realtime=False,
+        random_seed=0,
+        game_time_limit=GAME_LENGTH,
+    )
+for _ in range(REPEAT_AMOUNT):
+    matches.append(match)
+
+UCT_Cosntants = [10, 50, 100]
+
+for uctc in UCT_Cosntants:
+    match = GameMatch(
+        maps.get("KingsCoveLE"),
+        [Bot(Race.Terran, MyBot(
+            mcts_seed=0,
+            mcts_rollout_end_time=480,
+            mcts_exploration=uctc,
+            mcts_value_heuristics=ValueHeuristic.UCT,
+            mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
+            action_selection=ActionSelection.MultiBestActionMin,
+            future_action_queue_length=2,
+            fixed_search_rollouts=5000
+        )), Bot(Race.Zerg, PeacefulBot())],
+        realtime=False,
+        random_seed=0,
+        game_time_limit=GAME_LENGTH,
+    )
+
+    for _ in range(REPEAT_AMOUNT):
+        matches.append(match)
 
 # rollout end time test, when we dont look ahead to the end of the game
 # for ROLLOUT_END_TIME in ROLLOUT_END_TIMES:
@@ -201,14 +241,14 @@ REPEAT_AMOUNT: int = 5
 # for _ in range(REPEAT_AMOUNT):
 #     matches.append(match)
 
-matches.append(GameMatch(
-        maps.get("KingsCoveLE"),
-        [Bot(Race.Terran, BetterHuman()), Bot(Race.Zerg, PeacefulBot())],
-        realtime=True,
-        random_seed=0,
-        sc2_config=[{"fullscreen": True}, {}],
-        game_time_limit=GAME_LENGTH,
-    ))
+# matches.append(GameMatch(
+#         maps.get("KingsCoveLE"),
+#         [Bot(Race.Terran, BetterHuman()), Bot(Race.Zerg, PeacefulBot())],
+#         realtime=True,
+#         random_seed=0,
+#         sc2_config=[{"fullscreen": True}, {}],
+#         game_time_limit=GAME_LENGTH,
+#     ))
 
 game_index_to_run = int(sys.argv[1])
 
