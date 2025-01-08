@@ -27,42 +27,42 @@ match = GameMatch(
         [Bot(Race.Terran, MyBot(
             mcts_seed=0,
             mcts_rollout_end_time=480,
-            mcts_exploration=0.2,
-            mcts_value_heuristics=ValueHeuristic.EpsilonGreedy,
+            mcts_exploration=100,
+            mcts_value_heuristics=ValueHeuristic.UCT,
             mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
-            action_selection=ActionSelection.MultiBestActionMin,
+            action_selection=ActionSelection.BestAction,
             future_action_queue_length=2,
             fixed_search_rollouts=5000
         )), Bot(Race.Zerg, PeacefulBot())],
-        realtime=False,
+        realtime=True,
         random_seed=0,
         game_time_limit=GAME_LENGTH,
     )
 for _ in range(REPEAT_AMOUNT):
     matches.append(match)
 
-UCT_Cosntants = [10, 50, 100]
-
-for uctc in UCT_Cosntants:
-    match = GameMatch(
-        maps.get("KingsCoveLE"),
-        [Bot(Race.Terran, MyBot(
-            mcts_seed=0,
-            mcts_rollout_end_time=480,
-            mcts_exploration=uctc,
-            mcts_value_heuristics=ValueHeuristic.UCT,
-            mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
-            action_selection=ActionSelection.MultiBestActionMin,
-            future_action_queue_length=2,
-            fixed_search_rollouts=5000
-        )), Bot(Race.Zerg, PeacefulBot())],
-        realtime=False,
-        random_seed=0,
-        game_time_limit=GAME_LENGTH,
-    )
-
-    for _ in range(REPEAT_AMOUNT):
-        matches.append(match)
+# UCT_Cosntants = [10, 50, 100]
+#
+# for uctc in UCT_Cosntants:
+#     match = GameMatch(
+#         maps.get("KingsCoveLE"),
+#         [Bot(Race.Terran, MyBot(
+#             mcts_seed=0,
+#             mcts_rollout_end_time=480,
+#             mcts_exploration=uctc,
+#             mcts_value_heuristics=ValueHeuristic.UCT,
+#             mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
+#             action_selection=ActionSelection.MultiBestActionMin,
+#             future_action_queue_length=2,
+#             fixed_search_rollouts=5000
+#         )), Bot(Race.Zerg, PeacefulBot())],
+#         realtime=False,
+#         random_seed=0,
+#         game_time_limit=GAME_LENGTH,
+#     )
+#
+#     for _ in range(REPEAT_AMOUNT):
+#         matches.append(match)
 
 # rollout end time test, when we dont look ahead to the end of the game
 # for ROLLOUT_END_TIME in ROLLOUT_END_TIMES:
