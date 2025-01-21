@@ -33,6 +33,9 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 	if (container.empty()) {
 		throw std::runtime_error("Cannot select a random element from an empty container.");
 	}
+	if (container.size() == 1) {
+		return *std::begin(container);
+	}
 
 	// Get a random index
 	std::uniform_int_distribution<std::mt19937::result_type> dist(
@@ -46,11 +49,18 @@ auto Mcts::randomChoice(const Container &container) -> decltype(*std::begin(cont
 
 Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 	_actionWeights.resize(actions.size());
+	if (actions.empty()) {
+		throw std::runtime_error("Cannot select a random action from an empty container.");
+	}
+	if (actions.size() == 1) {
+		return actions[0];
+	}
 
 	for (int i = 0; i < actions.size(); ++i) {
 		switch (actions[i]) {
 			case Action::none:
 				throw std::runtime_error("Cannot choose none as an action.");
+			// _actionWeights[i] = 1;
 			case Action::buildWorker:
 				_actionWeights[i] = 22.0;
 				break;
@@ -119,6 +129,11 @@ int Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState());
 	while (!state->endTimeReached()) {
 		auto legalActions = state->getLegalActions();
+
+		if (legalActions[0] == Action::none) {
+			state->wait(200);
+			break;
+		}
 
 		Action action;
 		switch (_rolloutHeuristic) {
@@ -222,7 +237,6 @@ double Mcts::uct(const std::shared_ptr<Node> &node) const {
 
 // Upper confidence bound normalized
 double Mcts::ucb1Normal2(const std::shared_ptr<Node> &node) {
-
 	// If the node has not been explored at least twice we will divide by 0 when getting the variance
 	if (node->N < 2) {
 		return INFINITY;
