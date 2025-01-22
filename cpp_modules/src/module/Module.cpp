@@ -20,7 +20,8 @@ namespace pymodule {
 						 py::arg("constructions"),
 						 py::arg("occupied_worker_timers"),
 						 py::arg("current_time"),
-						 py::arg("end_time"));
+						 py::arg("end_time"),
+						 py::arg("max_bases"));
 
 		py::class_<Sc2::State, std::shared_ptr<Sc2::State> >(module, "State") 
 				.def(py::init<>())

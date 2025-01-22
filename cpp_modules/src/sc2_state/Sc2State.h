@@ -16,6 +16,7 @@ namespace Sc2 {
         int _incomingPopulation = 0;
         int _incomingVespeneCollectors = 0;
         const int MAX_POPULATION_LIMIT = 200;
+        const int MAX_BASES = 17;
         int _populationLimit = 15;
         std::vector<Base> _bases = std::vector{Base()};
         std::list<Construction> _constructions{};
@@ -152,9 +153,9 @@ namespace Sc2 {
                                                    std::list<Construction> &constructions,
                                                    const std::vector<int> &occupiedWorkerTimers,
                                                    int current_time,
-                                                   int endTime) {
+                                                   int endTime, int maxBases = 17) {
             auto state = std::make_shared<State>(minerals, vespene, population, incomingPopulation, populationLimit,
-                                                 bases, occupiedWorkerTimers, current_time, endTime);
+                                                 bases, occupiedWorkerTimers, current_time, endTime, maxBases);
 
             for (auto &construction: constructions) {
                 construction.setState(state);
@@ -166,17 +167,22 @@ namespace Sc2 {
 
         State(const int minerals, const int vespene, const int population, const int incomingPopulation,
               const int populationLimit, std::vector<Base> bases, std::vector<int> occupiedWorkerTimers,
-              const int currentTime, const int endTime): _minerals(minerals), _vespene(vespene),
-                                                         _population(population),
-                                                         _incomingPopulation(incomingPopulation),
-                                                         _populationLimit(populationLimit), _bases(std::move(bases)),
-                                                         _constructions(std::list<Construction>()),
-                                                         _occupiedWorkerTimers(std::move(occupiedWorkerTimers)),
-                                                         _endTime(endTime), _currentTime(currentTime) {
+              const int currentTime, const int endTime, const int maxBases = 17): _minerals(minerals),
+            _vespene(vespene),
+            _population(population),
+            _incomingPopulation(incomingPopulation),
+            MAX_BASES(maxBases),
+            _populationLimit(populationLimit),
+            _bases(std::move(bases)),
+            _constructions(std::list<Construction>()),
+            _occupiedWorkerTimers(
+                std::move(occupiedWorkerTimers)),
+            _endTime(endTime),
+            _currentTime(currentTime) {
         };
 
-        State(const State &state) : enable_shared_from_this(state), _endTime(state._endTime),
-                                    _currentTime(state._currentTime) {
+        State(const State &state) : enable_shared_from_this(state), MAX_BASES(state.MAX_BASES),
+                                    _endTime(state._endTime), _currentTime(state._currentTime) {
             _minerals = state._minerals;
             _vespene = state._vespene;
             _population = state._population;
