@@ -1,6 +1,7 @@
 import math
 import queue
 from enum import Enum
+from typing import Optional
 
 from sc2.data import Result
 from sc2.position import Point2
@@ -53,6 +54,8 @@ class MyBot(BotAI):
             mcts_value_heuristics,
             mcts_rollout_heuristics,
         ]
+        self.new_base_location = None
+        self.base_worker = None
         self.time_limit = time_limit
         self.actions_taken: dict[int, Action] = {}
         self.action_selection = action_selection
@@ -80,6 +83,7 @@ class MyBot(BotAI):
         self.supply_builder = SupplyBuilder(self)
         self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
+        self.el_list = self.expansion_locations_list
         if self.action_selection is ActionSelection.MultiBestActionFixed or self.action_selection is ActionSelection.BestActionFixed:
             self.mcts.start_search_rollout(self.fixed_search_rollouts)
         else:
@@ -100,15 +104,31 @@ class MyBot(BotAI):
         # TODO: Changeable amount of future actions
         match self.next_action:
             case Action.build_base:
+                if not self.new_base_location:
+                    self.new_base_location = await self.get_next_expansion()
+                    if not self.new_base_location:
+                        self.set_next_action()
+                        return
+                    self.base_worker = self.worker_manager.select_worker(self.new_base_location, WorkerRole.BUILD)
+                    self.base_worker.move(self.new_base_location)
                 if not self.can_afford(UnitTypeId.COMMANDCENTER):
                     return
-                new_base_location = await self.base_builder.find_next_base_location()
-                if not new_base_location:
-                    self.set_next_action()
-                    return
-                self.build_base(new_base_location)
-                self.actions_taken.update({iteration: Action.build_base})
+                self.base_worker.build(UnitTypeId.COMMANDCENTER, self.new_base_location)
+                self.busy_workers.update({self.base_worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
+                self.new_base_location = None
+                self.base_worker = None
+                self.actions_taken.update({iteration: Action.build_worker})
                 self.set_next_action()
+                # if not self.can_afford(UnitTypeId.COMMANDCENTER):
+                #     return
+                # # new_base_location = await self.base_builder.find_next_base_location()
+                # new_base_location = await self.get_next_expansion()
+                # if not new_base_location:
+                #     self.set_next_action()
+                #     return
+                # self.build_base(new_base_location)
+                # self.actions_taken.update({iteration: Action.build_base})
+                # self.set_next_action()
             case Action.build_vespene_collector:
                 if not self.can_afford(UnitTypeId.REFINERY):
                     return
@@ -135,11 +155,13 @@ class MyBot(BotAI):
                 self.actions_taken.update({iteration: Action.build_worker})
                 self.set_next_action()
             case Action.build_house:
-                if not self.can_afford(UnitTypeId.SUPPLYDEPOT):
-                    return
-                await self.supply_builder.build_supply()
-                self.actions_taken.update({iteration: Action.build_house})
                 self.set_next_action()
+                return
+                # if not self.can_afford(UnitTypeId.SUPPLYDEPOT):
+                #     return
+                # await self.supply_builder.build_supply()
+                # self.actions_taken.update({iteration: Action.build_house})
+                # self.set_next_action()
             case Action.none:
                 try:
                     match self.action_selection:
@@ -247,6 +269,40 @@ class MyBot(BotAI):
         self.mcts.stop_search()
         end_state = translate_state(self)
         save_result(self, end_state, self.time)
+
+    async def get_next_expansion(self) -> Optional[Point2]:
+        """Find next expansion location."""
+
+        closest = None
+        distance = math.inf
+        for el in self.el_list:
+
+            def is_near_to_expansion(t: Point2):
+                return t.distance_to(el) < self.EXPANSION_GAP_THRESHOLD
+
+
+
+            if (
+                any(map(is_near_to_expansion, self.townhalls))
+            ):
+                # already taken
+                continue
+
+
+
+            startp = self.game_info.player_start_location
+            d = await self.client.query_pathing(startp, el)
+            if d is None:
+                continue
+
+            if d < distance:
+                distance = d
+                closest = el
+
+        if closest is None:
+            return closest
+        self.el_list.remove(closest)
+        return closest
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:

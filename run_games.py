@@ -41,6 +41,26 @@ match = GameMatch(
 for _ in range(REPEAT_AMOUNT):
     matches.append(match)
 
+match = GameMatch(
+        maps.get("KingsCoveLE"),
+        [Bot(Race.Terran, MyBot(
+            mcts_seed=0,
+            mcts_rollout_end_time=480,
+            mcts_exploration=100,
+            mcts_value_heuristics=ValueHeuristic.UCT,
+            mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
+            action_selection=ActionSelection.MultiBestActionMin,
+            future_action_queue_length=2,
+            fixed_search_rollouts=5000
+        )), Bot(Race.Zerg, PeacefulBot())],
+        realtime=True,
+        random_seed=0,
+        game_time_limit=GAME_LENGTH,
+    )
+for _ in range(REPEAT_AMOUNT):
+    matches.append(match)
+
+
 # UCT_Cosntants = [10, 50, 100]
 #
 # for uctc in UCT_Cosntants:
