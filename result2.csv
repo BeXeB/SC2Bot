@@ -1,0 +1,3 @@
+Mcts Seed,Mcts Rollout Time,Mcts Exploration,Mcts Value Heuristic,Mcts Rollout Heuristic,Time,Minerals,Total Minerals,Vespene,Workers,Bases,Gas Buildings
+0,300,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,299.86607142857144,260,5510,0,52,9,0
+0,300,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,299.86607142857144,250,4650,0,45,8,0

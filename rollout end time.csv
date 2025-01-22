@@ -1,0 +1,13 @@
+0,300,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.91071428571433,95,13520,48,117,20,9,107.0
+0,300,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.86607142857144,655,13730,52,112,20,5,103.5
+0,300,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.91071428571433,40,11615,4,101,17,5,92.5
+0,300,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.86607142857144,15,11865,20,110,18,4,103.0
+0,300,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.95535714285717,350,13175,16,111,20,5,106.0
+102.4
+
+0,480,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.91071428571433,125,12025,36,106,18,6,102.0
+0,480,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.86607142857144,775,11975,0,99,18,0,94.0
+0,480,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.86607142857144,440,11890,0,105,17,6,97.0
+0,480,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.91071428571433,15,12915,76,112,20,6,110.0
+0,480,0.9,ValueHeuristic.EpsilonGreedy,RolloutHeuristic.weighted_choice,ActionSelection.MultiBestActionMin,2,5000,479.91071428571433,95,12095,80,110,18,6,105.5
+101.7
