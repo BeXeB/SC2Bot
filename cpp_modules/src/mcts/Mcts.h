@@ -84,9 +84,9 @@ namespace Sc2::Mcts {
 		static void expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state);
 
 		Action weightedChoice(const std::vector<Action> &actions);
-		int rollout(const std::shared_ptr<Node> &node);
+		double rollout(const std::shared_ptr<Node> &node);
 
-		static void backPropagate(std::shared_ptr<Node> node, int outcome);
+		static void backPropagate(std::shared_ptr<Node> node, double outcome);
 
 		void startSearchRolloutThread(int numberOfRollouts);
 		void search(int timeLimit);

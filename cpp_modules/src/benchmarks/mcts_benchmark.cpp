@@ -146,7 +146,10 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 					"Action: " << action << std::endl
 					<< "Current time of state: " << state->getCurrentTime() << std::endl;
 
-
+		if (action == Action::none) {
+			state->wait();
+			continue;
+		}
 		state->performAction(action);
 		actionsTaken++;
 	}
@@ -654,7 +657,7 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 
 int main() {
 	unsigned int seed = 3942438310;
-	constexpr int numberOfRuns = 1;
+	constexpr int numberOfRuns = 10;
 	constexpr int runTime = 480;
 	std::mt19937_64 rng(seed);
 	std::uniform_int_distribution<unsigned int> dist;
@@ -671,6 +674,4 @@ int main() {
 
 	printBenchmarks(res);
 	writeBenchmarksToFile(res);
-
-
 }

@@ -17,7 +17,7 @@ namespace Sc2::Mcts {
 		Action _action;
 		int depth = 0;
 
-		std::shared_ptr<Node> _parent;
+		std::weak_ptr<Node> _parent;
 
 		std::shared_ptr<State> _state;
 
@@ -37,8 +37,8 @@ namespace Sc2::Mcts {
 		std::map<Action, std::shared_ptr<Node> > children = {};
 
 		std::shared_ptr<State> getState() { return _state; }
-		void setParent(std::shared_ptr<Node> parent) { _parent = std::move(parent); }
-		std::shared_ptr<Node> getParent() { return _parent; }
+		void setParent(const std::shared_ptr<Node> &parent) { _parent = parent; }
+		std::shared_ptr<Node> getParent() const { return _parent.lock(); }
 		[[nodiscard]] Action getAction() const { return _action; }
 		int getDepth() const { return depth; }
 
@@ -63,7 +63,7 @@ namespace Sc2::Mcts {
 		[[nodiscard]] std::string toString() const {
 			std::string str;
 			str += std::format("Node: {} ", static_cast<int>(_action)) + "{ \n";
-			str += std::format("parent: {} \n", _parent != nullptr);
+			str += std::format("parent: {} \n", _parent.lock() != nullptr);
 			str += std::format("children: {} \n", children.size());
 			str += std::format("numberOfSimulations: {} \n", N);
 			str += std::format("Q: {} \n", Q);
@@ -72,15 +72,15 @@ namespace Sc2::Mcts {
 		}
 
 		bool gameOver() const {
-			return _state->endTimeReached();
+			return _state->endTimeReached() || _state->getLegalActions()[0] == Action::none;
 		}
 
 		explicit Node(std::shared_ptr<State> state): _action(Action::none),
-		                                             _parent(nullptr), _state(std::move(state)) {
+		                                             _parent(), _state(std::move(state)) {
 		}
 
-		Node(const Action action, std::shared_ptr<Node> parent, std::shared_ptr<State> state) : _action(action),
-			_parent(std::move(parent)), _state(std::move(state)) {
+		Node(const Action action, const std::shared_ptr<Node> &parent, std::shared_ptr<State> state) : _action(action),
+			_parent(parent), _state(std::move(state)) {
 			_state->performAction(action);
 		}
 	};
