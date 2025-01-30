@@ -60,7 +60,6 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 		switch (actions[i]) {
 			case Action::none:
 				throw std::runtime_error("Cannot choose none as an action.");
-			// _actionWeights[i] = 1;
 			case Action::buildWorker:
 				_actionWeights[i] = 22.0;
 				break;
