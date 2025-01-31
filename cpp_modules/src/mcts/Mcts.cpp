@@ -132,8 +132,8 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		auto legalActions = state->getLegalActions();
 
 		if (legalActions[0] == Action::none) {
-			state->wait(200);
-			break;
+			state->wait();
+			continue;
 		}
 
 		Action action;
