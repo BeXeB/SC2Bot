@@ -44,6 +44,9 @@ namespace Sc2::Mcts {
 
 		void expand() {
 			const std::vector<Action> actions = _state->getLegalActions();
+
+			if (actions[0] == Action::none) { return; }
+
 			addChildren(actions);
 		}
 

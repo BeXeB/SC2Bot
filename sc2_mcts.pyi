@@ -24,7 +24,8 @@ def state_builder(minerals: int,
                   constructions: list[Construction],
                   occupied_worker_timers: list[int],
                   current_time: int,
-                  end_time: int) -> State : ...
+                  end_time: int,
+                  max_bases: int) -> State : ...
 
 class State:
     def __init__(self): ...
