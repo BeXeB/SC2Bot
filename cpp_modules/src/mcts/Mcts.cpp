@@ -117,21 +117,23 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 	if (!node->gameOver()) {
 		node->expand();
-		node = randomChoice(node->children);
+		if (!node->children.empty()) {
+			node = randomChoice(node->children);
+		}
 	}
 
 	return node;
 }
 
 
-int Mcts::rollout(const std::shared_ptr<Node> &node) {
+double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState());
 	while (!state->endTimeReached()) {
 		auto legalActions = state->getLegalActions();
 
 		if (legalActions[0] == Action::none) {
-			state->wait(200);
-			break;
+			state->wait();
+			continue;
 		}
 
 		Action action;
@@ -152,7 +154,7 @@ int Mcts::rollout(const std::shared_ptr<Node> &node) {
 	return state->getValue();
 }
 
-void Mcts::backPropagate(std::shared_ptr<Node> node, const int outcome) {
+void Mcts::backPropagate(std::shared_ptr<Node> node, const double outcome) {
 	while (node != nullptr) {
 		const auto oldMean = node->N == 0 ? 0 : node->Q / node->N;
 
@@ -313,6 +315,12 @@ void Mcts::performAction(Action action) {
 Action Mcts::getBestAction() {
 	_mctsRequestsPending = true;
 	_mctsMutex.lock();
+
+	if (_rootNode->children.empty()) {
+		_mctsMutex.unlock();
+		_mctsRequestsPending = false;
+		return Action::none;
+	}
 
 	auto bestNode = _rootNode->children.begin()->second;
 	double maxValue = bestNode->Q / bestNode->N;
