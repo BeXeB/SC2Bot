@@ -40,7 +40,7 @@ match = GameMatch(
             future_action_queue_length=2,
             fixed_search_rollouts=5000
         )), Bot(Race.Zerg, PeacefulBot())],
-        realtime=True,
+        realtime=False,
         random_seed=0,
         game_time_limit=GAME_LENGTH,
     )
