@@ -13,14 +13,14 @@ from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 
 from Actions.build_worker import WorkerBuilder
-from state_translator import translate_state
-from result_saver import save_result
+from Modules.state_translator import translate_state
+from Modules.result_saver import save_result
 
 from Actions.BuildBase import BaseBuilder
 from Actions.VespeneExtractor import VespeneBuilder
 from Actions.build_supply import SupplyBuilder
 
-from worker_manager import WorkerManager, TownhallData, GasBuildingData, WorkerRole
+from Modules.worker_manager import WorkerManager, TownhallData, GasBuildingData, WorkerRole
 
 STEPS_PER_SECOND = 22.4
 
@@ -64,13 +64,6 @@ class MyBot(BotAI):
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):
-        # self.CC_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time
-        # self.CC_TRAVEL_TIME_STEPS: int = math.ceil(5 * STEPS_PER_SECOND)
-        # self.REFINERY_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time
-        # self.REFINERY_TRAVEL_TIME_STEPS: int = math.ceil(1 * STEPS_PER_SECOND)
-        # self.WORKER_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.SCV.value]._proto.build_time
-        # self.SUPPLY_BUILD_TIME_STEPS: int = self.game_data.units[UnitTypeId.SUPPLYDEPOT.value]._proto.build_time
-        # self.SUPPLY_TRAVEL_TIME_STEPS: int = math.ceil(2 * STEPS_PER_SECOND)
         self.CC_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND)
         self.CC_TRAVEL_TIME_SECONDS: int = 5
         self.REFINERY_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND)
@@ -155,13 +148,13 @@ class MyBot(BotAI):
                 self.actions_taken.update({iteration: Action.build_worker})
                 self.set_next_action()
             case Action.build_house:
-                self.set_next_action()
-                return
-                # if not self.can_afford(UnitTypeId.SUPPLYDEPOT):
-                #     return
-                # await self.supply_builder.build_supply()
-                # self.actions_taken.update({iteration: Action.build_house})
                 # self.set_next_action()
+                # return
+                if not self.can_afford(UnitTypeId.SUPPLYDEPOT):
+                    return
+                await self.supply_builder.build_supply()
+                self.actions_taken.update({iteration: Action.build_house})
+                self.set_next_action()
             case Action.none:
                 try:
                     match self.action_selection:

@@ -1,5 +1,4 @@
-import math
-import subprocess
+from typing import List
 
 from sc2.player import Bot, Computer, Human
 from sc2.data import Difficulty, Race
@@ -10,6 +9,7 @@ from sc2_mcts import ValueHeuristic, RolloutHeuristic
 
 NUMBER_OF_GAMES: int = 2
 GAME_LENGTH: int = 300
+matches: List[GameMatch] = []
 
 test_match = GameMatch(
     maps.get("KingsCoveLE"),
@@ -28,13 +28,24 @@ test_match = GameMatch(
     game_time_limit=GAME_LENGTH,
 )
 
-human_match = GameMatch(
-    maps.get("KingsCoveLE"),
-    [Human(Race.Terran), Bot(Race.Zerg, PeacefulBot())],
-    realtime=True,
-    random_seed=0,
-    game_time_limit=GAME_LENGTH,
-)
+match = GameMatch(
+        maps.get("KingsCoveLE"),
+        [Bot(Race.Terran, MyBot(
+            mcts_seed=0,
+            mcts_rollout_end_time=GAME_LENGTH,
+            mcts_exploration=100,
+            mcts_value_heuristics=ValueHeuristic.UCT,
+            mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
+            action_selection=ActionSelection.MultiBestActionMin,
+            future_action_queue_length=2,
+            fixed_search_rollouts=5000
+        )), Bot(Race.Zerg, PeacefulBot())],
+        realtime=True,
+        random_seed=0,
+        game_time_limit=GAME_LENGTH,
+    )
+for _ in range(NUMBER_OF_GAMES):
+    matches.append(match)
 
 # EXPERIMENTS
 file = open("result.csv", "w")
@@ -56,6 +67,4 @@ file.write("Mcts Seed,"
            "\n")
 file.close()
 
-for i in range(20):
-    args = [str(i)]
-    subprocess.run(["venv/Scripts/python", "run_games.py", *args])
+run_multiple_games(matches)
