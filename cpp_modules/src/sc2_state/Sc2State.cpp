@@ -134,7 +134,7 @@ bool Sc2::State::hasFreeBase() const {
 }
 
 bool Sc2::State::hasFreeBarracks() const {
-    return _barracksAmount > _incomingWorkers;
+    return _barracksAmount > _incomingMarines;
 }
 
 bool Sc2::State::hasUnoccupiedGeyser() const {
@@ -166,6 +166,12 @@ std::vector<Action> Sc2::State::getLegalActions() const {
     if (hasUnoccupiedGeyser()) {
         actions.emplace_back(Action::buildVespeneCollector);
     }
+
+    if (_barracksAmount > 0) {
+        actions.emplace_back(Action::buildMarine);
+    }
+
+    actions.emplace_back(Action::buildBarracks);
 
     if (actions.empty()) {
         actions.emplace_back(Action::none);
@@ -209,6 +215,10 @@ void Sc2::State::buildBarracks() {
 }
 
 void Sc2::State::buildMarine() {
+    if (_barracksAmount < 1) {
+        return;
+    }
+
     while (!canAffordConstruction(buildMarineCost)) {
         const auto initialMineral = _minerals;
         advanceTime();

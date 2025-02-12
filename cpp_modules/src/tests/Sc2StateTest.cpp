@@ -257,5 +257,43 @@ TEST_SUITE("Test the Sc2State") {
 			CHECK(state1->getVespeneWorkers() == state2->getVespeneWorkers());
 		}
 	}
+
+	TEST_CASE("The state can build barracks and marines") {
+		const auto state = std::make_shared<Sc2::State>();
+
+		auto initialPopulation = state->getPopulation();
+
+		SUBCASE("Cannot build marine without a barracks") {
+			state->wait(500);
+			state->buildMarine();
+			state->wait(500);
+			CHECK(state->getPopulation() == initialPopulation);
+		}
+
+		SUBCASE("Can build a Barracks and a marine") {
+			state->buildBarracks();
+			state->wait(100);
+			state->buildMarine();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation + 1);
+		}
+
+		SUBCASE("Can build a Barracks and a marine") {
+			state->buildBarracks();
+			state->wait(100);
+			state->buildMarine();
+			state->wait(500);
+			CHECK(state->getPopulation() == initialPopulation + 1);
+		}
+		SUBCASE("building a marine while the barracks are occupied will advance time until the barracks is available") {
+			state->buildBarracks();
+			state->wait(100);
+			state->buildMarine();
+			state->buildMarine();
+			CHECK(state->getPopulation() == initialPopulation + 1);
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation + 2);
+		}
+	}
 }
 

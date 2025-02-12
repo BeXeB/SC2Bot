@@ -106,14 +106,18 @@ TEST_SUITE("Test MCTS") {
 
 			auto minerals = updatedState->getMinerals();
 			auto vespene = updatedState->getVespene();
-			auto incomingPopulation = updatedState->getIncomingPopulation();
-			auto population = updatedState->getPopulation();
+			auto workerPopulation = updatedState->getWorkerPopulation();
+			auto marinePopulation = updatedState->getMarinePopulation();
+			auto incomingWorkers = updatedState->getIncomingWorkers();
+			auto incomingMarines = updatedState->getIncomingMarines();
 			auto populationLimit = updatedState->getPopulationLimit();
 			auto occupiedWorkerTimers = updatedState->getOccupiedWorkerTimers();
 			auto bases = updatedState->getBases();
+			auto barracksAmount = updatedState->getBarracksAmount();
 			auto constructions = updatedState->getConstructions();
 
-			mcts.updateRootState(minerals, vespene, population, incomingPopulation, populationLimit, bases,
+			mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
+			                     incomingMarines, populationLimit, bases, barracksAmount,
 			                     constructions, occupiedWorkerTimers, 0, 1000);
 
 			auto rootState = mcts.getRootState();
@@ -147,17 +151,22 @@ TEST_SUITE("Test MCTS") {
 
 		auto minerals = state->getMinerals();
 		auto vespene = state->getVespene();
-		auto incomingPopulation = state->getIncomingPopulation();
-		auto population = state->getPopulation();
+		// auto incomingPopulation = state->getIncomingPopulation();
+		auto incomingWorkers = state->getIncomingWorkers();
+		auto incomingMarines = state->getIncomingMarines();
+		auto workerPopulation = state->getWorkerPopulation();
+		auto marinePopulation = state->getMarinePopulation();
 		auto populationLimit = state->getPopulationLimit();
 		auto occupiedWorkerTimers = state->getOccupiedWorkerTimers();
 		auto bases = state->getBases();
+		auto barracksAmount = state->getBarracksAmount();
 
 		auto constructions = std::list<Sc2::Construction>();
 		constructions.emplace_back(state->getBuildWorkerCost().buildTime - 1, Action::buildWorker);
 
 
-		mcts.updateRootState(minerals, vespene, population, incomingPopulation, populationLimit, bases,
+		mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers, incomingMarines,
+		                     populationLimit, bases, barracksAmount,
 		                     constructions, occupiedWorkerTimers, 0, 1000);
 
 		CHECK(mcts.getRootState()->getConstructions().size() == state->getConstructions().size());

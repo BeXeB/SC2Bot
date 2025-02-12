@@ -91,11 +91,16 @@ namespace Sc2 {
         [[nodiscard]] int getMinerals() const { return _minerals; }
         [[nodiscard]] int getVespene() const { return _vespene; }
         [[nodiscard]] int getIncomingPopulation() const { return _incomingWorkers + _incomingMarines; }
+        [[nodiscard]] int getIncomingWorkers() const { return _incomingWorkers; }
+        [[nodiscard]] int getIncomingMarines() const { return _incomingMarines; }
         [[nodiscard]] int getPopulationLimit() const { return _populationLimit; }
         [[nodiscard]] int getPopulation() const { return _workerPopulation + _marinePopulation; }
+        int getWorkerPopulation() const { return _workerPopulation; }
+        int getMarinePopulation() const { return _marinePopulation; }
         int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
         std::list<Construction> getConstructions() const { return _constructions; }
         std::vector<Base> getBases() const { return _bases; }
+        [[nodiscard]] int getBarracksAmount() const { return _barracksAmount; }
 
         ActionCost getBuildWorkerCost() const { return buildWorkerCost; }
         ActionCost getBuildBaseCost() const { return buildBaseCost; }
