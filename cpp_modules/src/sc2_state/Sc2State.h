@@ -14,11 +14,13 @@ namespace Sc2 {
         int _vespene = 0;
         int _workerPopulation = 5;
         int _marinePopulation = 0;
-        int _incomingPopulation = 0;
+        int _incomingWorkers = 0;
+        int _incomingMarines = 0;
         int _incomingVespeneCollectors = 0;
         const int MAX_POPULATION_LIMIT = 200;
         const int MAX_BASES = 17;
         int _populationLimit = 15;
+        int _barracksAmount;
         std::vector<Base> _bases = std::vector{Base()};
         std::list<Construction> _constructions{};
         std::vector<int> _occupiedWorkerTimers{};
@@ -58,7 +60,6 @@ namespace Sc2 {
         };
 
         void addVespeneCollector();
-        void buildBarracks();
 
         void addBase() {
             _populationLimit += 15;
@@ -68,7 +69,16 @@ namespace Sc2 {
 
         void addWorker() {
             _workerPopulation += 1;
-            _incomingPopulation -= 1;
+            _incomingWorkers -= 1;
+        }
+
+        void addMarine() {
+            _marinePopulation += 1;
+            _incomingMarines -= 1;
+        }
+
+        void addBarracks() {
+            _barracksAmount += 1;
         }
 
         void addHouse() {
@@ -80,7 +90,7 @@ namespace Sc2 {
         int id = 0;
         [[nodiscard]] int getMinerals() const { return _minerals; }
         [[nodiscard]] int getVespene() const { return _vespene; }
-        [[nodiscard]] int getIncomingPopulation() const { return _incomingPopulation; }
+        [[nodiscard]] int getIncomingPopulation() const { return _incomingWorkers + _incomingMarines; }
         [[nodiscard]] int getPopulationLimit() const { return _populationLimit; }
         [[nodiscard]] int getPopulation() const { return _workerPopulation + _marinePopulation; }
         int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
@@ -91,11 +101,14 @@ namespace Sc2 {
         ActionCost getBuildBaseCost() const { return buildBaseCost; }
         ActionCost getBuildHouseCost() const { return buildHouseCost; }
         ActionCost getBuildVespeneCollectorCost() const { return buildVespeneCollectorCost; }
+        ActionCost getBuildBarracksCost() const { return buildBarracksCost; }
+        ActionCost getBuildMarineCost() const { return buildMarineCost; }
 
         bool hasUnoccupiedGeyser() const;
         bool canAffordConstruction(const ActionCost &actionCost) const;
         bool populationLimitReached() const;
         bool hasFreeBase() const;
+        bool hasFreeBarracks() const;
 
         int mineralGainedPerTimestep() const;
         int vespeneGainedPerTimestep() const;
@@ -107,6 +120,8 @@ namespace Sc2 {
         void buildHouse();
         void buildBase();
         void buildVespeneCollector();
+        void buildBarracks();
+        void buildMarine();
 
         void wait();
         void wait(int amount);
@@ -169,12 +184,12 @@ namespace Sc2 {
             return state;
         };
 
-        State(const int minerals, const int vespene, const int workerPopulation, const int incomingPopulation,
+        State(const int minerals, const int vespene, const int workerPopulation, const int incomingWorkers,
               const int populationLimit, std::vector<Base> bases, std::vector<int> occupiedWorkerTimers,
               const int currentTime, const int endTime, const int maxBases = 17): _minerals(minerals),
             _vespene(vespene),
             _workerPopulation(workerPopulation),
-            _incomingPopulation(incomingPopulation),
+            _incomingWorkers(incomingWorkers),
             MAX_BASES(maxBases),
             _populationLimit(populationLimit),
             _bases(std::move(bases)),
@@ -190,7 +205,7 @@ namespace Sc2 {
             _minerals = state._minerals;
             _vespene = state._vespene;
             _workerPopulation = state._workerPopulation;
-            _incomingPopulation = state._incomingPopulation;
+            _incomingWorkers = state._incomingWorkers;
             _populationLimit = state._populationLimit;
             _incomingVespeneCollectors = state._incomingVespeneCollectors;
 
@@ -217,9 +232,9 @@ namespace Sc2 {
             str += std::format("    Vespene: {} \n", _vespene);
             str += std::format("    Constructions: {} \n", _constructions.size());
             str += std::format("    Occupied workers: {} \n", _occupiedWorkerTimers.size());
-            str += std::format("    Worker population: {} \n", _workerPopulation);
+            str += std::format("    Population: {} \n", getPopulation());
             str += std::format("    PopulationLimit: {} \n", _populationLimit);
-            str += std::format("    IncomingPopulation: {} \n", _incomingPopulation);
+            str += std::format("    IncomingPopulation: {} \n", getIncomingPopulation());
             str += std::format("    Number of bases: {} \n", _bases.size());
             str += std::format("current_time: {} \n", _currentTime);
             str += std::format("EndTime: {} \n", _endTime);

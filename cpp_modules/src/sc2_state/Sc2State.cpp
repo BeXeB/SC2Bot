@@ -127,11 +127,15 @@ bool Sc2::State::canAffordConstruction(const ActionCost &actionCost) const {
 }
 
 bool Sc2::State::populationLimitReached() const {
-    return _incomingPopulation + getPopulation() >= _populationLimit;
+    return getIncomingPopulation() + getPopulation() >= _populationLimit;
 }
 
 bool Sc2::State::hasFreeBase() const {
-    return _bases.size() > _incomingPopulation;
+    return _bases.size() > _incomingWorkers;
+}
+
+bool Sc2::State::hasFreeBarracks() const {
+    return _barracksAmount > _incomingWorkers;
 }
 
 bool Sc2::State::hasUnoccupiedGeyser() const {
@@ -195,6 +199,36 @@ void Sc2::State::buildBarracks() {
 
     while (!hasUnoccupiedWorker()) {
         advanceTime();
+    }
+
+
+    _minerals -= buildBarracksCost.minerals;
+    _vespene -= buildBarracksCost.vespene;
+
+    _occupiedWorkerTimers.emplace_back(buildBarracksCost.buildTime);
+    _constructions.emplace_back(buildBarracksCost.buildTime, shared_from_this(), &State::addBarracks);
+}
+
+void Sc2::State::buildMarine() {
+    while (!canAffordConstruction(buildMarineCost)) {
+        const auto initialMineral = _minerals;
+        advanceTime();
+        if (initialMineral == _minerals) {
+            return;
+        }
+    }
+
+    while (!hasFreeBarracks()) {
+        advanceTime();
+    }
+
+    if (!populationLimitReached()) {
+        _minerals -= buildMarineCost.minerals;
+        _vespene -= buildMarineCost.vespene;
+        _incomingMarines += 1;
+
+        auto c = Construction(this->buildMarineCost.buildTime, shared_from_this(), &State::addMarine);
+        _constructions.emplace_back(c);
     }
 }
 
@@ -260,7 +294,7 @@ void Sc2::State::buildWorker() {
     if (!populationLimitReached()) {
         _minerals -= buildWorkerCost.minerals;
         _vespene -= buildWorkerCost.vespene;
-        _incomingPopulation += 1;
+        _incomingWorkers += 1;
 
         auto c = Construction(this->buildWorkerCost.buildTime, shared_from_this(), &State::addWorker);
         _constructions.emplace_back(c);
