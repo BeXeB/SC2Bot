@@ -12,7 +12,8 @@ namespace Sc2 {
     class State : public std::enable_shared_from_this<State> {
         int _minerals = 0;
         int _vespene = 0;
-        int _population = 5;
+        int _workerPopulation = 5;
+        int _marinePopulation = 0;
         int _incomingPopulation = 0;
         int _incomingVespeneCollectors = 0;
         const int MAX_POPULATION_LIMIT = 200;
@@ -40,6 +41,8 @@ namespace Sc2 {
         ActionCost buildBaseCost = ActionCost(400, 0, 71);
         ActionCost buildHouseCost = ActionCost(100, 0, 21);
         ActionCost buildVespeneCollectorCost = ActionCost(75, 0, 21);
+        ActionCost buildMarineCost = ActionCost(50, 0, 18);
+        ActionCost buildBarracksCost = ActionCost(150, 0, 46);
 
         void advanceConstructions();
         void advanceResources();
@@ -48,13 +51,14 @@ namespace Sc2 {
 
         bool hasEnoughMinerals(const int cost) const { return _minerals >= cost; };
         bool hasEnoughVespene(const int cost) const { return _vespene >= cost; }
-        bool hasUnoccupiedWorker() const { return _population - _occupiedWorkerTimers.size() > 0; }
+        bool hasUnoccupiedWorker() const { return _workerPopulation - _occupiedWorkerTimers.size() > 0; }
 
         void occupyWorker(int time) {
             _occupiedWorkerTimers.emplace_back(time);
         };
 
         void addVespeneCollector();
+        void buildBarracks();
 
         void addBase() {
             _populationLimit += 15;
@@ -63,7 +67,7 @@ namespace Sc2 {
         }
 
         void addWorker() {
-            _population += 1;
+            _workerPopulation += 1;
             _incomingPopulation -= 1;
         }
 
@@ -78,7 +82,7 @@ namespace Sc2 {
         [[nodiscard]] int getVespene() const { return _vespene; }
         [[nodiscard]] int getIncomingPopulation() const { return _incomingPopulation; }
         [[nodiscard]] int getPopulationLimit() const { return _populationLimit; }
-        [[nodiscard]] int getPopulation() const { return _population; }
+        [[nodiscard]] int getPopulation() const { return _workerPopulation + _marinePopulation; }
         int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
         std::list<Construction> getConstructions() const { return _constructions; }
         std::vector<Base> getBases() const { return _bases; }
@@ -165,11 +169,11 @@ namespace Sc2 {
             return state;
         };
 
-        State(const int minerals, const int vespene, const int population, const int incomingPopulation,
+        State(const int minerals, const int vespene, const int workerPopulation, const int incomingPopulation,
               const int populationLimit, std::vector<Base> bases, std::vector<int> occupiedWorkerTimers,
               const int currentTime, const int endTime, const int maxBases = 17): _minerals(minerals),
             _vespene(vespene),
-            _population(population),
+            _workerPopulation(workerPopulation),
             _incomingPopulation(incomingPopulation),
             MAX_BASES(maxBases),
             _populationLimit(populationLimit),
@@ -185,7 +189,7 @@ namespace Sc2 {
                                     _endTime(state._endTime), _currentTime(state._currentTime) {
             _minerals = state._minerals;
             _vespene = state._vespene;
-            _population = state._population;
+            _workerPopulation = state._workerPopulation;
             _incomingPopulation = state._incomingPopulation;
             _populationLimit = state._populationLimit;
             _incomingVespeneCollectors = state._incomingVespeneCollectors;
@@ -213,7 +217,7 @@ namespace Sc2 {
             str += std::format("    Vespene: {} \n", _vespene);
             str += std::format("    Constructions: {} \n", _constructions.size());
             str += std::format("    Occupied workers: {} \n", _occupiedWorkerTimers.size());
-            str += std::format("    Population: {} \n", _population);
+            str += std::format("    Worker population: {} \n", _workerPopulation);
             str += std::format("    PopulationLimit: {} \n", _populationLimit);
             str += std::format("    IncomingPopulation: {} \n", _incomingPopulation);
             str += std::format("    Number of bases: {} \n", _bases.size());

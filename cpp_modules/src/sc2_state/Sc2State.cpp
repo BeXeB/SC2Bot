@@ -86,7 +86,7 @@ int Sc2::State::getVespeneGeysersAmount() {
 }
 
 int Sc2::State::getMineralWorkers() const {
-    int availablePopulation = _population - static_cast<int>(_occupiedWorkerTimers.size());
+    int availablePopulation = _workerPopulation - static_cast<int>(_occupiedWorkerTimers.size());
     int availableMineralJobs = 0;
 
     for (const auto &base: _bases) {
@@ -99,7 +99,7 @@ int Sc2::State::getMineralWorkers() const {
 }
 
 int Sc2::State::getVespeneWorkers() const {
-    const int availablePopulation = _population - static_cast<int>(_occupiedWorkerTimers.size());
+    const int availablePopulation = _workerPopulation - static_cast<int>(_occupiedWorkerTimers.size());
     int availableVespeneJobs = 0;
     for (const auto &base: _bases) {
         availableVespeneJobs += base.getVespeneWorkerLimit();
@@ -127,7 +127,7 @@ bool Sc2::State::canAffordConstruction(const ActionCost &actionCost) const {
 }
 
 bool Sc2::State::populationLimitReached() const {
-    return _incomingPopulation + _population >= _populationLimit;
+    return _incomingPopulation + getPopulation() >= _populationLimit;
 }
 
 bool Sc2::State::hasFreeBase() const {
@@ -181,6 +181,21 @@ void Sc2::State::addVespeneCollector() {
         }
     }
     _incomingVespeneCollectors--;
+}
+
+
+void Sc2::State::buildBarracks() {
+    while (!canAffordConstruction(buildBarracksCost)) {
+        const auto initialMineral = _minerals;
+        advanceTime();
+        if (initialMineral == _minerals) {
+            return;
+        }
+    }
+
+    while (!hasUnoccupiedWorker()) {
+        advanceTime();
+    }
 }
 
 void Sc2::State::buildVespeneCollector() {
