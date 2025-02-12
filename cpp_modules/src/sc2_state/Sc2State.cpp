@@ -3,14 +3,13 @@
 std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state) {
     auto copyState = std::make_shared<State>(state);
 
-    auto stateConstructions = state.getConstructions();
-
+    const auto stateConstructions = state.getConstructions();
     for (const auto &stateConstruction: stateConstructions) {
         copyState->_constructions.emplace_back(
             stateConstruction._timeLeft, copyState, stateConstruction._constructionFunction);
     }
-    auto stateBases = state.getBases();
 
+    const auto stateBases = state.getBases();
     for (const auto &base: stateBases) {
         copyState->_bases.emplace_back(base);
     }
