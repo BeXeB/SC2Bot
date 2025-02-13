@@ -2,6 +2,7 @@
 #include <format>
 #include <iostream>
 #include <list>
+#include <random>
 #include <vector>
 
 #include "Base.h"
@@ -24,6 +25,8 @@ namespace Sc2 {
         std::vector<Base> _bases = std::vector{Base()};
         std::list<Construction> _constructions{};
         std::vector<int> _occupiedWorkerTimers{};
+
+        int _enemyCombatUnits = 0;
 
         const int _endTime;
         int _currentTime = 0;
@@ -86,7 +89,27 @@ namespace Sc2 {
             _populationLimit = _populationLimit >= MAX_POPULATION_LIMIT ? MAX_POPULATION_LIMIT : _populationLimit;
         }
 
+        void destroyPlayerBase() {
+            _workerPopulation = _workerPopulation >= 3 ? _workerPopulation - 3 : 0;
+            _bases.pop_back();
+            _populationLimit -= 15;
+        };
+
+        void simulateBattle() {
+            std::uniform_int_distribution<int> dist(0, 1);
+            while (_marinePopulation > 0 && _enemyCombatUnits > 0) {
+                int rndNum = dist(rng);
+                if (rndNum == 1) {
+                    _marinePopulation -= 1;
+                }
+                else {
+                    _enemyCombatUnits -= 1;
+                }
+            }
+        }
+
     public:
+        std::mt19937 rng = std::mt19937(7);
         int id = 0;
         [[nodiscard]] int getMinerals() const { return _minerals; }
         [[nodiscard]] int getVespene() const { return _vespene; }
@@ -98,6 +121,7 @@ namespace Sc2 {
         int getWorkerPopulation() const { return _workerPopulation; }
         int getMarinePopulation() const { return _marinePopulation; }
         int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
+        [[nodiscard]] int getEnemyCombatUnits() const { return _enemyCombatUnits; }
         std::list<Construction> getConstructions() const { return _constructions; }
         std::vector<Base> getBases() const { return _bases; }
         [[nodiscard]] int getBarracksAmount() const { return _barracksAmount; }
@@ -127,6 +151,13 @@ namespace Sc2 {
         void buildVespeneCollector();
         void buildBarracks();
         void buildMarine();
+        void addEnemyUnit() { _enemyCombatUnits += 1; }
+        void attackPlayer() {
+            simulateBattle();
+            if (_marinePopulation < _enemyCombatUnits) {
+                destroyPlayerBase();
+            }
+        }
 
         void wait();
         void wait(int amount);
@@ -180,11 +211,12 @@ namespace Sc2 {
                                                    std::list<Construction> &constructions,
                                                    const std::vector<int> &occupiedWorkerTimers,
                                                    int current_time,
-                                                   int endTime, int maxBases = 17) {
+                                                   int endTime, const int enemyCombatUnits,
+                                                   int maxBases = 17) {
             auto state = std::make_shared<State>(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
                                                  incomingMarines, populationLimit,
                                                  bases, barracksAmount, occupiedWorkerTimers, current_time, endTime,
-                                                 maxBases);
+                                                 maxBases, enemyCombatUnits);
 
             for (auto &construction: constructions) {
                 construction.setState(state);
@@ -197,7 +229,7 @@ namespace Sc2 {
         State(const int minerals, const int vespene, const int workerPopulation, const int marinePopulation,
               const int incomingWorkers, const int incomingMarines, const int populationLimit, std::vector<Base> bases,
               const int baracksAmount, std::vector<int> occupiedWorkerTimers, const int currentTime, const int endTime,
-              const int maxBases = 17): _minerals(minerals),
+              const int enemyCombatUnits, const int maxBases = 17): _minerals(minerals),
                                         _vespene(vespene),
                                         _workerPopulation(workerPopulation),
                                         _marinePopulation(marinePopulation),
@@ -211,7 +243,8 @@ namespace Sc2 {
                                         _occupiedWorkerTimers(
                                             std::move(occupiedWorkerTimers)),
                                         _endTime(endTime),
-                                        _currentTime(currentTime) {
+                                        _currentTime(currentTime),
+                                        _enemyCombatUnits(enemyCombatUnits){
         };
 
         State(const State &state) : enable_shared_from_this(state), MAX_BASES(state.MAX_BASES),
@@ -234,6 +267,8 @@ namespace Sc2 {
             _bases = std::vector<Base>();
             _constructions = std::list<Construction>();
             _occupiedWorkerTimers = state._occupiedWorkerTimers;
+
+            _enemyCombatUnits = state._enemyCombatUnits;
         };
 
         explicit State(const int endTime): _endTime(endTime) {
@@ -253,6 +288,7 @@ namespace Sc2 {
             str += std::format("    PopulationLimit: {} \n", _populationLimit);
             str += std::format("    IncomingPopulation: {} \n", getIncomingPopulation());
             str += std::format("    Number of bases: {} \n", _bases.size());
+            str += std::format("Enemy combat units: {} \n", _enemyCombatUnits);
             str += std::format("current_time: {} \n", _currentTime);
             str += std::format("EndTime: {} \n", _endTime);
             str += "}\n";

@@ -111,11 +111,12 @@ namespace Sc2::Mcts {
 		                     std::list<Construction> &constructions,
 		                     const std::vector<int> &occupiedWorkerTimers,
 		                     const int currentTime,
-		                     const int endTime) {
+		                     const int endTime,
+		                     const int enemyCombatUnits) {
 			const auto state = State::StateBuilder(minerals, vespene, workerPopulation, marinePopulation,
 			                                       incomingWorkers, incomingMarines, populationLimit,
 			                                       bases, barracksAmount, constructions, occupiedWorkerTimers,
-			                                       currentTime, endTime);
+			                                       currentTime, endTime, enemyCombatUnits);
 
 			updateRootState(state);
 		}
@@ -173,17 +174,20 @@ namespace Sc2::Mcts {
 			                                                         Node(Action::none, nullptr,
 			                                                              State::DeepCopy(*rootState)))) {
 			_rng = std::mt19937(seed);
+			State::rng = _rng;
 		}
 
 		explicit Mcts(const std::shared_ptr<State> &rootState): _rootNode(
 			std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
 			_rng = std::mt19937(std::random_device{}());
+			State::rng = _rng;
 		}
 
 		Mcts() {
 			auto rootState = std::make_shared<State>(_rolloutEndTime);
 			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
 			_rng = std::mt19937(std::random_device{}());
+			State::rng = _rng;
 		}
 	};
 

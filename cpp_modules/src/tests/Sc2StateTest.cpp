@@ -295,5 +295,20 @@ TEST_SUITE("Test the Sc2State") {
 			CHECK(state->getPopulation() == initialPopulation + 2);
 		}
 	}
+
+
+	TEST_CASE("Test that enemy units are correctly added") {
+		const auto state = std::make_shared<Sc2::State>();
+		Sc2::State::rng = std::mt19937(7);
+		CHECK(state->getEnemyCombatUnits() == 0);
+		state->addEnemyUnit();
+		state->addEnemyUnit();
+		state->addEnemyUnit();
+		CHECK(state->getEnemyCombatUnits() == 3);
+	}
+
+	TEST_CASE("Enemy units can properly attack player") {
+		const auto state = std::make_shared<Sc2::State>();
+	}
 }
 

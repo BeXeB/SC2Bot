@@ -115,10 +115,11 @@ TEST_SUITE("Test MCTS") {
 			auto bases = updatedState->getBases();
 			auto barracksAmount = updatedState->getBarracksAmount();
 			auto constructions = updatedState->getConstructions();
+			auto enemyCombatUnits = updatedState->getEnemyCombatUnits();
 
 			mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
 			                     incomingMarines, populationLimit, bases, barracksAmount,
-			                     constructions, occupiedWorkerTimers, 0, 1000);
+			                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits);
 
 			auto rootState = mcts.getRootState();
 
@@ -160,6 +161,7 @@ TEST_SUITE("Test MCTS") {
 		auto occupiedWorkerTimers = state->getOccupiedWorkerTimers();
 		auto bases = state->getBases();
 		auto barracksAmount = state->getBarracksAmount();
+		auto enemyCombatUnits = state->getEnemyCombatUnits();
 
 		auto constructions = std::list<Sc2::Construction>();
 		constructions.emplace_back(state->getBuildWorkerCost().buildTime - 1, Action::buildWorker);
@@ -167,7 +169,7 @@ TEST_SUITE("Test MCTS") {
 
 		mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers, incomingMarines,
 		                     populationLimit, bases, barracksAmount,
-		                     constructions, occupiedWorkerTimers, 0, 1000);
+		                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits);
 
 		CHECK(mcts.getRootState()->getConstructions().size() == state->getConstructions().size());
 		CHECK(mcts.getRootState()->getConstructions().size() == 1);

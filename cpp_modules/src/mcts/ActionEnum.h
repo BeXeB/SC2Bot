@@ -14,6 +14,8 @@ enum class Action {
     buildVespeneCollector,
     buildMarine,
     buildBarracks,
+    attackPlayer,
+    addEnemyUnit,
 };
 
 inline std::string actionToString(Action action) {
@@ -39,6 +41,12 @@ inline std::string actionToString(Action action) {
             break;
         case Action::buildBarracks:
             actionString = std::string("buildBarracks");
+            break;
+        case Action::attackPlayer:
+            actionString = std::string("attackPlayer");
+            break;
+        case Action::addEnemyUnit:
+            actionString = std::string("addEnemyUnit");
             break;
     }
 
@@ -67,6 +75,12 @@ inline std::ostream &operator<<(std::ostream &os, const Action &action) {
             break;
         case Action::buildBarracks:
             os << std::string("buildBarracks");
+            break;
+        case Action::attackPlayer:
+            os << std::string("attackPlayer");
+            break;
+        case Action::addEnemyUnit:
+            os << std::string("addEnemyUnit");
             break;
     }
     return os;
