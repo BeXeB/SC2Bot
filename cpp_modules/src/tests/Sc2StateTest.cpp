@@ -299,7 +299,6 @@ TEST_SUITE("Test the Sc2State") {
 
 	TEST_CASE("Test that enemy units are correctly added") {
 		const auto state = std::make_shared<Sc2::State>();
-		Sc2::State::rng = std::mt19937(7);
 		CHECK(state->getEnemyCombatUnits() == 0);
 		state->addEnemyUnit();
 		state->addEnemyUnit();
@@ -309,6 +308,64 @@ TEST_SUITE("Test the Sc2State") {
 
 	TEST_CASE("Enemy units can properly attack player") {
 		const auto state = std::make_shared<Sc2::State>();
+
+		auto initialBases = state->getBases().size();
+		auto initialPopulationLimit = state->getPopulationLimit();
+		auto initialWorkers = state->getWorkerPopulation();
+
+		SUBCASE("If the player has no marines they will lose the fight and lose a base") {
+			state->addEnemyUnit();
+			state->addEnemyUnit();
+			state->addEnemyUnit();
+
+			state->attackPlayer();
+			CHECK(initialBases -1 == state->getBases().size());
+			CHECK(initialPopulationLimit - 15 == state->getPopulationLimit());
+			CHECK(initialWorkers - 3 == state->getWorkerPopulation());
+		}
+
+		SUBCASE("If the enemy has no troops they will lose the fight and the player will not lose a base") {
+			state->attackPlayer();
+			CHECK(initialBases == state->getBases().size());
+		}
+
+		SUBCASE("When the enemy attacks the player, they both lose units") {
+			state->buildBarracks();
+			state->wait(500);
+			for (int i = 0; i < 50; i++) {
+				state->buildMarine();
+				state->addEnemyUnit();
+			}
+			state->wait(500);
+
+			auto marines = state->getMarinePopulation();
+			auto enemies = state->getEnemyCombatUnits();
+
+			state->attackPlayer();
+
+			CHECK(marines > state->getMarinePopulation());
+			CHECK(enemies > state->getEnemyCombatUnits());
+		}
+
+		SUBCASE("If the player has no base, they will only lose workers") {
+			state->addEnemyUnit();
+			state->addEnemyUnit();
+			state->addEnemyUnit();
+
+			CHECK(state->getBases().size() == 1);
+			CHECK(initialWorkers == state->getWorkerPopulation());
+
+			state->attackPlayer();
+
+			CHECK(state->getBases().empty());
+			CHECK(initialWorkers - 3 == state->getWorkerPopulation());
+
+			state->attackPlayer();
+
+			CHECK(state->getBases().empty());
+			CHECK(initialWorkers - 6 != state->getWorkerPopulation());
+			CHECK(0 == state->getWorkerPopulation());
+		}
 	}
 }
 

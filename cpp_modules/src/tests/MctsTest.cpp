@@ -39,20 +39,20 @@ TEST_SUITE("Test MCTS") {
 		SUBCASE("Can create and run an MCTS, by giving it a root state") {
 			const auto state = std::make_shared<Sc2::State>();
 
-			auto mcts = Mcts(state);
+			auto mcts = std::make_unique<Mcts>(state);
 
-			mcts.search(1000);
+			mcts->search(1000);
 
-			const auto bestMove = mcts.getBestAction();
+			const auto bestMove = mcts->getBestAction();
 
 			CHECK(bestMove != Action::none);
 		}
 		SUBCASE("Can create and run an MCTS with a default constructor") {
-			auto mcts = Mcts();
+			auto mcts = std::make_unique<Mcts>();
 
-			mcts.search(1000);
+			mcts->search(1000);
 
-			const auto bestMove = mcts.getBestAction();
+			const auto bestMove = mcts->getBestAction();
 
 			CHECK(bestMove != Action::none);
 		}
@@ -191,11 +191,11 @@ TEST_SUITE("Test MCTS") {
 	TEST_CASE("Select Node will select a node that has not been fully explored") {
 		const auto state = std::make_shared<Sc2::State>();
 
-		auto mcts = Mcts(state);
+		auto mcts = std::make_unique<Mcts>(state);
 
-		mcts.search(1000);
+		mcts->search(1000);
 
-		auto node = mcts.selectNode();
+		auto node = mcts->selectNode();
 
 		CHECK(node->N == 0);
 		CHECK(node->children.size() == 0);
@@ -216,11 +216,13 @@ TEST_SUITE("Test MCTS") {
 
 			auto state = node->getState();
 
+			auto numberOfLegalActions = state->getLegalActions().size();
+
 			state->wait(500);
 
 			node->expand();
 
-			CHECK(node->children.size() == 4);
+			CHECK(node->children.size() == numberOfLegalActions);
 		}
 
 		SUBCASE("expand will not include build worker when the population limit is reached") {

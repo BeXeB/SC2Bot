@@ -169,25 +169,22 @@ namespace Sc2::Mcts {
 		              const RolloutHeuristic rolloutHeuristic) : EXPLORATION(exploration),
 		                                                         _rolloutEndTime(rolloutEndTime),
 		                                                         _valueHeuristic(valueHeuristic),
-		                                                         _rolloutHeuristic(rolloutHeuristic),
-		                                                         _rootNode(std::make_shared<Node>(
-			                                                         Node(Action::none, nullptr,
-			                                                              State::DeepCopy(*rootState)))) {
+		                                                         _rolloutHeuristic(rolloutHeuristic) {
 			_rng = std::mt19937(seed);
-			State::rng = _rng;
+			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)));
 		}
 
-		explicit Mcts(const std::shared_ptr<State> &rootState): _rootNode(
-			std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
-			_rng = std::mt19937(std::random_device{}());
-			State::rng = _rng;
+		explicit Mcts(const std::shared_ptr<State> &rootState) {
+			const auto seed = std::random_device{}();
+			_rng = std::mt19937(seed);
+			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)));
 		}
 
 		Mcts() {
-			auto rootState = std::make_shared<State>(_rolloutEndTime);
+			const auto seed = std::random_device{}();
+			auto rootState = std::make_shared<State>(_rolloutEndTime, seed);
+			_rng = std::mt19937(seed);
 			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
-			_rng = std::mt19937(std::random_device{}());
-			State::rng = _rng;
 		}
 	};
 
