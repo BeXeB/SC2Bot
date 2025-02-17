@@ -150,20 +150,21 @@ bool Sc2::State::hasUnoccupiedGeyser() const {
 
 std::vector<Action> Sc2::State::getLegalActions() const {
     std::vector<Action> actions = {};
+    const auto hasWorkers = _workerPopulation > 0;
 
-    if (_bases.size() < MAX_BASES) {
+    if (_bases.size() < MAX_BASES && hasWorkers) {
         actions.emplace_back(Action::buildBase);
     }
 
-    if (_populationLimit < MAX_POPULATION_LIMIT) {
+    if (_populationLimit < MAX_POPULATION_LIMIT && hasWorkers) {
         actions.emplace_back(Action::buildHouse);
     }
 
-    if (!populationLimitReached()) {
+    if (!populationLimitReached() && !_bases.empty()) {
         actions.emplace_back(Action::buildWorker);
     }
 
-    if (hasUnoccupiedGeyser()) {
+    if (hasUnoccupiedGeyser() && hasWorkers) {
         actions.emplace_back(Action::buildVespeneCollector);
     }
 
@@ -171,7 +172,9 @@ std::vector<Action> Sc2::State::getLegalActions() const {
         actions.emplace_back(Action::buildMarine);
     }
 
-    actions.emplace_back(Action::buildBarracks);
+    if (hasWorkers) {
+        actions.emplace_back(Action::buildBarracks);
+    }
 
     if (actions.empty()) {
         actions.emplace_back(Action::none);

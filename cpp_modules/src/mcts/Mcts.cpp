@@ -127,6 +127,8 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
+	std::uniform_real_distribution<> dist(0,1);
+
 	const auto state = State::DeepCopy(*node->getState());
 	while (!state->endTimeReached()) {
 		auto legalActions = state->getLegalActions();
@@ -149,7 +151,22 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
+
+		auto threshold = dist(_rng);
+
+		if (threshold < 0.25) {
+			threshold = dist(_rng);
+
+			if (threshold < 0.7) {
+				state->addEnemyUnit();
+			}
+			else {
+				state->attackPlayer();
+			}
+		}
 	}
+
+
 
 	return state->getValue();
 }

@@ -339,7 +339,7 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
                                             int benchmarkIndex = 0) {
 	std::vector<BenchmarkResult> results;
 	BenchmarkResult result = {};
-
+/*
 	// ------ UCT ------
 	//----- Random ------
 	benchmarkIndex++;
@@ -554,8 +554,10 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.2,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+		.shouldPrintActions = true,
 	});
 	results.push_back(result);
+	*/
 
 	benchmarkIndex++;
 	result = benchmarkOnTime({
@@ -566,6 +568,7 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.5,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+		.shouldPrintActions = true,
 	});
 	results.push_back(result);
 
@@ -578,6 +581,7 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.8,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+		.shouldPrintActions = true,
 	});
 	results.push_back(result);
 
