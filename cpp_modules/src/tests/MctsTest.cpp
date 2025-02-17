@@ -41,7 +41,7 @@ TEST_SUITE("Test MCTS") {
 
 			auto mcts = std::make_unique<Mcts>(state);
 
-			mcts->search(1000);
+			mcts->searchRollout(1000);
 
 			const auto bestMove = mcts->getBestAction();
 
@@ -50,7 +50,7 @@ TEST_SUITE("Test MCTS") {
 		SUBCASE("Can create and run an MCTS with a default constructor") {
 			auto mcts = std::make_unique<Mcts>();
 
-			mcts->search(1000);
+			mcts->searchRollout(1000);
 
 			const auto bestMove = mcts->getBestAction();
 
@@ -193,7 +193,7 @@ TEST_SUITE("Test MCTS") {
 
 		auto mcts = std::make_unique<Mcts>(state);
 
-		mcts->search(1000);
+		mcts->searchRollout(1000);
 
 		auto node = mcts->selectNode();
 
@@ -210,7 +210,7 @@ TEST_SUITE("Test MCTS") {
 		SUBCASE(
 			"Will expand to all actions, when there is available vespene geysers,"
 			" and the population limit has not been reached") {
-			mcts.search(1000);
+			mcts.searchRollout(1000);
 
 			auto node = mcts.selectNode();
 
@@ -239,7 +239,7 @@ TEST_SUITE("Test MCTS") {
 			for (const auto action: node->children | std::views::keys) {
 				CHECK(action != Action::buildWorker);
 			}
-			CHECK(node->children.size() == 3);
+			CHECK(node->children.size() == state->getLegalActions().size());
 		}
 		SUBCASE("expand will not include build vespene collector when there is no available geysers") {
 			auto node = mcts.selectNode();
@@ -260,7 +260,7 @@ TEST_SUITE("Test MCTS") {
 			for (const auto action: node->children | std::views::keys) {
 				CHECK(action != Action::buildVespeneCollector);
 			}
-			CHECK(node->children.size() == 3);
+			CHECK(node->children.size() == state->getLegalActions().size());
 		}
 	}
 
