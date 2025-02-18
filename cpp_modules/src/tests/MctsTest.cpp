@@ -218,8 +218,6 @@ TEST_SUITE("Test MCTS") {
 
 			auto numberOfLegalActions = state->getLegalActions().size();
 
-			state->wait(500);
-
 			node->expand();
 
 			CHECK(node->children.size() == numberOfLegalActions);

@@ -230,11 +230,12 @@ TEST_SUITE("Test the Sc2State") {
 		state1->buildWorker();
 		state1->buildBase();
 		state1->buildVespeneCollector();
+		state1->buildWorker();
 
 		const auto state2 = Sc2::State::DeepCopy(*state1);
 		state1->id = 0;
 		state2->id = 1;
-		state1->wait(100);
+		state1->wait(500);
 		SUBCASE("Check that state 1 is different from state2") {
 			CHECK(state1->getPopulationLimit() != state2->getPopulationLimit());
 			CHECK(state1->getOccupiedPopulation() != state2->getOccupiedPopulation());
@@ -245,7 +246,7 @@ TEST_SUITE("Test the Sc2State") {
 			CHECK(state1->getBases().size() != state2->getBases().size());
 			CHECK(state1->getVespeneWorkers() != state2->getVespeneWorkers());
 		}
-		state2->wait(100);
+		state2->wait(500);
 		SUBCASE("Check that if the same actions are taken they will become identical") {
 			CHECK(state1->getPopulationLimit() == state2->getPopulationLimit());
 			CHECK(state1->getOccupiedPopulation() == state2->getOccupiedPopulation());
