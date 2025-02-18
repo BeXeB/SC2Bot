@@ -39,10 +39,10 @@ namespace Sc2 {
         void advanceTime(const int time) {
             _timeLeft -= time;
             if (_timeLeft <= 0) {
-                const auto s = _state.lock();
+                const auto state = _state.lock();
 
-                if (s != nullptr) {
-                    (s.get()->*_constructionFunction)();
+                if (state != nullptr) {
+                    (state.get()->*_constructionFunction)();
                     _isFinished = true;
                 }
             }
