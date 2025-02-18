@@ -12,7 +12,7 @@ import math
 
 
 def save_result(bot: 'MyBot', final_state: State, game_time: float):
-    file = open('result.csv', 'a')
+    file = open('../result.csv', 'a')
     total_minerals_mined = bot.minerals - 50
     total_minerals_mined += len(bot.gas_buildings) * 75
     total_minerals_mined += (len(bot.workers) - 12) * 50

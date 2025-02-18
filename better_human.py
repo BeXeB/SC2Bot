@@ -3,8 +3,8 @@ import math
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 
-from result_saver import save_human_result
-from state_translator import translate_state
+from Modules.result_saver import save_human_result
+from Modules.state_translator import translate_state
 from testbot import STEPS_PER_SECOND
 
 

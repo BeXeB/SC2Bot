@@ -1,7 +1,6 @@
 from sc2.ids.unit_typeid import UnitTypeId
-from sc2.units import Units
 
-from worker_manager import WorkerRole
+from Modules.worker_manager import WorkerRole
 
 
 
