@@ -180,7 +180,7 @@ std::vector<Action> Sc2::State::getLegalActions() const {
         actions.emplace_back(Action::buildVespeneCollector);
     }
 
-    if ((_barracksAmount > 0) && (getPopulationLimit() > (getPopulation() + getIncomingPopulation()))) {
+    if ((_barracksAmount > 0) && !populationLimitReached()) {
         actions.emplace_back(Action::buildMarine);
     }
 
