@@ -72,6 +72,12 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 			case Action::buildVespeneCollector:
 				_actionWeights[i] = 2.0;
 				break;
+            case Action::buildBarracks:
+                _actionWeights[i] = 2.0;
+                break;
+            case Action::buildMarine:
+                _actionWeights[i] = 15.0;
+                break;
 		}
 	}
 

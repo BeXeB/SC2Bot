@@ -23,6 +23,7 @@ void Sc2::State::advanceConstructions() {
     }
 
     auto constructionIter = _constructions.begin();
+    int availableWorkers = _workerPopulation;
 
     do {
         constructionIter->advanceTime(1);
@@ -31,7 +32,8 @@ void Sc2::State::advanceConstructions() {
         } else {
             ++constructionIter;
         }
-    } while (constructionIter != _constructions.end());
+        availableWorkers--;
+    } while ((constructionIter != _constructions.end()) && availableWorkers > 0);
 }
 
 void Sc2::State::advanceResources() {
@@ -40,10 +42,14 @@ void Sc2::State::advanceResources() {
 }
 
 void Sc2::State::advanceOccupiedWorkers() {
+    int availableWorkers = _workerPopulation;
+
     const auto lastIndex = static_cast<int>(_occupiedWorkerTimers.size()) - 1;
 
-    for (int i = lastIndex; i >= 0; i--) {
-        _occupiedWorkerTimers[i] = -1;
+
+    for (int i = lastIndex; i >= 0 && availableWorkers > 0; i--) {
+        _occupiedWorkerTimers[i] -= 1;
+        availableWorkers--;
 
         if (_occupiedWorkerTimers[i] <= 0) {
             _occupiedWorkerTimers.erase(_occupiedWorkerTimers.begin() + i);
@@ -85,6 +91,9 @@ int Sc2::State::getVespeneGeysersAmount() {
 }
 
 int Sc2::State::getMineralWorkers() const {
+    if(_workerPopulation <= _occupiedWorkerTimers.size()){
+        return 0;
+    }
     int availablePopulation = _workerPopulation - static_cast<int>(_occupiedWorkerTimers.size());
     int availableMineralJobs = 0;
 
@@ -98,6 +107,9 @@ int Sc2::State::getMineralWorkers() const {
 }
 
 int Sc2::State::getVespeneWorkers() const {
+    if(_workerPopulation <= _occupiedWorkerTimers.size()){
+        return 0;
+    }
     const int availablePopulation = _workerPopulation - static_cast<int>(_occupiedWorkerTimers.size());
     int availableVespeneJobs = 0;
     for (const auto &base: _bases) {

@@ -181,6 +181,12 @@ namespace Sc2 {
                 case Action::buildVespeneCollector:
                     buildVespeneCollector();
                     break;
+                case Action::buildBarracks:
+                    buildBarracks();
+                    break;
+                case Action::buildMarine:
+                    buildMarine();
+                    break;
                 case Action::none:
                     break;
             }
