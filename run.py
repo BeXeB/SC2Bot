@@ -8,25 +8,8 @@ from testbot import MyBot, PeacefulBot, ActionSelection
 from sc2_mcts import ValueHeuristic, RolloutHeuristic
 
 NUMBER_OF_GAMES: int = 2
-GAME_LENGTH: int = 300
+GAME_LENGTH: int = 480
 matches: List[GameMatch] = []
-
-test_match = GameMatch(
-    maps.get("KingsCoveLE"),
-    [Bot(Race.Terran, MyBot(
-        mcts_seed=0,
-        mcts_rollout_end_time=300,
-        mcts_exploration=0.9,
-        mcts_value_heuristics=ValueHeuristic.EpsilonGreedy,
-        mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
-        action_selection=ActionSelection.MultiBestActionMin,
-        future_action_queue_length=2,
-        fixed_search_rollouts=5000)),
-     Bot(Race.Zerg, PeacefulBot())],
-    realtime=False,
-    random_seed=0,
-    game_time_limit=GAME_LENGTH,
-)
 
 match = GameMatch(
         maps.get("KingsCoveLE"),
@@ -41,6 +24,7 @@ match = GameMatch(
             fixed_search_rollouts=5000
         )), Bot(Race.Zerg, PeacefulBot())],
         realtime=False,
+        disable_fog=True,
         random_seed=0,
         game_time_limit=GAME_LENGTH,
     )

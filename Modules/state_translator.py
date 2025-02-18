@@ -29,19 +29,19 @@ def get_bases(bot: 'MyBot') -> list[Base]:
 def get_constructions(bot: 'MyBot') -> list[Construction]:
     # TODO: This is a very hacky way to get the pending constructions
     constructions = []
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.SUPPLYDEPOT)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.SUPPLYDEPOT))):
         construction = Construction(
             time_left=math.ceil(bot.SUPPLY_BUILD_TIME_SECONDS),
             action=Action.build_house
         )
         constructions.append(construction)
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.COMMANDCENTER)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.COMMANDCENTER))):
         construction = Construction(
             time_left=math.ceil(bot.CC_BUILD_TIME_SECONDS),
             action=Action.build_base
         )
         constructions.append(construction)
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.REFINERY)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.REFINERY))):
         construction = Construction(
             time_left=math.ceil(bot.REFINERY_BUILD_TIME_SECONDS),
             action=Action.build_vespene_collector

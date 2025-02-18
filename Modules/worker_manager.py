@@ -1,3 +1,4 @@
+import typing
 from typing import Optional, Union
 
 from sc2.bot_ai import BotAI
@@ -7,6 +8,9 @@ from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
+
+if typing.TYPE_CHECKING:
+    from testbot import MyBot
 
 MINING_RADIUS = 1.325
 
@@ -48,7 +52,7 @@ class WorkerManager:
     th_data: dict[int, TownhallData]
     gas_data: dict[int, GasBuildingData]
 
-    def __init__(self, bot: BotAI):
+    def __init__(self, bot: 'MyBot') -> None:
         self.bot = bot
         self.mineral_targets = {}
         self.worker_data = {}

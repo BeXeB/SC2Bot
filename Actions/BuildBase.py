@@ -1,7 +1,12 @@
-from sc2.bot_ai import BotAI
+import math
+import typing
+
 from sc2.position import Point2
 from sc2.ids.unit_typeid import UnitTypeId
 from typing import List, Optional
+
+if typing.TYPE_CHECKING:
+    from testbot import MyBot
 
 from sc2.unit import Unit
 from sc2.units import Units
@@ -9,52 +14,72 @@ from sc2.units import Units
 
 class BaseBuilder():
     # Initialize the basebuilder to keep track of the occupied clusters, such that we can find the new ones
-    def __init__(self, bot: BotAI) -> None:
+    def __init__(self, bot: 'MyBot') -> None:
         self.bot = bot
         self.occupied_clusters: List[MineralCluster] = []
 
     async def find_next_base_location(self) -> Optional[Point2]:
-        # Search map for the closest mineral cluster
-        all_mineral_fields = self.bot.mineral_field
-        existing_bases = self.bot.townhalls
+        closest = None
+        distance = math.inf
+        for el in self.bot.el_list:
+            if (self.bot.el_list[el]):
+                # already taken
+                continue
 
-        # Find clusters of minerals with no base
-        mineral_clusters = self.__group_minerals_into_clusters(all_mineral_fields)
+            startp = self.bot.game_info.player_start_location
+            d = await self.bot.client.query_pathing(startp, el)
+            if d is None:
+                continue
 
-        # Gather unoccupied clusters while ensuring they're not too close to existing bases (Arbitrary number of 15)
-        unoccupied_clusters = [
-            cluster for cluster in mineral_clusters
-            if cluster not in self.occupied_clusters and not any(
-                base.distance_to(cluster.center) < 15 for base in existing_bases
-            )
-        ]
+            if d < distance:
+                distance = d
+                closest = el
 
-        # If any valid unoccupied clusters exist, choose one for a new base
-        if unoccupied_clusters:
-            closest_base = self.bot.townhalls.closest_to(self.bot.start_location)
+        return closest
 
-            # Choose the closest cluster to the closest base
-            closest_cluster = min(unoccupied_clusters, key=lambda cluster: closest_base.distance_to(cluster.center))
-
-            # Average position
-            average_position = closest_cluster.center
-
-
-            # Define the position to place the base with an x-value offset
-            next_build_position = average_position.offset((1, 0))
-
-            # Check if the proposed build position is valid
-            if await self.__is_valid_build_position(next_build_position, existing_bases):
-                # Find valid location
-                next_build_location = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, next_build_position)
-
-                if next_build_location:
-                    # Mark this cluster as occupied
-                    self.occupied_clusters.append(closest_cluster)
-                    return next_build_location
-
-        # If there are no valid unoccupied mineral clusters, return None
-        return None
+    # Not going to remove this, as this is a good idea, but it has issues with the current implementation
+    # async def find_next_base_location(self) -> Optional[Point2]:
+    #     # Search map for the closest mineral cluster
+    #     all_mineral_fields = self.bot.mineral_field
+    #     existing_bases = self.bot.townhalls
+    #
+    #     # Find clusters of minerals with no base
+    #     mineral_clusters = self.__group_minerals_into_clusters(all_mineral_fields)
+    #
+    #     # Gather unoccupied clusters while ensuring they're not too close to existing bases (Arbitrary number of 15)
+    #     unoccupied_clusters = [
+    #         cluster for cluster in mineral_clusters
+    #         if cluster not in self.occupied_clusters and not any(
+    #             base.distance_to(cluster.center) < 15 for base in existing_bases
+    #         )
+    #     ]
+    #
+    #     # If any valid unoccupied clusters exist, choose one for a new base
+    #     if unoccupied_clusters:
+    #         closest_base = self.bot.townhalls.closest_to(self.bot.start_location)
+    #
+    #         # Choose the closest cluster to the closest base
+    #         closest_cluster = min(unoccupied_clusters, key=lambda cluster: closest_base.distance_to(cluster.center))
+    #
+    #         # Average position
+    #         average_position = closest_cluster.center
+    #
+    #
+    #         # Define the position to place the base with an x-value offset
+    #         next_build_position = average_position.offset((1, 0))
+    #
+    #         # Check if the proposed build position is valid
+    #         if await self.__is_valid_build_position(next_build_position, existing_bases):
+    #             # Find valid location
+    #             next_build_location = await self.bot.find_placement(UnitTypeId.COMMANDCENTER, next_build_position)
+    #
+    #             if next_build_location:
+    #                 # Mark this cluster as occupied
+    #                 self.occupied_clusters.append(closest_cluster)
+    #                 return next_build_location
+    #
+    #     # If there are no valid unoccupied mineral clusters, return None
+    #     return None
 
     async def __is_valid_build_position(self, position: Point2, existing_bases: Units) -> bool:
         # Ensure the position is not too close to existing bases

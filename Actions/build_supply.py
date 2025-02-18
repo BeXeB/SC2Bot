@@ -27,7 +27,7 @@ class SupplyBuilder:
                     worker = self.bot.worker_manager.select_worker(position, WorkerRole.BUILD)
                     if worker:
                         # self.bot.busy_workers.update({worker.tag: self.bot.SUPPLY_BUILD_TIME_STEPS + self.bot.SUPPLY_TRAVEL_TIME_STEPS})
-                        self.bot.busy_workers.update({worker.tag: self.bot.SUPPLY_BUILD_TIME_SECONDS + self.bot.SUPPLY_TRAVEL_TIME_SECONDS})
+                        self.bot.busy_workers.update({worker.tag: self.bot.SUPPLY_BUILD_TIME_SECONDS})
                         worker.build(UnitTypeId.SUPPLYDEPOT, position)
                         self.possible_supply_positions.remove(position)
                         break

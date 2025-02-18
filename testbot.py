@@ -31,7 +31,19 @@ class ActionSelection(Enum):
     MultiBestActionFixed = 3
     MultiBestActionMin = 4
 
+# TODO: Handle losing bases and workers on their way to build
+# TODO: Refactor the worker manager
+# TODO: Refactor StateTranslator
+# TODO: Save replay option
+# TODO: Better build supply
+
 class MyBot(BotAI):
+    new_base_location = None
+    base_worker = None
+    completed_bases = set()
+    busy_workers: dict[int, float] = {}
+    el_list: dict[Point2, bool] = {}
+
     # Completed_bases is used to keep track of processed vespene extractors
     def __init__(self,
                  mcts_seed: int = 0,
@@ -43,9 +55,6 @@ class MyBot(BotAI):
                  action_selection: ActionSelection = ActionSelection.BestAction,
                  future_action_queue_length: int = 1,
                  fixed_search_rollouts: int = 5000) -> None:
-
-        self.completed_bases = set()
-        self.busy_workers: dict[int, float] = {}
         self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics)
         self.mcts_settings = [
             mcts_seed,
@@ -54,10 +63,7 @@ class MyBot(BotAI):
             mcts_value_heuristics,
             mcts_rollout_heuristics,
         ]
-        self.new_base_location = None
-        self.base_worker = None
         self.time_limit = time_limit
-        self.actions_taken: dict[int, Action] = {}
         self.action_selection = action_selection
         self.fixed_search_rollouts = fixed_search_rollouts
         self.next_action: Action = Action.none
@@ -65,18 +71,18 @@ class MyBot(BotAI):
 
     async def on_start(self):
         self.CC_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND)
-        self.CC_TRAVEL_TIME_SECONDS: int = 5
         self.REFINERY_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND)
-        self.REFINERY_TRAVEL_TIME_SECONDS: int = 1
         self.WORKER_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.SCV.value]._proto.build_time / STEPS_PER_SECOND)
         self.SUPPLY_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.SUPPLYDEPOT.value]._proto.build_time / STEPS_PER_SECOND)
-        self.SUPPLY_TRAVEL_TIME_SECONDS: int = 2
         self.base_builder = BaseBuilder(self)
         self.vespene_builder = VespeneBuilder(self)
         self.supply_builder = SupplyBuilder(self)
         self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
-        self.el_list = self.expansion_locations_list
+        for el in self.expansion_locations_list:
+            self.el_list.update({el: False})
+            if el.distance_to(self.start_location) < 15:
+                self.el_list[el] = True
         if self.action_selection is ActionSelection.MultiBestActionFixed or self.action_selection is ActionSelection.BestActionFixed:
             self.mcts.start_search_rollout(self.fixed_search_rollouts)
         else:
@@ -92,69 +98,16 @@ class MyBot(BotAI):
         self.update_busy_workers()
         self.manage_workers()
 
-        # TODO: Maybe disable build base in mcts when there is no more base locations?
-        # TODO: Same with geysers and supply (if we reached the cap) the bot keeps wanting to build when there is no more place or already at 200 supply
-        # TODO: Changeable amount of future actions
         match self.next_action:
             case Action.build_base:
-                if not self.new_base_location:
-                    self.new_base_location = await self.get_next_expansion()
-                    if not self.new_base_location:
-                        self.set_next_action()
-                        return
-                    self.base_worker = self.worker_manager.select_worker(self.new_base_location, WorkerRole.BUILD)
-                    self.base_worker.move(self.new_base_location)
-                if not self.can_afford(UnitTypeId.COMMANDCENTER):
-                    return
-                self.base_worker.build(UnitTypeId.COMMANDCENTER, self.new_base_location)
-                self.busy_workers.update({self.base_worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
-                self.new_base_location = None
-                self.base_worker = None
-                self.actions_taken.update({iteration: Action.build_worker})
-                self.set_next_action()
-                # if not self.can_afford(UnitTypeId.COMMANDCENTER):
-                #     return
-                # # new_base_location = await self.base_builder.find_next_base_location()
-                # new_base_location = await self.get_next_expansion()
-                # if not new_base_location:
-                #     self.set_next_action()
-                #     return
-                # self.build_base(new_base_location)
-                # self.actions_taken.update({iteration: Action.build_base})
-                # self.set_next_action()
+                await self.build_base()
             case Action.build_vespene_collector:
-                if not self.can_afford(UnitTypeId.REFINERY):
-                    return
-                available_ths = self.townhalls.filter(lambda t: t.tag not in self.completed_bases)
-                if not available_ths:
-                    self.set_next_action()
-                    return
-                th = available_ths.first
-                if th.tag not in self.completed_bases and th.is_ready:
-                    await self.vespene_builder.build_vespene_extractor(self.townhalls.random.position)
-                    if len(self.vespene_geyser.closer_than(10, th.position)) == len(self.gas_buildings.closer_than(10, th.position)) + 1:
-                        self.completed_bases.add(th.tag)
-                self.actions_taken.update({iteration: Action.build_vespene_collector})
-                self.set_next_action()
+                await self.build_vespene_collector()
             case Action.build_worker:
-                if not self.can_afford(UnitTypeId.SCV, check_supply_cost=False):
-                    return
-                if not self.can_afford(UnitTypeId.SCV):
-                    self.set_next_action()
-                    return
-                if not self.townhalls.ready.filter(lambda t: len(t.orders) == 0):
-                    return
-                await self.worker_builder.build_worker()
-                self.actions_taken.update({iteration: Action.build_worker})
-                self.set_next_action()
+                await self.build_worker()
             case Action.build_house:
-                # self.set_next_action()
-                # return
-                if not self.can_afford(UnitTypeId.SUPPLYDEPOT):
-                    return
-                await self.supply_builder.build_supply()
-                self.actions_taken.update({iteration: Action.build_house})
-                self.set_next_action()
+                await self.build_house()
+
             case Action.none:
                 try:
                     match self.action_selection:
@@ -170,6 +123,70 @@ class MyBot(BotAI):
                             self.get_multi_best_action_min()
                 except:
                     return
+
+    async def build_base(self) -> None:
+        if not self.new_base_location:
+            self.new_base_location = await self.base_builder.find_next_base_location()
+            if not self.new_base_location:
+                self.set_next_action()
+                return
+            self.base_worker = self.worker_manager.select_worker(self.new_base_location, WorkerRole.BUILD)
+            self.base_worker.move(self.new_base_location)
+            self.el_list[self.new_base_location] = True
+        if not self.can_afford(UnitTypeId.COMMANDCENTER):
+            return
+        self.base_worker.build(UnitTypeId.COMMANDCENTER, self.new_base_location)
+        self.busy_workers.update({self.base_worker.tag: self.CC_BUILD_TIME_SECONDS})
+        self.new_base_location = None
+        self.base_worker = None
+        self.set_next_action()
+
+    async def build_vespene_collector(self) -> None:
+        if not self.can_afford(UnitTypeId.REFINERY):
+            return
+        available_ths = self.townhalls.filter(lambda t: t.tag not in self.completed_bases)
+        if not available_ths:
+            self.set_next_action()
+            return
+        th = available_ths.first
+        if th.tag not in self.completed_bases and th.is_ready:
+            await self.vespene_builder.build_vespene_extractor(self.townhalls.random.position)
+            if len(self.vespene_geyser.closer_than(10, th.position)) == len(
+                    self.gas_buildings.closer_than(10, th.position)) + 1:
+                self.completed_bases.add(th.tag)
+        self.set_next_action()
+
+    async def build_worker(self) -> None:
+        if not self.can_afford(UnitTypeId.SCV, check_supply_cost=False):
+            return
+        if not self.can_afford(UnitTypeId.SCV):
+            self.set_next_action()
+            return
+        if not self.townhalls.ready.filter(lambda t: len(t.orders) == 0):
+            return
+        await self.worker_builder.build_worker()
+        self.set_next_action()
+
+    async def build_house(self) -> None:
+        if not self.can_afford(UnitTypeId.SUPPLYDEPOT):
+            return
+        await self.supply_builder.build_supply()
+        self.set_next_action()
+
+    async def on_building_construction_complete(self, unit: Unit) -> None:
+        if unit.type_id == UnitTypeId.COMMANDCENTER:
+            self.worker_manager.th_data.update({unit.tag: TownhallData()})
+        if unit.type_id == UnitTypeId.REFINERY:
+            self.worker_manager.gas_data.update({unit.tag: GasBuildingData()})
+        if unit.type_id == UnitTypeId.SUPPLYDEPOT:
+            unit(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
+        building_worker = self.workers.closest_to(unit)
+        self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
+
+    async def on_end(self, game_result: Result):
+        self.mcts.stop_search()
+        end_state = translate_state(self)
+        save_result(self, end_state, self.time)
 
     def get_best_action(self) -> None:
         print(self.mcts.get_number_of_rollouts())
@@ -227,16 +244,6 @@ class MyBot(BotAI):
         if action is not Action.none:
             print(action)
 
-    async def on_building_construction_complete(self, unit: Unit) -> None:
-        if unit.type_id == UnitTypeId.COMMANDCENTER:
-            self.worker_manager.th_data.update({unit.tag: TownhallData()})
-        if unit.type_id == UnitTypeId.REFINERY:
-            self.worker_manager.gas_data.update({unit.tag: GasBuildingData()})
-        if unit.type_id == UnitTypeId.SUPPLYDEPOT:
-            unit(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
-        building_worker = self.workers.closest_to(unit)
-        self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
-
     # Update the busy workers for the state translator
     def update_busy_workers(self) -> None:
         workers_to_remove = []
@@ -252,50 +259,6 @@ class MyBot(BotAI):
         self.worker_manager.distribute_workers()
         self.worker_manager.speed_mine()
 
-    def build_base(self, position: Point2):
-        if position:
-            worker = self.worker_manager.select_worker(position, WorkerRole.BUILD)
-            worker.build(UnitTypeId.COMMANDCENTER, position)
-            self.busy_workers.update({worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
-
-    async def on_end(self, game_result: Result):
-        self.mcts.stop_search()
-        end_state = translate_state(self)
-        save_result(self, end_state, self.time)
-
-    async def get_next_expansion(self) -> Optional[Point2]:
-        """Find next expansion location."""
-
-        closest = None
-        distance = math.inf
-        for el in self.el_list:
-
-            def is_near_to_expansion(t: Point2):
-                return t.distance_to(el) < self.EXPANSION_GAP_THRESHOLD
-
-
-
-            if (
-                any(map(is_near_to_expansion, self.townhalls))
-            ):
-                # already taken
-                continue
-
-
-
-            startp = self.game_info.player_start_location
-            d = await self.client.query_pathing(startp, el)
-            if d is None:
-                continue
-
-            if d < distance:
-                distance = d
-                closest = el
-
-        if closest is None:
-            return closest
-        self.el_list.remove(closest)
-        return closest
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
