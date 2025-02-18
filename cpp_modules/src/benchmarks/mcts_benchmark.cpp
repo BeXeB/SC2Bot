@@ -542,7 +542,7 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.rolloutHeuristic = RolloutHeuristic::Random,
 	});
 	results.push_back(result);
-
+*/
 	// ------ Epsilon greedy --------
 	//--------- Weighted choice ----------
 	benchmarkIndex++;
@@ -557,7 +557,7 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.shouldPrintActions = true,
 	});
 	results.push_back(result);
-	*/
+
 
 	benchmarkIndex++;
 	result = benchmarkOnTime({

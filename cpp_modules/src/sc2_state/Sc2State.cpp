@@ -33,7 +33,7 @@ void Sc2::State::advanceConstructions() {
             ++constructionIter;
         }
         availableWorkers--;
-    } while ((constructionIter != _constructions.end()) && availableWorkers > 0);
+    } while ((constructionIter != _constructions.end()) && (availableWorkers > 0));
 }
 
 void Sc2::State::advanceResources() {
@@ -180,7 +180,7 @@ std::vector<Action> Sc2::State::getLegalActions() const {
         actions.emplace_back(Action::buildVespeneCollector);
     }
 
-    if (_barracksAmount > 0) {
+    if ((_barracksAmount > 0) && (getPopulationLimit() > (getPopulation() + getIncomingPopulation()))) {
         actions.emplace_back(Action::buildMarine);
     }
 
