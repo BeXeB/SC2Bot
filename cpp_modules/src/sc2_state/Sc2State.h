@@ -299,10 +299,7 @@ namespace Sc2 {
             _occupiedWorkerTimers = state._occupiedWorkerTimers;
 
             _enemyCombatUnits = state._enemyCombatUnits;
-
-            // std::uniform_int_distribution<unsigned int> dist;
-            // unsigned int seed = dist(state._rng);
-            // _rng = std::mt19937(seed);
+            
             _rng = state._rng;
         };
 
