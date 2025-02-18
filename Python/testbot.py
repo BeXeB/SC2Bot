@@ -32,6 +32,8 @@ class ActionSelection(Enum):
     MultiBestActionMin = 4
 
 # TODO: Handle losing bases and workers on their way to build
+# TODO: Worker manager might not handle bases and workers dying
+# TODO: Dont build bases at base locations with no minerals
 # TODO: Refactor the worker manager
 # TODO: Refactor StateTranslator
 # TODO: Save replay option
@@ -132,10 +134,10 @@ class MyBot(BotAI):
                 return
             self.base_worker = self.worker_manager.select_worker(self.new_base_location, WorkerRole.BUILD)
             self.base_worker.move(self.new_base_location)
-            self.el_list[self.new_base_location] = True
         if not self.can_afford(UnitTypeId.COMMANDCENTER):
             return
-        self.base_worker.build(UnitTypeId.COMMANDCENTER, self.new_base_location)
+        self.base_worker.build(UnitTypeId.COMMANDCENTER, self.new_base_location, queue=True)
+        self.el_list[self.new_base_location] = True
         self.busy_workers.update({self.base_worker.tag: self.CC_BUILD_TIME_SECONDS})
         self.new_base_location = None
         self.base_worker = None
@@ -172,6 +174,18 @@ class MyBot(BotAI):
             return
         await self.supply_builder.build_supply()
         self.set_next_action()
+
+    async def on_unit_destroyed(self, unit_tag: int) -> None:
+        # If it is a worker that had an order do something:
+        # I might be able to get this data from worker manager
+
+        def __is_near_to_expansion(t):
+            return t.distance_to(el) < self.EXPANSION_GAP_THRESHOLD
+        # Iterate through el and see if an occupied base is free
+        for el in self.el_list:
+            is_occupied = self.el_list[el]
+            if is_occupied and not any(map(__is_near_to_expansion, self.townhalls)):
+                self.el_list[el] = False
 
     async def on_building_construction_complete(self, unit: Unit) -> None:
         if unit.type_id == UnitTypeId.COMMANDCENTER:
@@ -210,7 +224,6 @@ class MyBot(BotAI):
         print(self.mcts.get_number_of_rollouts())
         action = self.mcts.get_best_action()
         self.mcts.perform_action(action)
-        # TODO: If its unable to search deep enough it stops working
         for i in range(self.future_action_queue.maxsize):
             a = self.mcts.get_best_action()
             self.future_action_queue.put(a)

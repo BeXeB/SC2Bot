@@ -3,7 +3,7 @@ from __future__ import annotations
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
 
-from Modules.worker_manager import WorkerRole
+from Python.Modules.worker_manager import WorkerRole
 
 
 class SupplyBuilder:
@@ -28,6 +28,6 @@ class SupplyBuilder:
                     if worker:
                         # self.bot.busy_workers.update({worker.tag: self.bot.SUPPLY_BUILD_TIME_STEPS + self.bot.SUPPLY_TRAVEL_TIME_STEPS})
                         self.bot.busy_workers.update({worker.tag: self.bot.SUPPLY_BUILD_TIME_SECONDS})
-                        worker.build(UnitTypeId.SUPPLYDEPOT, position)
+                        worker.build(UnitTypeId.SUPPLYDEPOT, position, queue=True)
                         self.possible_supply_positions.remove(position)
                         break

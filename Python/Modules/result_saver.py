@@ -5,14 +5,13 @@ from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 from sc2_mcts import *
-import math
 
 
 def save_result(bot: 'MyBot', final_state: State, game_time: float):
-    file = open('../result.csv', 'a')
+    file = open('../../result.csv', 'a')
     total_minerals_mined = bot.minerals - 50
     total_minerals_mined += len(bot.gas_buildings) * 75
     total_minerals_mined += (len(bot.workers) - 12) * 50

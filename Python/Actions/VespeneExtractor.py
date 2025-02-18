@@ -1,6 +1,6 @@
 from sc2.ids.unit_typeid import UnitTypeId
 
-from Modules.worker_manager import WorkerRole
+from Python.Modules.worker_manager import WorkerRole
 
 
 
@@ -27,7 +27,7 @@ class VespeneBuilder:
             # Build refinery if can_afford
             if self.bot.can_afford(UnitTypeId.REFINERY):
                 worker = self.bot.worker_manager.select_worker(geyser.position, WorkerRole.BUILD)
-                worker.build(UnitTypeId.REFINERY, geyser)
+                worker.build(UnitTypeId.REFINERY, geyser, queue=True)
                 # self.bot.busy_workers.update({worker.tag: self.bot.REFINERY_BUILD_TIME_STEPS + self.bot.REFINERY_TRAVEL_TIME_STEPS})
                 self.bot.busy_workers.update({worker.tag: self.bot.REFINERY_BUILD_TIME_SECONDS})
                 # Mark this geyser as processed

@@ -32,7 +32,7 @@ for _ in range(NUMBER_OF_GAMES):
     matches.append(match)
 
 # EXPERIMENTS
-file = open("result.csv", "w")
+file = open("../result.csv", "w")
 file.write("Mcts Seed,"
            "Mcts Rollout Time,"
            "Mcts Exploration,"

@@ -10,7 +10,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 MINING_RADIUS = 1.325
 
@@ -23,12 +23,14 @@ class WorkerRole(Enum):
 # TODO: move these to a centralized knowledge class
 class TownhallData:
     current_harvesters: int
+    position: Point2
 
     def __init__(self) -> None:
         self.current_harvesters = 0
 
 class GasBuildingData:
     current_harvesters: int
+    position: Point2
 
     def __init__(self) -> None:
         self.current_harvesters = 0
@@ -36,6 +38,7 @@ class GasBuildingData:
 class WorkerData:
     assigned_to_tag: Optional[int]
     role: WorkerRole
+    order_target: Optional[Point2]
 
     def __init__(self, role: WorkerRole) -> None:
         self.role = role
@@ -232,7 +235,7 @@ class WorkerManager:
 
         for worker in self.bot.workers:
             data: WorkerData = self.worker_data[worker.tag]
-            additional_weight: float = 2 if worker.is_carrying_resource else 99 if worker.is_constructing_scv else 1
+            additional_weight: float = 2 if worker.is_carrying_resource else 99 if worker.is_constructing_scv or len(worker.orders) > 0 else 1
             weighted_distance: float = worker.distance_to(location) * role_weights[data.role] * additional_weight
             if weighted_distance < closest_distance:
                 closest_worker = worker

@@ -6,7 +6,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 from typing import List, Optional
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 from sc2.unit import Unit
 from sc2.units import Units

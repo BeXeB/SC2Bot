@@ -2,7 +2,7 @@
 import typing
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 import math
 
