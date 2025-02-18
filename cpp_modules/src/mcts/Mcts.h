@@ -101,16 +101,22 @@ namespace Sc2::Mcts {
 
 		void updateRootState(const int minerals,
 		                     const int vespene,
-		                     const int population,
-		                     const int incomingPopulation,
+		                     const int workerPopulation,
+		                     const int marinePopulation,
+		                     const int incomingWorkers,
+		                     const int incomingMarines,
 		                     const int populationLimit,
 		                     const std::vector<Base> &bases,
+		                     const int barracksAmount,
 		                     std::list<Construction> &constructions,
 		                     const std::vector<int> &occupiedWorkerTimers,
 		                     const int currentTime,
-		                     const int endTime) {
-			const auto state = State::StateBuilder(minerals, vespene, population, incomingPopulation, populationLimit,
-			                                       bases, constructions, occupiedWorkerTimers, currentTime, endTime);
+		                     const int endTime,
+		                     const int enemyCombatUnits) {
+			const auto state = State::StateBuilder(minerals, vespene, workerPopulation, marinePopulation,
+			                                       incomingWorkers, incomingMarines, populationLimit,
+			                                       bases, barracksAmount, constructions, occupiedWorkerTimers,
+			                                       currentTime, endTime, enemyCombatUnits);
 
 			updateRootState(state);
 		}
@@ -163,22 +169,22 @@ namespace Sc2::Mcts {
 		              const RolloutHeuristic rolloutHeuristic) : EXPLORATION(exploration),
 		                                                         _rolloutEndTime(rolloutEndTime),
 		                                                         _valueHeuristic(valueHeuristic),
-		                                                         _rolloutHeuristic(rolloutHeuristic),
-		                                                         _rootNode(std::make_shared<Node>(
-			                                                         Node(Action::none, nullptr,
-			                                                              State::DeepCopy(*rootState)))) {
+		                                                         _rolloutHeuristic(rolloutHeuristic) {
 			_rng = std::mt19937(seed);
+			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)));
 		}
 
-		explicit Mcts(const std::shared_ptr<State> &rootState): _rootNode(
-			std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)))) {
-			_rng = std::mt19937(std::random_device{}());
+		explicit Mcts(const std::shared_ptr<State> &rootState) {
+			const auto seed = std::random_device{}();
+			_rng = std::mt19937(seed);
+			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)));
 		}
 
 		Mcts() {
-			auto rootState = std::make_shared<State>(_rolloutEndTime);
+			const auto seed = std::random_device{}();
+			auto rootState = std::make_shared<State>(_rolloutEndTime, seed);
+			_rng = std::mt19937(seed);
 			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
-			_rng = std::mt19937(std::random_device{}());
 		}
 	};
 
