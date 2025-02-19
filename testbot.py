@@ -64,6 +64,7 @@ class MyBot(BotAI):
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):
+        # TODO: Have these in a dict instead of separate fields
         self.CC_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND)
         self.CC_TRAVEL_TIME_SECONDS: int = 5
         self.REFINERY_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND)
@@ -71,6 +72,8 @@ class MyBot(BotAI):
         self.WORKER_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.SCV.value]._proto.build_time / STEPS_PER_SECOND)
         self.SUPPLY_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.SUPPLYDEPOT.value]._proto.build_time / STEPS_PER_SECOND)
         self.SUPPLY_TRAVEL_TIME_SECONDS: int = 2
+        self.BARRACKS_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.BARRACKS.value]._proto.build_time / STEPS_PER_SECOND)
+        self.MARINE_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.MARINE.value]._proto.build_time / STEPS_PER_SECOND)
         self.base_builder = BaseBuilder(self)
         self.vespene_builder = VespeneBuilder(self)
         self.supply_builder = SupplyBuilder(self)

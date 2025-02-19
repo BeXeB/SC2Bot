@@ -1,4 +1,8 @@
 from __future__ import annotations
+import typing
+
+if typing.TYPE_CHECKING:
+    from testbot import MyBot
 
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
@@ -29,5 +33,6 @@ class SupplyBuilder:
                         # self.bot.busy_workers.update({worker.tag: self.bot.SUPPLY_BUILD_TIME_STEPS + self.bot.SUPPLY_TRAVEL_TIME_STEPS})
                         self.bot.busy_workers.update({worker.tag: self.bot.SUPPLY_BUILD_TIME_SECONDS + self.bot.SUPPLY_TRAVEL_TIME_SECONDS})
                         worker.build(UnitTypeId.SUPPLYDEPOT, position)
+                        # TODO: Change this so it becomes available if its destroyed
                         self.possible_supply_positions.remove(position)
                         break
