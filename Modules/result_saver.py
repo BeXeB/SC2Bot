@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing
+import os.path
 
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
@@ -12,7 +13,7 @@ import math
 
 
 def save_result(bot: 'MyBot', final_state: State, game_time: float):
-    file = open('../result.csv', 'a')
+    file = open(os.path.join(os.path.dirname(__file__), os.pardir, 'result.csv'), 'a')
     total_minerals_mined = bot.minerals - 50
     total_minerals_mined += len(bot.gas_buildings) * 75
     total_minerals_mined += (len(bot.workers) - 12) * 50
