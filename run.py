@@ -1,16 +1,17 @@
 from typing import List
 
 from sc2.player import Bot, Computer, Human
-from sc2.data import Difficulty, Race
+from sc2.data import Difficulty, Race, AIBuild
 from sc2.main import run_multiple_games, GameMatch
 from sc2 import maps
 from testbot import MyBot, PeacefulBot, ActionSelection
 from sc2_mcts import ValueHeuristic, RolloutHeuristic
 
-NUMBER_OF_GAMES: int = 5
+NUMBER_OF_GAMES: int = 1
 GAME_LENGTH: int = 480
 matches: List[GameMatch] = []
-
+# Bot(Race.Terran, PeacefulBot())]
+# Computer(Race.Terran, Difficulty.Medium, AIBuild.Rush)]
 match = GameMatch(
         maps.get("KingsCoveLE"),
         [Bot(Race.Terran, MyBot(
@@ -22,11 +23,11 @@ match = GameMatch(
             action_selection=ActionSelection.MultiBestActionMin,
             future_action_queue_length=2,
             fixed_search_rollouts=5000
-        )), Bot(Race.Zerg, PeacefulBot())],
+        )), Bot(Race.Terran, PeacefulBot())],
         realtime=False,
         random_seed=0,
         disable_fog=True,
-        game_time_limit=GAME_LENGTH,
+        # game_time_limit=GAME_LENGTH,
     )
 for _ in range(NUMBER_OF_GAMES):
     matches.append(match)

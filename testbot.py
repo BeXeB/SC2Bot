@@ -120,7 +120,7 @@ class MyBot(BotAI):
                 self.busy_workers.update({self.base_worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
                 self.new_base_location = None
                 self.base_worker = None
-                self.actions_taken.update({iteration: Action.build_worker})
+                self.actions_taken.update({iteration: Action.build_base})
                 self.set_next_action()
                 # if not self.can_afford(UnitTypeId.COMMANDCENTER):
                 #     return
@@ -164,6 +164,18 @@ class MyBot(BotAI):
                     return
                 await self.supply_builder.build_supply()
                 self.actions_taken.update({iteration: Action.build_house})
+                self.set_next_action()
+            case Action.build_barracks:
+                if not self.can_afford(UnitTypeId.BARRACKS):
+                    return
+                await self.barracks_builder.build_barracks()
+                self.actions_taken.update({iteration: Action.build_barracks})
+                self.set_next_action()
+            case Action.build_marine:
+                if not self.can_afford(UnitTypeId.MARINE):
+                    return
+                await self.marine_builder.build_marine()
+                self.actions_taken.update({iteration: Action.build_marine})
                 self.set_next_action()
             case Action.none:
                 try:
@@ -283,6 +295,7 @@ class MyBot(BotAI):
         self.mcts.stop_search()
         end_state = translate_state(self)
         save_result(self, end_state, self.time)
+        self.future_action_queue.queue.clear()
 
     async def get_next_expansion(self) -> Optional[Point2]:
         """Find next expansion location."""
@@ -320,4 +333,10 @@ class MyBot(BotAI):
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
-        pass
+        if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_left < 5:
+            await self.build(UnitTypeId.SUPPLYDEPOT, near=self.townhalls.random)
+        if self.can_afford(UnitTypeId.BARRACKS) and self.structures(UnitTypeId.BARRACKS).amount < 3:
+            await self.build(UnitTypeId.BARRACKS, near=self.townhalls.random)
+        if self.can_afford(UnitTypeId.MARINE):
+            self.train(UnitTypeId.MARINE)
+        await self.distribute_workers()
