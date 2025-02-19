@@ -38,7 +38,9 @@ namespace pymodule {
 				.def("get_incoming_population", &Sc2::State::getIncomingPopulation)
 				.def("get_population_limit", &Sc2::State::getPopulationLimit)
 				.def("get_population", &Sc2::State::getPopulation)
+				.def("get_worker_population", &Sc2::State::getWorkerPopulation)
 		        .def("get_marine_population", &Sc2::State::getMarinePopulation)
+				.def("get_incoming_workers", &Sc2::State::getIncomingWorkers)
 				.def("get_incoming_marines", &Sc2::State::getIncomingMarines)
 				.def("get_enemy_units", &Sc2::State::getEnemyCombatUnits)
 				.def("get_occupied_population", &Sc2::State::getOccupiedPopulation)
@@ -107,25 +109,6 @@ namespace pymodule {
 			const std::shared_ptr<Sc2::State>& state
 			)>(&Sc2::Mcts::Mcts::updateRootState),
 			py::arg("state"))
-		// .def("update_root_state", static_cast<void (Sc2::Mcts::Mcts::*)(
-		// 					 const int minerals,
-		// 					 const int vespene,
-		// 					 const int population,
-		// 					 const int incomingPopulation,
-		// 					 const int populationLimit,
-		// 					 const std::vector<Sc2::Base> &bases,
-		// 					 std::list<Sc2::Construction> &constructions,
-		// 					 const std::vector<int> &occupiedWorkerTimers
-		// 					 )>(&Sc2::Mcts::Mcts::updateRootState),
-		// 					 py::arg("minerals"),
-		// 					 py::arg("vespene"),
-		// 					 py::arg("population"),
-		// 					 py::arg("incoming_population"),
-		// 					 py::arg("population_limit"),
-		// 					 py::arg("bases"),
-		// 					 py::arg("constructions"),
-		// 					 py::arg("occupiedWorkerTimers")
-		// 					 )
 		.def("get_root_state", &Sc2::Mcts::Mcts::getRootState)
 		.def("get_root_node", &Sc2::Mcts::Mcts::getRootNode)
 		.def("to_string", &Sc2::Mcts::Mcts::toString)
