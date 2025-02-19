@@ -4,7 +4,10 @@ from enum import Enum
 from typing import Optional
 
 from sc2.data import Result
-from sc2.position import Point2
+from sc2.position import Point2, Point3
+
+from Actions.build_baracks import BarracksBuilder
+from Actions.build_marine import MarineBuilder
 from sc2_mcts import *
 
 from sc2.bot_ai import BotAI
@@ -60,7 +63,7 @@ class MyBot(BotAI):
         self.actions_taken: dict[int, Action] = {}
         self.action_selection = action_selection
         self.fixed_search_rollouts = fixed_search_rollouts
-        self.next_action: Action = Action.none
+        self.next_action: Action = Action.build_house
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):
@@ -74,11 +77,13 @@ class MyBot(BotAI):
         self.SUPPLY_TRAVEL_TIME_SECONDS: int = 2
         self.BARRACKS_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.BARRACKS.value]._proto.build_time / STEPS_PER_SECOND)
         self.MARINE_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.MARINE.value]._proto.build_time / STEPS_PER_SECOND)
+        self.worker_manager = WorkerManager(self)
         self.base_builder = BaseBuilder(self)
         self.vespene_builder = VespeneBuilder(self)
         self.supply_builder = SupplyBuilder(self)
-        self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
+        self.barracks_builder = BarracksBuilder(self)
+        self.marine_builder = MarineBuilder(self)
         self.el_list = self.expansion_locations_list
         if self.action_selection is ActionSelection.MultiBestActionFixed or self.action_selection is ActionSelection.BestActionFixed:
             self.mcts.start_search_rollout(self.fixed_search_rollouts)
@@ -91,6 +96,8 @@ class MyBot(BotAI):
                 worker(AbilityId.STOP_STOP)
             for townhall in self.townhalls:
                 townhall(AbilityId.RALLY_WORKERS, self.start_location)
+
+        await self.draw_debug()
 
         self.update_busy_workers()
         self.manage_workers()
@@ -173,6 +180,17 @@ class MyBot(BotAI):
                             self.get_multi_best_action_min()
                 except:
                     return
+
+    async def draw_debug(self):
+        blocs = self.barracks_builder.build_locations
+        for bloc in blocs:
+            height = self.get_terrain_z_height(bloc) + 0.1
+            self.client.debug_sphere_out(Point3((bloc.x, bloc.y, height)), 1.5, (255, 0, 0))
+
+        slocs = self.supply_builder.possible_supply_positions
+        for sloc in slocs:
+            height = self.get_terrain_z_height(sloc) + 0.1
+            self.client.debug_sphere_out(Point3((sloc.x, sloc.y, height)), 1, (0, 255, 0))
 
     def get_best_action(self) -> None:
         print(self.mcts.get_number_of_rollouts())

@@ -1,5 +1,8 @@
 from __future__ import annotations
+
+import math
 import typing
+from typing import List
 
 if typing.TYPE_CHECKING:
     from testbot import MyBot
@@ -14,13 +17,17 @@ class SupplyBuilder:
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
         left_or_right = -1 if self.bot.start_location.x > self.bot.game_info.map_size.x/2 else 1
-        start_location = self.bot.start_location
-        first_supply_position = Point2((start_location.x + 2  * left_or_right, start_location.y - 6))
-        self.possible_supply_positions = []
-        for i in range(1, 6):
-            for j in range(1, 6):
+        start_location: Point2 = self.bot.start_location
+        start_location = (
+            Point2((math.floor(start_location.x), math.floor(start_location.y)))) \
+            if left_or_right == 1 else (
+            Point2((math.ceil(start_location.x), math.ceil(start_location.y))))
+        first_supply_position: Point2 = Point2((start_location.x - 9 * left_or_right, start_location.y - 5 * left_or_right))
+        self.possible_supply_positions: List[Point2] = []
+        for i in range(5):
+            for j in range(5):
                 self.possible_supply_positions.append(
-                    Point2((first_supply_position.x + i * 2 * left_or_right, first_supply_position.y + j * 2))
+                    Point2((first_supply_position.x + i * 2 * left_or_right, first_supply_position.y - j * 2 * left_or_right))
                 )
 
     async def build_supply(self):
