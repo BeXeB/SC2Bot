@@ -29,6 +29,7 @@ def state_builder(minerals: int,
                   current_time: int,
                   end_time: int,
                   enemy_combat_units: int,
+                  has_house: bool,
                   max_bases: int) -> State : ...
 
 class State:
