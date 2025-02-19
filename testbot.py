@@ -63,7 +63,7 @@ class MyBot(BotAI):
         self.actions_taken: dict[int, Action] = {}
         self.action_selection = action_selection
         self.fixed_search_rollouts = fixed_search_rollouts
-        self.next_action: Action = Action.build_house
+        self.next_action: Action = Action.none
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):

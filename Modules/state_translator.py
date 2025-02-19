@@ -106,6 +106,7 @@ def translate_state(bot: 'MyBot') -> State:
         end_time = bot.time_limit,
         # TODO: This assumes the enemy is terran
         enemy_combat_units=bot.enemy_units.filter(lambda u: u.type_id != UnitTypeId.SCV).amount,
-        max_bases = 17
+        max_bases = 17,
+        has_house = bot.structures(UnitTypeId.SUPPLYDEPOT).filter(lambda s: s.build_progress >= 1).amount > 0
     )
     return state
