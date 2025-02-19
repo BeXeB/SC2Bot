@@ -10,17 +10,21 @@ namespace pymodule {
 	PYBIND11_MODULE(sc2_mcts, module) { 
 		module.doc() = "sc2_mcts";
 
-		module.def("state_builder", &Sc2::State::StateBuilder, "State builder",
+		module.def("state_builder", &Sc2::State::StateBuilder, "A function that builds a State",
 						 py::arg("minerals"),
 						 py::arg("vespene"),
-						 py::arg("population"),
-						 py::arg("incoming_population"),
+						 py::arg("worker_population"),
+						 py::arg("marine_population"),
+						 py::arg("incoming_workers"),
+						 py::arg("incoming_marines"),
 						 py::arg("population_limit"),
 						 py::arg("bases"),
+						 py::arg("barracks_amount"),
 						 py::arg("constructions"),
 						 py::arg("occupied_worker_timers"),
 						 py::arg("current_time"),
 						 py::arg("end_time"),
+						 py::arg("enemy_combat_units"),
 						 py::arg("max_bases"));
 
 		py::class_<Sc2::State, std::shared_ptr<Sc2::State> >(module, "State") 
