@@ -26,6 +26,7 @@ namespace pymodule {
 						 py::arg("current_time"),
 						 py::arg("end_time"),
 						 py::arg("enemy_combat_units"),
+						 py::arg("has_house"),
 						 py::arg("max_bases"));
 
 		py::class_<Sc2::State, std::shared_ptr<Sc2::State> >(module, "State") 

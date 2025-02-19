@@ -91,7 +91,7 @@ int Sc2::State::getVespeneGeysersAmount() {
 }
 
 int Sc2::State::getMineralWorkers() const {
-    if(_workerPopulation <= _occupiedWorkerTimers.size()){
+    if (_workerPopulation <= _occupiedWorkerTimers.size()) {
         return 0;
     }
     int availablePopulation = _workerPopulation - static_cast<int>(_occupiedWorkerTimers.size());
@@ -107,7 +107,7 @@ int Sc2::State::getMineralWorkers() const {
 }
 
 int Sc2::State::getVespeneWorkers() const {
-    if(_workerPopulation <= _occupiedWorkerTimers.size()){
+    if (_workerPopulation <= _occupiedWorkerTimers.size()) {
         return 0;
     }
     const int availablePopulation = _workerPopulation - static_cast<int>(_occupiedWorkerTimers.size());
@@ -184,7 +184,7 @@ std::vector<Action> Sc2::State::getLegalActions() const {
         actions.emplace_back(Action::buildMarine);
     }
 
-    if (hasWorkers) {
+    if (hasWorkers && _hasHouse) {
         actions.emplace_back(Action::buildBarracks);
     }
 

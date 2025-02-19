@@ -112,12 +112,14 @@ namespace Sc2::Mcts {
 		                     const std::vector<int> &occupiedWorkerTimers,
 		                     const int currentTime,
 		                     const int endTime,
-		                     const int enemyCombatUnits) {
+		                     const int enemyCombatUnits,
+		                     bool hasHouse) {
 			std::uniform_int_distribution<unsigned int> dist;
 			const auto state = State::SeededStateBuilder(minerals, vespene, workerPopulation, marinePopulation,
 			                                             incomingWorkers, incomingMarines, populationLimit,
 			                                             bases, barracksAmount, constructions, occupiedWorkerTimers,
-			                                             currentTime, endTime, enemyCombatUnits, dist(_rng), 12);
+			                                             currentTime, endTime, enemyCombatUnits, dist(_rng), hasHouse,
+			                                             12);
 
 			updateRootState(state);
 		}
