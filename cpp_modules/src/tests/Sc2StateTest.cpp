@@ -230,11 +230,12 @@ TEST_SUITE("Test the Sc2State") {
 		state1->buildWorker();
 		state1->buildBase();
 		state1->buildVespeneCollector();
+		state1->buildWorker();
 
 		const auto state2 = Sc2::State::DeepCopy(*state1);
 		state1->id = 0;
 		state2->id = 1;
-		state1->wait(100);
+		state1->wait(500);
 		SUBCASE("Check that state 1 is different from state2") {
 			CHECK(state1->getPopulationLimit() != state2->getPopulationLimit());
 			CHECK(state1->getOccupiedPopulation() != state2->getOccupiedPopulation());
@@ -245,7 +246,7 @@ TEST_SUITE("Test the Sc2State") {
 			CHECK(state1->getBases().size() != state2->getBases().size());
 			CHECK(state1->getVespeneWorkers() != state2->getVespeneWorkers());
 		}
-		state2->wait(100);
+		state2->wait(500);
 		SUBCASE("Check that if the same actions are taken they will become identical") {
 			CHECK(state1->getPopulationLimit() == state2->getPopulationLimit());
 			CHECK(state1->getOccupiedPopulation() == state2->getOccupiedPopulation());
@@ -255,6 +256,116 @@ TEST_SUITE("Test the Sc2State") {
 			CHECK(state1->getIncomingPopulation() == state2->getIncomingPopulation());
 			CHECK(state1->getBases().size() == state2->getBases().size());
 			CHECK(state1->getVespeneWorkers() == state2->getVespeneWorkers());
+		}
+	}
+
+	TEST_CASE("The state can build barracks and marines") {
+		const auto state = std::make_shared<Sc2::State>();
+
+		auto initialPopulation = state->getPopulation();
+
+		SUBCASE("Cannot build marine without a barracks") {
+			state->wait(500);
+			state->buildMarine();
+			state->wait(500);
+			CHECK(state->getPopulation() == initialPopulation);
+		}
+
+		SUBCASE("Can build a Barracks and a marine") {
+			state->buildBarracks();
+			state->wait(100);
+			state->buildMarine();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation + 1);
+		}
+
+		SUBCASE("Can build a Barracks and a marine") {
+			state->buildBarracks();
+			state->wait(100);
+			state->buildMarine();
+			state->wait(500);
+			CHECK(state->getPopulation() == initialPopulation + 1);
+		}
+		SUBCASE("building a marine while the barracks are occupied will advance time until the barracks is available") {
+			state->buildBarracks();
+			state->wait(100);
+			state->buildMarine();
+			state->buildMarine();
+			CHECK(state->getPopulation() == initialPopulation + 1);
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation + 2);
+		}
+	}
+
+
+	TEST_CASE("Test that enemy units are correctly added") {
+		const auto state = std::make_shared<Sc2::State>();
+		CHECK(state->getEnemyCombatUnits() == 0);
+		state->addEnemyUnit();
+		state->addEnemyUnit();
+		state->addEnemyUnit();
+		CHECK(state->getEnemyCombatUnits() == 3);
+	}
+
+	TEST_CASE("Enemy units can properly attack player") {
+		const auto state = std::make_shared<Sc2::State>();
+
+		auto initialBases = state->getBases().size();
+		auto initialPopulationLimit = state->getPopulationLimit();
+		auto initialWorkers = state->getWorkerPopulation();
+
+		SUBCASE("If the player has no marines they will lose the fight and lose a base") {
+			state->addEnemyUnit();
+			state->addEnemyUnit();
+			state->addEnemyUnit();
+
+			state->attackPlayer();
+			CHECK(initialBases -1 == state->getBases().size());
+			CHECK(initialPopulationLimit - 15 == state->getPopulationLimit());
+			CHECK(initialWorkers - 3 == state->getWorkerPopulation());
+		}
+
+		SUBCASE("If the enemy has no troops they will lose the fight and the player will not lose a base") {
+			state->attackPlayer();
+			CHECK(initialBases == state->getBases().size());
+		}
+
+		SUBCASE("When the enemy attacks the player, they both lose units") {
+			state->buildBarracks();
+			state->wait(500);
+			for (int i = 0; i < 50; i++) {
+				state->buildMarine();
+				state->addEnemyUnit();
+			}
+			state->wait(500);
+
+			auto marines = state->getMarinePopulation();
+			auto enemies = state->getEnemyCombatUnits();
+
+			state->attackPlayer();
+
+			CHECK(marines > state->getMarinePopulation());
+			CHECK(enemies > state->getEnemyCombatUnits());
+		}
+
+		SUBCASE("If the player has no base, they will only lose workers") {
+			state->addEnemyUnit();
+			state->addEnemyUnit();
+			state->addEnemyUnit();
+
+			CHECK(state->getBases().size() == 1);
+			CHECK(initialWorkers == state->getWorkerPopulation());
+
+			state->attackPlayer();
+
+			CHECK(state->getBases().empty());
+			CHECK(initialWorkers - 3 == state->getWorkerPopulation());
+
+			state->attackPlayer();
+
+			CHECK(state->getBases().empty());
+			CHECK(initialWorkers - 6 != state->getWorkerPopulation());
+			CHECK(0 == state->getWorkerPopulation());
 		}
 	}
 }
