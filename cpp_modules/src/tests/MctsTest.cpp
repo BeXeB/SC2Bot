@@ -119,7 +119,7 @@ TEST_SUITE("Test MCTS") {
 
 			mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
 			                     incomingMarines, populationLimit, bases, barracksAmount,
-			                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits);
+			                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits, true);
 
 			auto rootState = mcts.getRootState();
 
@@ -169,7 +169,7 @@ TEST_SUITE("Test MCTS") {
 
 		mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers, incomingMarines,
 		                     populationLimit, bases, barracksAmount,
-		                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits);
+		                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits, true);
 
 		CHECK(mcts.getRootState()->getConstructions().size() == state->getConstructions().size());
 		CHECK(mcts.getRootState()->getConstructions().size() == 1);
