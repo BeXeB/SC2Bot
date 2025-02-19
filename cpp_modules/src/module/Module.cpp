@@ -10,17 +10,22 @@ namespace pymodule {
 	PYBIND11_MODULE(sc2_mcts, module) { 
 		module.doc() = "sc2_mcts";
 
-		module.def("state_builder", &Sc2::State::StateBuilder, "State builder",
+
+		module.def("state_builder", &Sc2::State::StateBuilder, "A function that builds a State",
 						 py::arg("minerals"),
 						 py::arg("vespene"),
-						 py::arg("population"),
-						 py::arg("incoming_population"),
+						 py::arg("worker_population"),
+						 py::arg("marine_population"),
+						 py::arg("incoming_workers"),
+						 py::arg("incoming_marines"),
 						 py::arg("population_limit"),
 						 py::arg("bases"),
+						 py::arg("barracks_amount"),
 						 py::arg("constructions"),
 						 py::arg("occupied_worker_timers"),
 						 py::arg("current_time"),
 						 py::arg("end_time"),
+						 py::arg("enemy_combat_units"),
 						 py::arg("max_bases"));
 
 		py::class_<Sc2::State, std::shared_ptr<Sc2::State> >(module, "State") 
@@ -33,6 +38,11 @@ namespace pymodule {
 				.def("get_incoming_population", &Sc2::State::getIncomingPopulation)
 				.def("get_population_limit", &Sc2::State::getPopulationLimit)
 				.def("get_population", &Sc2::State::getPopulation)
+				.def("get_worker_population", &Sc2::State::getWorkerPopulation)
+		        .def("get_marine_population", &Sc2::State::getMarinePopulation)
+				.def("get_incoming_workers", &Sc2::State::getIncomingWorkers)
+				.def("get_incoming_marines", &Sc2::State::getIncomingMarines)
+				.def("get_enemy_units", &Sc2::State::getEnemyCombatUnits)
 				.def("get_occupied_population", &Sc2::State::getOccupiedPopulation)
 				.def("mineral_gained_per_time_step", &Sc2::State::mineralGainedPerTimestep)
 				.def("vespene_gained_per_time_step", &Sc2::State::vespeneGainedPerTimestep)
@@ -40,6 +50,7 @@ namespace pymodule {
 				.def("get_vespene_workers", &Sc2::State::getVespeneWorkers)
 				.def("get_constructions", &Sc2::State::getConstructions)
 				.def("get_value", &Sc2::State::getValue)
+				.def("get_barracks_amount", &Sc2::State::getBarracksAmount)
 				.def_readwrite("id", &Sc2::State::id);
 
 		py::class_<Sc2::Base>(module, "Base")
@@ -59,7 +70,11 @@ namespace pymodule {
 		.value("build_worker", Action::buildWorker)
 		.value("build_base", Action::buildBase)
 		.value("build_vespene_collector", Action::buildVespeneCollector)
-		.value("build_house", Action::buildHouse);
+		.value("build_house", Action::buildHouse)
+		.value("build_marine", Action::buildMarine)
+		.value("build_barracks", Action::buildBarracks)
+		.value("attack_player", Action::attackPlayer)
+		.value("add_enemy_unit", Action::addEnemyUnit);
 
 		py::enum_<ValueHeuristic>(module, "ValueHeuristic")
 		.value("UCT", ValueHeuristic::UCT)
@@ -94,25 +109,6 @@ namespace pymodule {
 			const std::shared_ptr<Sc2::State>& state
 			)>(&Sc2::Mcts::Mcts::updateRootState),
 			py::arg("state"))
-		// .def("update_root_state", static_cast<void (Sc2::Mcts::Mcts::*)(
-		// 					 const int minerals,
-		// 					 const int vespene,
-		// 					 const int population,
-		// 					 const int incomingPopulation,
-		// 					 const int populationLimit,
-		// 					 const std::vector<Sc2::Base> &bases,
-		// 					 std::list<Sc2::Construction> &constructions,
-		// 					 const std::vector<int> &occupiedWorkerTimers
-		// 					 )>(&Sc2::Mcts::Mcts::updateRootState),
-		// 					 py::arg("minerals"),
-		// 					 py::arg("vespene"),
-		// 					 py::arg("population"),
-		// 					 py::arg("incoming_population"),
-		// 					 py::arg("population_limit"),
-		// 					 py::arg("bases"),
-		// 					 py::arg("constructions"),
-		// 					 py::arg("occupiedWorkerTimers")
-		// 					 )
 		.def("get_root_state", &Sc2::Mcts::Mcts::getRootState)
 		.def("get_root_node", &Sc2::Mcts::Mcts::getRootNode)
 		.def("to_string", &Sc2::Mcts::Mcts::toString)
