@@ -4,7 +4,10 @@ from enum import Enum
 from typing import Optional
 
 from sc2.data import Result
-from sc2.position import Point2
+from sc2.position import Point2, Point3
+
+from Actions.build_barracks import BarracksBuilder
+from Actions.build_marine import MarineBuilder
 from sc2_mcts import *
 
 from sc2.bot_ai import BotAI
@@ -64,18 +67,21 @@ class MyBot(BotAI):
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):
-        self.CC_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND)
-        self.CC_TRAVEL_TIME_SECONDS: int = 5
-        self.REFINERY_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND)
-        self.REFINERY_TRAVEL_TIME_SECONDS: int = 1
-        self.WORKER_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.SCV.value]._proto.build_time / STEPS_PER_SECOND)
-        self.SUPPLY_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.SUPPLYDEPOT.value]._proto.build_time / STEPS_PER_SECOND)
-        self.SUPPLY_TRAVEL_TIME_SECONDS: int = 2
+        self.build_times: dict[UnitTypeId, int] = {
+            UnitTypeId.COMMANDCENTER: math.ceil(self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.REFINERY: math.ceil(self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.SCV: math.ceil(self.game_data.units[UnitTypeId.SCV.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.SUPPLYDEPOT: math.ceil(self.game_data.units[UnitTypeId.SUPPLYDEPOT.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.BARRACKS: math.ceil(self.game_data.units[UnitTypeId.BARRACKS.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.MARINE: math.ceil(self.game_data.units[UnitTypeId.MARINE.value]._proto.build_time / STEPS_PER_SECOND),
+        }
+        self.worker_manager = WorkerManager(self)
         self.base_builder = BaseBuilder(self)
         self.vespene_builder = VespeneBuilder(self)
         self.supply_builder = SupplyBuilder(self)
-        self.worker_manager = WorkerManager(self)
         self.worker_builder = WorkerBuilder(self)
+        self.barracks_builder = BarracksBuilder(self)
+        self.marine_builder = MarineBuilder(self)
         self.el_list = self.expansion_locations_list
         if self.action_selection is ActionSelection.MultiBestActionFixed or self.action_selection is ActionSelection.BestActionFixed:
             self.mcts.start_search_rollout(self.fixed_search_rollouts)
@@ -88,6 +94,8 @@ class MyBot(BotAI):
                 worker(AbilityId.STOP_STOP)
             for townhall in self.townhalls:
                 townhall(AbilityId.RALLY_WORKERS, self.start_location)
+
+        await self.draw_debug()
 
         self.update_busy_workers()
         self.manage_workers()
@@ -107,10 +115,10 @@ class MyBot(BotAI):
                 if not self.can_afford(UnitTypeId.COMMANDCENTER):
                     return
                 self.base_worker.build(UnitTypeId.COMMANDCENTER, self.new_base_location)
-                self.busy_workers.update({self.base_worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
+                self.busy_workers.update({self.base_worker.tag: self.build_times[UnitTypeId.COMMANDCENTER]})
                 self.new_base_location = None
                 self.base_worker = None
-                self.actions_taken.update({iteration: Action.build_worker})
+                self.actions_taken.update({iteration: Action.build_base})
                 self.set_next_action()
                 # if not self.can_afford(UnitTypeId.COMMANDCENTER):
                 #     return
@@ -155,6 +163,18 @@ class MyBot(BotAI):
                 await self.supply_builder.build_supply()
                 self.actions_taken.update({iteration: Action.build_house})
                 self.set_next_action()
+            case Action.build_barracks:
+                if not self.can_afford(UnitTypeId.BARRACKS):
+                    return
+                await self.barracks_builder.build_barracks()
+                self.actions_taken.update({iteration: Action.build_barracks})
+                self.set_next_action()
+            case Action.build_marine:
+                if not self.can_afford(UnitTypeId.MARINE):
+                    return
+                await self.marine_builder.build_marine()
+                self.actions_taken.update({iteration: Action.build_marine})
+                self.set_next_action()
             case Action.none:
                 try:
                     match self.action_selection:
@@ -170,6 +190,17 @@ class MyBot(BotAI):
                             self.get_multi_best_action_min()
                 except:
                     return
+
+    async def draw_debug(self):
+        blocs = self.barracks_builder.build_locations
+        for bloc in blocs:
+            height = self.get_terrain_z_height(bloc) + 0.1
+            self.client.debug_sphere_out(Point3((bloc.x, bloc.y, height)), 1.5, (255, 0, 0))
+
+        slocs = self.supply_builder.possible_supply_positions
+        for sloc in slocs:
+            height = self.get_terrain_z_height(sloc) + 0.1
+            self.client.debug_sphere_out(Point3((sloc.x, sloc.y, height)), 1, (0, 255, 0))
 
     def get_best_action(self) -> None:
         print(self.mcts.get_number_of_rollouts())
@@ -256,12 +287,13 @@ class MyBot(BotAI):
         if position:
             worker = self.worker_manager.select_worker(position, WorkerRole.BUILD)
             worker.build(UnitTypeId.COMMANDCENTER, position)
-            self.busy_workers.update({worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
+            self.busy_workers.update({worker.tag: self.build_times[UnitTypeId.COMMANDCENTER]})
 
     async def on_end(self, game_result: Result):
         self.mcts.stop_search()
         end_state = translate_state(self)
         save_result(self, end_state, self.time)
+        self.future_action_queue.queue.clear()
 
     async def get_next_expansion(self) -> Optional[Point2]:
         """Find next expansion location."""
@@ -299,4 +331,10 @@ class MyBot(BotAI):
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
-        pass
+        if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_left < 5:
+            await self.build(UnitTypeId.SUPPLYDEPOT, near=self.townhalls.random)
+        if self.can_afford(UnitTypeId.BARRACKS) and self.structures(UnitTypeId.BARRACKS).amount < 3:
+            await self.build(UnitTypeId.BARRACKS, near=self.townhalls.random)
+        if self.can_afford(UnitTypeId.MARINE):
+            self.train(UnitTypeId.MARINE)
+        await self.distribute_workers()

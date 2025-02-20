@@ -29,7 +29,7 @@ class VespeneBuilder:
                 worker = self.bot.worker_manager.select_worker(geyser.position, WorkerRole.BUILD)
                 worker.build(UnitTypeId.REFINERY, geyser)
                 # self.bot.busy_workers.update({worker.tag: self.bot.REFINERY_BUILD_TIME_STEPS + self.bot.REFINERY_TRAVEL_TIME_STEPS})
-                self.bot.busy_workers.update({worker.tag: self.bot.REFINERY_BUILD_TIME_SECONDS + self.bot.REFINERY_TRAVEL_TIME_SECONDS})
+                self.bot.busy_workers.update({worker.tag: self.bot.build_times[UnitTypeId.REFINERY]})
                 # Mark this geyser as processed
                 self.processed_geysers.add(geyser.tag)
                 return
