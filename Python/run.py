@@ -1,7 +1,7 @@
 from typing import List
 
 from sc2.player import Bot, Computer, Human
-from sc2.data import Difficulty, Race
+from sc2.data import Difficulty, Race, AIBuild
 from sc2.main import run_multiple_games, GameMatch
 from sc2 import maps
 from testbot import MyBot, PeacefulBot, ActionSelection
@@ -22,11 +22,12 @@ match = GameMatch(
             action_selection=ActionSelection.MultiBestActionMin,
             future_action_queue_length=2,
             fixed_search_rollouts=5000
-        )), Bot(Race.Zerg, PeacefulBot())],
+        )), Bot(Race.Terran, PeacefulBot())],
         realtime=False,
         disable_fog=True,
         random_seed=0,
-        game_time_limit=GAME_LENGTH,
+        disable_fog=True,
+        # game_time_limit=GAME_LENGTH,
     )
 for _ in range(NUMBER_OF_GAMES):
     matches.append(match)

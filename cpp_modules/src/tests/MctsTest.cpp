@@ -39,20 +39,20 @@ TEST_SUITE("Test MCTS") {
 		SUBCASE("Can create and run an MCTS, by giving it a root state") {
 			const auto state = std::make_shared<Sc2::State>();
 
-			auto mcts = Mcts(state);
+			auto mcts = std::make_unique<Mcts>(state);
 
-			mcts.search(1000);
+			mcts->searchRollout(1000);
 
-			const auto bestMove = mcts.getBestAction();
+			const auto bestMove = mcts->getBestAction();
 
 			CHECK(bestMove != Action::none);
 		}
 		SUBCASE("Can create and run an MCTS with a default constructor") {
-			auto mcts = Mcts();
+			auto mcts = std::make_unique<Mcts>();
 
-			mcts.search(1000);
+			mcts->searchRollout(1000);
 
-			const auto bestMove = mcts.getBestAction();
+			const auto bestMove = mcts->getBestAction();
 
 			CHECK(bestMove != Action::none);
 		}
@@ -106,15 +106,20 @@ TEST_SUITE("Test MCTS") {
 
 			auto minerals = updatedState->getMinerals();
 			auto vespene = updatedState->getVespene();
-			auto incomingPopulation = updatedState->getIncomingPopulation();
-			auto population = updatedState->getPopulation();
+			auto workerPopulation = updatedState->getWorkerPopulation();
+			auto marinePopulation = updatedState->getMarinePopulation();
+			auto incomingWorkers = updatedState->getIncomingWorkers();
+			auto incomingMarines = updatedState->getIncomingMarines();
 			auto populationLimit = updatedState->getPopulationLimit();
 			auto occupiedWorkerTimers = updatedState->getOccupiedWorkerTimers();
 			auto bases = updatedState->getBases();
+			auto barracksAmount = updatedState->getBarracksAmount();
 			auto constructions = updatedState->getConstructions();
+			auto enemyCombatUnits = updatedState->getEnemyCombatUnits();
 
-			mcts.updateRootState(minerals, vespene, population, incomingPopulation, populationLimit, bases,
-			                     constructions, occupiedWorkerTimers, 0, 1000);
+			mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
+			                     incomingMarines, populationLimit, bases, barracksAmount,
+			                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits, true);
 
 			auto rootState = mcts.getRootState();
 
@@ -147,18 +152,24 @@ TEST_SUITE("Test MCTS") {
 
 		auto minerals = state->getMinerals();
 		auto vespene = state->getVespene();
-		auto incomingPopulation = state->getIncomingPopulation();
-		auto population = state->getPopulation();
+		// auto incomingPopulation = state->getIncomingPopulation();
+		auto incomingWorkers = state->getIncomingWorkers();
+		auto incomingMarines = state->getIncomingMarines();
+		auto workerPopulation = state->getWorkerPopulation();
+		auto marinePopulation = state->getMarinePopulation();
 		auto populationLimit = state->getPopulationLimit();
 		auto occupiedWorkerTimers = state->getOccupiedWorkerTimers();
 		auto bases = state->getBases();
+		auto barracksAmount = state->getBarracksAmount();
+		auto enemyCombatUnits = state->getEnemyCombatUnits();
 
 		auto constructions = std::list<Sc2::Construction>();
 		constructions.emplace_back(state->getBuildWorkerCost().buildTime - 1, Action::buildWorker);
 
 
-		mcts.updateRootState(minerals, vespene, population, incomingPopulation, populationLimit, bases,
-		                     constructions, occupiedWorkerTimers, 0, 1000);
+		mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers, incomingMarines,
+		                     populationLimit, bases, barracksAmount,
+		                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits, true);
 
 		CHECK(mcts.getRootState()->getConstructions().size() == state->getConstructions().size());
 		CHECK(mcts.getRootState()->getConstructions().size() == 1);
@@ -180,11 +191,11 @@ TEST_SUITE("Test MCTS") {
 	TEST_CASE("Select Node will select a node that has not been fully explored") {
 		const auto state = std::make_shared<Sc2::State>();
 
-		auto mcts = Mcts(state);
+		auto mcts = std::make_unique<Mcts>(state);
 
-		mcts.search(1000);
+		mcts->searchRollout(1000);
 
-		auto node = mcts.selectNode();
+		auto node = mcts->selectNode();
 
 		CHECK(node->N == 0);
 		CHECK(node->children.size() == 0);
@@ -199,17 +210,17 @@ TEST_SUITE("Test MCTS") {
 		SUBCASE(
 			"Will expand to all actions, when there is available vespene geysers,"
 			" and the population limit has not been reached") {
-			mcts.search(1000);
+			mcts.searchRollout(1000);
 
 			auto node = mcts.selectNode();
 
 			auto state = node->getState();
 
-			state->wait(500);
+			auto numberOfLegalActions = state->getLegalActions().size();
 
 			node->expand();
 
-			CHECK(node->children.size() == 4);
+			CHECK(node->children.size() == numberOfLegalActions);
 		}
 
 		SUBCASE("expand will not include build worker when the population limit is reached") {
@@ -226,7 +237,7 @@ TEST_SUITE("Test MCTS") {
 			for (const auto action: node->children | std::views::keys) {
 				CHECK(action != Action::buildWorker);
 			}
-			CHECK(node->children.size() == 3);
+			CHECK(node->children.size() == state->getLegalActions().size());
 		}
 		SUBCASE("expand will not include build vespene collector when there is no available geysers") {
 			auto node = mcts.selectNode();
@@ -247,7 +258,7 @@ TEST_SUITE("Test MCTS") {
 			for (const auto action: node->children | std::views::keys) {
 				CHECK(action != Action::buildVespeneCollector);
 			}
-			CHECK(node->children.size() == 3);
+			CHECK(node->children.size() == state->getLegalActions().size());
 		}
 	}
 
