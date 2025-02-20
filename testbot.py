@@ -6,7 +6,7 @@ from typing import Optional
 from sc2.data import Result
 from sc2.position import Point2, Point3
 
-from Actions.build_baracks import BarracksBuilder
+from Actions.build_barracks import BarracksBuilder
 from Actions.build_marine import MarineBuilder
 from sc2_mcts import *
 
@@ -67,16 +67,14 @@ class MyBot(BotAI):
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):
-        # TODO: Have these in a dict instead of separate fields
-        self.CC_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND)
-        self.CC_TRAVEL_TIME_SECONDS: int = 5
-        self.REFINERY_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND)
-        self.REFINERY_TRAVEL_TIME_SECONDS: int = 1
-        self.WORKER_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.SCV.value]._proto.build_time / STEPS_PER_SECOND)
-        self.SUPPLY_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.SUPPLYDEPOT.value]._proto.build_time / STEPS_PER_SECOND)
-        self.SUPPLY_TRAVEL_TIME_SECONDS: int = 2
-        self.BARRACKS_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.BARRACKS.value]._proto.build_time / STEPS_PER_SECOND)
-        self.MARINE_BUILD_TIME_SECONDS: int = math.ceil(self.game_data.units[UnitTypeId.MARINE.value]._proto.build_time / STEPS_PER_SECOND)
+        self.build_times: dict[UnitTypeId, int] = {
+            UnitTypeId.COMMANDCENTER: math.ceil(self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.REFINERY: math.ceil(self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.SCV: math.ceil(self.game_data.units[UnitTypeId.SCV.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.SUPPLYDEPOT: math.ceil(self.game_data.units[UnitTypeId.SUPPLYDEPOT.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.BARRACKS: math.ceil(self.game_data.units[UnitTypeId.BARRACKS.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.MARINE: math.ceil(self.game_data.units[UnitTypeId.MARINE.value]._proto.build_time / STEPS_PER_SECOND),
+        }
         self.worker_manager = WorkerManager(self)
         self.base_builder = BaseBuilder(self)
         self.vespene_builder = VespeneBuilder(self)
@@ -117,7 +115,7 @@ class MyBot(BotAI):
                 if not self.can_afford(UnitTypeId.COMMANDCENTER):
                     return
                 self.base_worker.build(UnitTypeId.COMMANDCENTER, self.new_base_location)
-                self.busy_workers.update({self.base_worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
+                self.busy_workers.update({self.base_worker.tag: self.build_times[UnitTypeId.COMMANDCENTER]})
                 self.new_base_location = None
                 self.base_worker = None
                 self.actions_taken.update({iteration: Action.build_base})
@@ -289,7 +287,7 @@ class MyBot(BotAI):
         if position:
             worker = self.worker_manager.select_worker(position, WorkerRole.BUILD)
             worker.build(UnitTypeId.COMMANDCENTER, position)
-            self.busy_workers.update({worker.tag: self.CC_BUILD_TIME_SECONDS + self.CC_TRAVEL_TIME_SECONDS})
+            self.busy_workers.update({worker.tag: self.build_times[UnitTypeId.COMMANDCENTER]})
 
     async def on_end(self, game_result: Result):
         self.mcts.stop_search()

@@ -41,8 +41,8 @@ class BarracksBuilder:
                 continue
             worker = self.bot.worker_manager.select_worker(build_location, WorkerRole.BUILD)
             if not worker:
-                continue
-            self.bot.busy_workers.update({worker.tag: self.bot.BARRACKS_BUILD_TIME_SECONDS})
+                break
+            self.bot.busy_workers.update({worker.tag: self.bot.build_times[UnitTypeId.BARRACKS]})
             worker.build(UnitTypeId.BARRACKS, build_location)
             # TODO: Change this so it becomes available if its destroyed
             self.build_locations.remove(build_location)
