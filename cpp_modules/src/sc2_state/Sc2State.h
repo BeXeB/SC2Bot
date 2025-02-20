@@ -264,7 +264,7 @@ namespace Sc2 {
 
         State(const int minerals, const int vespene, const int workerPopulation, const int marinePopulation,
               const int incomingWorkers, const int incomingMarines, const int populationLimit, std::vector<Base> bases,
-              const int baracksAmount, std::vector<int> occupiedWorkerTimers, const int currentTime, const int endTime,
+              const int barracksAmount, std::vector<int> occupiedWorkerTimers, const int currentTime, const int endTime,
               const int enemyCombatUnits, unsigned int seed, bool hasHouse,
               const int maxBases = 17): _minerals(minerals),
                                         _vespene(vespene),
@@ -274,7 +274,7 @@ namespace Sc2 {
                                         _incomingMarines(incomingMarines),
                                         MAX_BASES(maxBases),
                                         _populationLimit(populationLimit),
-                                        _barracksAmount(baracksAmount),
+                                        _barracksAmount(barracksAmount),
                                         _bases(std::move(bases)),
                                         _constructions(std::list<Construction>()),
                                         _occupiedWorkerTimers(
