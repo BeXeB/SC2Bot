@@ -14,6 +14,9 @@ std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state) {
         copyState->_bases.emplace_back(base);
     }
 
+    copyState->SetBiases(state._combatBiases);
+    copyState->SetEnemyActions(state._enemyActions);
+
     return copyState;
 }
 
