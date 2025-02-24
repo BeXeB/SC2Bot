@@ -119,7 +119,7 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 		.rolloutHeuristic = params.rolloutHeuristic,
 	};
 
-	auto state = std::make_shared<Sc2::State>(params.endTime, params.seed);
+	auto state = std::make_shared<Sc2::State>(params.endTime, params.seed, nullptr, nullptr);
 
 	const auto mcts = new Mcts(state, params.seed, params.endTime, params.exploration, params.valueHeuristic,
 	                           params.rolloutHeuristic);
@@ -174,7 +174,7 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 }
 
 void dumbBenchmark() {
-	const auto state = std::make_shared<Sc2::State>(100, 0);
+	const auto state = std::make_shared<Sc2::State>(100, 0, nullptr, nullptr);
 
 	int actionsTaken = 0;
 	for (auto i = 0; i < 8; i++) {
@@ -208,7 +208,7 @@ void heuristicBenchmark(int time, const unsigned int seed) {
 
 
 	int actionsTaken = 0;
-	const auto state = std::make_shared<Sc2::State>(time, 0);
+	const auto state = std::make_shared<Sc2::State>(time, 0, nullptr, nullptr);
 
 	while (!state->endTimeReached()) {
 		actionsTaken++;
@@ -232,7 +232,7 @@ void printResults(const std::vector<float> &results) {
 }
 
 float threadedMcts(const BenchmarkParams &params) {
-	const auto state = std::make_shared<Sc2::State>(params.endTime, 0);
+	const auto state = std::make_shared<Sc2::State>(params.endTime, 0, nullptr, nullptr);
 	auto mcts = Mcts(state, params.seed, params.endTime, params.exploration, params.valueHeuristic,
 	                 params.rolloutHeuristic);
 	mcts.startSearchThread();

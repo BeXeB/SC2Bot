@@ -57,11 +57,31 @@ void Sc2::State::advanceOccupiedWorkers() {
     }
 }
 
+void Sc2::State::advanceEnemyActions() {
+    const auto action = _enemyActions->find(_currentTime);
+
+    if (action == _enemyActions->end()) {
+        return;
+    }
+
+    switch (action->second) {
+        case Action::addEnemyUnit:
+            addEnemyUnit();
+            break;
+        case Action::attackPlayer:
+            attackPlayer();
+            break;
+        default:
+            throw std::invalid_argument("invalid action");
+    }
+}
+
 void Sc2::State::advanceTime() {
     _currentTime++;
     advanceResources();
     advanceOccupiedWorkers();
     advanceConstructions();
+    advanceEnemyActions();
 }
 
 void Sc2::State::wait() {
@@ -343,4 +363,12 @@ void Sc2::State::buildHouse() {
 
     _occupiedWorkerTimers.emplace_back(buildHouseCost.buildTime);
     _constructions.emplace_back(buildHouseCost.buildTime, shared_from_this(), &State::addHouse);
+}
+
+void Sc2::State::SetBiases(const std::shared_ptr<std::map<int, std::tuple<double,double>>>& combatBiases) {
+    _combatBiases = combatBiases;
+}
+
+void Sc2::State::SetEnemyActions(const std::shared_ptr<std::map<int, Action>> &enemyActions) {
+    _enemyActions = enemyActions;
 }
