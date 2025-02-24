@@ -381,8 +381,8 @@ void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	_mctsRequestsPending = true;
 	_mctsMutex.lock();
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
-	_rootNode->getState()->SetBiases(_combatBiases);
-	_rootNode->getState()->SetEnemyActions(_enemyActions);
+	_rootNode->getState()->setBiases(_combatBiases);
+	_rootNode->getState()->setEnemyActions(_enemyActions);
 	_numberOfRollouts = 0;
 	_mctsMutex.unlock();
 	_mctsRequestsPending = false;

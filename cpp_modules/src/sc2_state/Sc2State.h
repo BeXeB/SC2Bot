@@ -151,9 +151,9 @@ namespace Sc2 {
         void buildWorker();
         void buildHouse();
 
-        void SetBiases(const std::shared_ptr<std::map<int, std::tuple<double, double>>>& combatBiases);
+        void setBiases(const std::shared_ptr<std::map<int, std::tuple<double, double>>>& combatBiases);
 
-        void SetEnemyActions(const std::shared_ptr<std::map<int, Action>> &enemyActions);
+        void setEnemyActions(const std::shared_ptr<std::map<int, Action>> &enemyActions);
 
 
         void buildBase();

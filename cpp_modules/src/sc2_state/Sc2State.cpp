@@ -14,8 +14,8 @@ std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state) {
         copyState->_bases.emplace_back(base);
     }
 
-    copyState->SetBiases(state._combatBiases);
-    copyState->SetEnemyActions(state._enemyActions);
+    copyState->setBiases(state._combatBiases);
+    copyState->setEnemyActions(state._enemyActions);
 
     return copyState;
 }
@@ -368,10 +368,11 @@ void Sc2::State::buildHouse() {
     _constructions.emplace_back(buildHouseCost.buildTime, shared_from_this(), &State::addHouse);
 }
 
-void Sc2::State::SetBiases(const std::shared_ptr<std::map<int, std::tuple<double,double>>>& combatBiases) {
+void Sc2::State::setBiases(const std::shared_ptr<std::map<int, std::tuple<double,double>>>& combatBiases) {
     _combatBiases = combatBiases;
 }
 
-void Sc2::State::SetEnemyActions(const std::shared_ptr<std::map<int, Action>> &enemyActions) {
+void Sc2::State::setEnemyActions(const std::shared_ptr<std::map<int, Action>> &enemyActions) {
     _enemyActions = enemyActions;
 }
+

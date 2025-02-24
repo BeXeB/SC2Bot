@@ -70,6 +70,10 @@ namespace Sc2::Mcts {
 			return state;
 		}
 
+		auto getBias() {return _combatBiases;}
+
+		auto getEnemyActions() {return _enemyActions;}
+
 		void setEndTime(const int time) {
 			_mctsMutex.lock();
 			_rolloutEndTime = time;
@@ -136,11 +140,19 @@ namespace Sc2::Mcts {
 		}
 
 		void instantiateActionsAndBiases(const int timeSteps) {
-			// 0: None, 1: Build unit, 2: Attack
-			const auto actionWeights = {50.0, 40.0, 10.0};
+			// Over the span of 60 seconds we assume that the enemy:
+			// Specifies how many enemy units will be built
+			const double buildUnitAction = 1.7;
+			// Specifies how many times the enemy will attack
+			const double attackAction = 0.5;
+			// Specifies how many times the enemy will do nothing
+			const double noneAction = 60 - buildUnitAction - attackAction;
+
+			const auto actionWeights = {noneAction, buildUnitAction, attackAction};
 			std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
 			std::uniform_real_distribution<double> combatDist(0.0,2.0);
 			for (int i = 0; i < timeSteps; i++) {
+				// 0: None, 1: Build unit, 2: Attack
 				switch (dist(_rng)) {
 					case 1:
 						(*_enemyActions)[i] = Action::addEnemyUnit;
@@ -198,8 +210,8 @@ namespace Sc2::Mcts {
 			_rng = std::mt19937(seed);
 			instantiateActionsAndBiases(_rolloutEndTime);
 			const auto deepCopy = State::DeepCopy(*rootState);
-			deepCopy->SetBiases(_combatBiases);
-			deepCopy->SetEnemyActions(_enemyActions);
+			deepCopy->setBiases(_combatBiases);
+			deepCopy->setEnemyActions(_enemyActions);
 			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, deepCopy));
 		}
 
@@ -208,8 +220,8 @@ namespace Sc2::Mcts {
 			_rng = std::mt19937(seed);
 			instantiateActionsAndBiases(_rolloutEndTime);
 			const auto deepCopy = State::DeepCopy(*rootState);
-			deepCopy->SetBiases(_combatBiases);
-			deepCopy->SetEnemyActions(_enemyActions);
+			deepCopy->setBiases(_combatBiases);
+			deepCopy->setEnemyActions(_enemyActions);
 			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, deepCopy));
 		}
 

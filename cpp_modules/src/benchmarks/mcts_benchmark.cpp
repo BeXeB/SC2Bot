@@ -124,6 +124,9 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 	const auto mcts = new Mcts(state, params.seed, params.endTime, params.exploration, params.valueHeuristic,
 	                           params.rolloutHeuristic);
 
+	state->setBiases(mcts->getBias());
+	state->setEnemyActions(mcts->getEnemyActions());
+
 	std::cout << "MCTS Benchmark " << params.benchmarkIndex << ": {" << std::endl
 			<< "\t" << "Seed: " << params.seed << std::endl
 			<< "\t" << "Time to perform actions: " << params.endTime << std::endl
