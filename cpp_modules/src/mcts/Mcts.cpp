@@ -72,12 +72,14 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 			case Action::buildVespeneCollector:
 				_actionWeights[i] = 2.0;
 				break;
-            case Action::buildBarracks:
-                _actionWeights[i] = 2.0;
-                break;
-            case Action::buildMarine:
-                _actionWeights[i] = 15.0;
-                break;
+			case Action::buildBarracks:
+				_actionWeights[i] = 2.0;
+				break;
+			case Action::buildMarine:
+				_actionWeights[i] = 15.0;
+				break;
+			default:
+				throw std::runtime_error("Cannot choose " + actionToString(actions[i]) + " as an action.");;
 		}
 	}
 
@@ -133,8 +135,6 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
-	std::uniform_real_distribution<> dist(0,1);
-
 	const auto state = State::DeepCopy(*node->getState());
 	while (!state->endTimeReached()) {
 		auto legalActions = state->getLegalActions();
@@ -157,10 +157,8 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
-		
+
 	}
-
-
 
 	return state->getValue();
 }

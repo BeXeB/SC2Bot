@@ -242,6 +242,9 @@ void Sc2::State::buildBarracks() {
 
     while (!hasUnoccupiedWorker()) {
         advanceTime();
+        if (_workerPopulation + _incomingWorkers <= 0) {
+            return;
+        }
     }
 
 
@@ -290,6 +293,9 @@ void Sc2::State::buildVespeneCollector() {
 
     while (!hasUnoccupiedWorker()) {
         advanceTime();
+        if (_workerPopulation + _incomingWorkers <= 0) {
+            return;
+        }
     }
 
     if (hasUnoccupiedGeyser()) {
@@ -316,6 +322,9 @@ void Sc2::State::buildBase() {
 
     while (!hasUnoccupiedWorker()) {
         advanceTime();
+        if (_workerPopulation + _incomingWorkers <= 0) {
+            return;
+        }
     }
 
     _minerals -= buildBaseCost.minerals;
@@ -336,6 +345,9 @@ void Sc2::State::buildWorker() {
 
     while (!hasFreeBase()) {
         advanceTime();
+        if ((_bases.empty() && _workerPopulation == 0) || endTimeReached()) {
+            return;
+        }
     }
 
     if (!populationLimitReached()) {
@@ -355,10 +367,14 @@ void Sc2::State::buildHouse() {
         if (initialMineral == _minerals) {
             return;
         }
+
     }
 
     while (!hasUnoccupiedWorker()) {
         advanceTime();
+        if (_workerPopulation + _incomingWorkers <= 0) {
+            return;
+        }
     }
 
     _minerals -= buildHouseCost.minerals;
@@ -368,11 +384,11 @@ void Sc2::State::buildHouse() {
     _constructions.emplace_back(buildHouseCost.buildTime, shared_from_this(), &State::addHouse);
 }
 
-void Sc2::State::setBiases(const std::shared_ptr<std::map<int, std::tuple<double,double>>>& combatBiases) {
+void Sc2::State::setBiases(const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases) {
     _combatBiases = combatBiases;
 }
 
-void Sc2::State::setEnemyActions(const std::shared_ptr<std::map<int, Action>> &enemyActions) {
+void Sc2::State::setEnemyActions(const std::shared_ptr<std::map<int, Action> > &enemyActions) {
     _enemyActions = enemyActions;
 }
 

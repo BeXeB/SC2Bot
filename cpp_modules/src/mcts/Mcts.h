@@ -39,8 +39,9 @@ namespace Sc2::Mcts {
 		std::vector<double> _actionWeights = std::vector<double>(10);
 		std::discrete_distribution<int> _weightedDist = std::discrete_distribution<int>();
 
-		std::shared_ptr<std::map<int, Action>> _enemyActions = std::make_shared<std::map<int, Action>>();
-		std::shared_ptr<std::map<int, std::tuple<double, double>>> _combatBiases = std::make_shared<std::map<int, std::tuple<double, double>>>();
+		std::shared_ptr<std::map<int, Action> > _enemyActions = std::make_shared<std::map<int, Action> >();
+		std::shared_ptr<std::map<int, std::tuple<double, double> > > _combatBiases = std::make_shared<std::map<int,
+			std::tuple<double, double> > >();
 
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
@@ -70,9 +71,9 @@ namespace Sc2::Mcts {
 			return state;
 		}
 
-		auto getBias() {return _combatBiases;}
+		auto getBias() { return _combatBiases; }
 
-		auto getEnemyActions() {return _enemyActions;}
+		auto getEnemyActions() { return _enemyActions; }
 
 		void setEndTime(const int time) {
 			_mctsMutex.lock();
@@ -122,10 +123,10 @@ namespace Sc2::Mcts {
 		                     bool hasHouse) {
 			std::uniform_int_distribution<unsigned int> dist;
 			const auto state = State::InternalStateBuilder(minerals, vespene, workerPopulation, marinePopulation,
-			                                             incomingWorkers, incomingMarines, populationLimit,
-			                                             bases, barracksAmount, constructions, occupiedWorkerTimers,
-			                                             currentTime, endTime, enemyCombatUnits, dist(_rng), hasHouse,
-			                                             _enemyActions, _combatBiases, 12);
+			                                               incomingWorkers, incomingMarines, populationLimit,
+			                                               bases, barracksAmount, constructions, occupiedWorkerTimers,
+			                                               currentTime, endTime, enemyCombatUnits, dist(_rng), hasHouse,
+			                                               _enemyActions, _combatBiases, 12);
 
 			updateRootState(state);
 		}
@@ -142,15 +143,15 @@ namespace Sc2::Mcts {
 		void instantiateActionsAndBiases(const int timeSteps) {
 			// Over the span of 60 seconds we assume that the enemy:
 			// Specifies how many enemy units will be built
-			const double buildUnitAction = 1.7;
+			const double buildUnitAction = 3;
 			// Specifies how many times the enemy will attack
-			const double attackAction = 0.5;
+			const double attackAction = 0.4;
 			// Specifies how many times the enemy will do nothing
 			const double noneAction = 60 - buildUnitAction - attackAction;
 
 			const auto actionWeights = {noneAction, buildUnitAction, attackAction};
 			std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
-			std::uniform_real_distribution<double> combatDist(0.0,2.0);
+			std::uniform_real_distribution<double> combatDist(0.0, 2.0);
 			for (int i = 0; i < timeSteps; i++) {
 				// 0: None, 1: Build unit, 2: Attack
 				switch (dist(_rng)) {
