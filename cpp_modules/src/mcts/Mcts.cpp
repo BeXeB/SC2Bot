@@ -157,19 +157,7 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
-
-		auto threshold = dist(_rng);
-
-		if (threshold < 0.25) {
-			threshold = dist(_rng);
-
-			if (threshold < 0.7) {
-				state->addEnemyUnit();
-			}
-			else {
-				state->attackPlayer();
-			}
-		}
+		
 	}
 
 
