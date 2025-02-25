@@ -7,10 +7,10 @@ from typing import List
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
 
-from Modules.worker_manager import WorkerRole
+from Python.Modules.information_manager import WorkerRole
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 class BarracksBuilder:
     def __init__(self, bot: 'MyBot'):

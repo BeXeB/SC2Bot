@@ -26,7 +26,6 @@ match = GameMatch(
         realtime=False,
         disable_fog=True,
         random_seed=0,
-        disable_fog=True,
         # game_time_limit=GAME_LENGTH,
     )
 for _ in range(NUMBER_OF_GAMES):

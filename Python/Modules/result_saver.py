@@ -8,7 +8,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
 
-from sc2_mcts import *
+from Python.sc2_mcts import *
 
 
 def save_result(bot: 'MyBot', final_state: State, game_time: float):

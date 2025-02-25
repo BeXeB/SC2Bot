@@ -2,72 +2,27 @@ import typing
 from typing import Optional, Union
 
 from sc2.bot_ai import BotAI
-from enum import Enum
 
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
+from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, WorkerData
+
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
 
 MINING_RADIUS = 1.325
 
-class WorkerRole(Enum):
-    IDLE = 0
-    MINERALS = 1
-    GAS = 2
-    BUILD = 3
-
-# TODO: move these to a centralized knowledge class
-class TownhallData:
-    current_harvesters: int
-    position: Point2
-
-    def __init__(self) -> None:
-        self.current_harvesters = 0
-
-class GasBuildingData:
-    current_harvesters: int
-    position: Point2
-
-    def __init__(self) -> None:
-        self.current_harvesters = 0
-
-class WorkerData:
-    assigned_to_tag: Optional[int]
-    role: WorkerRole
-    order_target: Optional[Point2]
-
-    def __init__(self, role: WorkerRole) -> None:
-        self.role = role
-        self.assigned_to_tag = None
-
-    def assign_to(self, tag: Optional[int], role: WorkerRole) -> None:
-        self.assigned_to_tag = tag
-        self.role = role
-
 class WorkerManager:
     bot: BotAI
     mineral_targets: dict[int, Point2]
-    worker_data: dict[int, WorkerData]
-    th_data: dict[int, TownhallData]
-    gas_data: dict[int, GasBuildingData]
 
     def __init__(self, bot: 'MyBot') -> None:
         self.bot = bot
         self.mineral_targets = {}
-        self.worker_data = {}
-        self.th_data = {}
-        self.gas_data = {}
         self.__calculate_mineral_targets()
-        for worker in self.bot.workers:
-            self.worker_data.update({worker.tag: WorkerData(WorkerRole.IDLE)})
-        for th in self.bot.townhalls:
-            self.th_data.update({th.tag: TownhallData()})
-        for geyser in self.bot.gas_buildings:
-            self.gas_data.update({geyser.tag: GasBuildingData()})
 
     # This method distributes workers to mine minerals and gas
     # Fills up the gas first, then the minerals
@@ -143,7 +98,6 @@ class WorkerManager:
             if data.role == WorkerRole.GAS and worker.is_idle:
                 __try_assign_to_gas(worker)
 
-        # TODO: maybe we dont need to do this every frame
         # If there are too many workers mining a gas geyser, try to reallocate them
         __reallocate_workers(self.bot.gas_buildings.filter(lambda g: g.build_progress == 1), self.gas_data)
 
@@ -171,7 +125,6 @@ class WorkerManager:
             return
 
         if len(worker.orders) == 0:
-            # TODO: change the random selection when we have a better way to select the mineral field
             mf: Unit = self.bot.mineral_field.closer_than(10, th).random
             if not self.mineral_targets.__contains__(mf.tag):
                 self.mineral_targets.update({mf.tag: mf.position.towards(th, MINING_RADIUS)})
@@ -247,7 +200,6 @@ class WorkerManager:
     # This method calculates the mineral targets for the workers
     # It should be called at the start of the game
     def __calculate_mineral_targets(self) -> None:
-        # TODO: change this when we have the expansion locations with the mineral fields
         for expansion in self.bot.expansion_locations_list:
             for mineral in self.bot.mineral_field.closer_than(10, expansion):
                 self.mineral_targets[mineral.tag] = mineral.position.towards(expansion, MINING_RADIUS)

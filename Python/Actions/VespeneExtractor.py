@@ -1,7 +1,6 @@
 from sc2.ids.unit_typeid import UnitTypeId
 
-from Python.Modules.worker_manager import WorkerRole
-
+from Python.Modules.information_manager import WorkerRole
 
 
 class VespeneBuilder:

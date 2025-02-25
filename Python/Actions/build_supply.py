@@ -5,12 +5,12 @@ import typing
 from typing import List
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
 
-from Python.Modules.worker_manager import WorkerRole
+from Python.Modules.information_manager import WorkerRole
 
 
 class SupplyBuilder:

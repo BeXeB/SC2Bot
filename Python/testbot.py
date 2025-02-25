@@ -23,7 +23,8 @@ from Actions.BuildBase import BaseBuilder
 from Actions.VespeneExtractor import VespeneBuilder
 from Actions.build_supply import SupplyBuilder
 
-from Modules.worker_manager import WorkerManager, TownhallData, GasBuildingData, WorkerRole
+from Modules.worker_manager import WorkerManager
+from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, InformationManager
 
 STEPS_PER_SECOND = 22.4
 
@@ -43,11 +44,21 @@ class ActionSelection(Enum):
 # TODO: Better build supply
 
 class MyBot(BotAI):
+    information_manager: InformationManager
+    worker_manager: WorkerManager
+    base_builder: BaseBuilder
+    vespene_builder: VespeneBuilder
+    supply_builder: SupplyBuilder
+    worker_builder: WorkerBuilder
+    barracks_builder: BarracksBuilder
+    marine_builder: MarineBuilder
     new_base_location = None
     base_worker = None
     completed_bases = set()
     busy_workers: dict[int, float] = {}
     el_list: dict[Point2, bool] = {}
+    actions_taken: dict[int, Action] = {}
+    build_times: dict[UnitTypeId, int] = {}
 
     # Completed_bases is used to keep track of processed vespene extractors
     def __init__(self,
@@ -75,7 +86,7 @@ class MyBot(BotAI):
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):
-        self.build_times: dict[UnitTypeId, int] = {
+        self.build_times = {
             UnitTypeId.COMMANDCENTER: math.ceil(self.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND),
             UnitTypeId.REFINERY: math.ceil(self.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND),
             UnitTypeId.SCV: math.ceil(self.game_data.units[UnitTypeId.SCV.value]._proto.build_time / STEPS_PER_SECOND),
@@ -83,6 +94,7 @@ class MyBot(BotAI):
             UnitTypeId.BARRACKS: math.ceil(self.game_data.units[UnitTypeId.BARRACKS.value]._proto.build_time / STEPS_PER_SECOND),
             UnitTypeId.MARINE: math.ceil(self.game_data.units[UnitTypeId.MARINE.value]._proto.build_time / STEPS_PER_SECOND),
         }
+        self.information_manager = InformationManager(self)
         self.worker_manager = WorkerManager(self)
         self.base_builder = BaseBuilder(self)
         self.vespene_builder = VespeneBuilder(self)
@@ -114,25 +126,22 @@ class MyBot(BotAI):
         match self.next_action:
             case Action.build_base:
                 await self.build_base()
+                self.actions_taken.update({iteration: Action.build_base})
             case Action.build_vespene_collector:
                 await self.build_vespene_collector()
+                self.actions_taken.update({iteration: Action.build_vespene_collector})
             case Action.build_worker:
                 await self.build_worker()
+                self.actions_taken.update({iteration: Action.build_worker})
             case Action.build_house:
                 await self.build_house()
-
+                self.actions_taken.update({iteration: Action.build_house})
             case Action.build_barracks:
-                if not self.can_afford(UnitTypeId.BARRACKS):
-                    return
-                await self.barracks_builder.build_barracks()
+                await self.build_barracks()
                 self.actions_taken.update({iteration: Action.build_barracks})
-                self.set_next_action()
             case Action.build_marine:
-                if not self.can_afford(UnitTypeId.MARINE):
-                    return
-                await self.marine_builder.build_marine()
+                await self.build_marine()
                 self.actions_taken.update({iteration: Action.build_marine})
-                self.set_next_action()
             case Action.none:
                 try:
                     match self.action_selection:
@@ -160,6 +169,18 @@ class MyBot(BotAI):
             height = self.get_terrain_z_height(sloc) + 0.1
             self.client.debug_sphere_out(Point3((sloc.x, sloc.y, height)), 1, (0, 255, 0))
 
+    async def build_barracks(self) -> None:
+        if not self.can_afford(UnitTypeId.BARRACKS):
+            return
+        await self.barracks_builder.build_barracks()
+        self.set_next_action()
+
+    async def build_marine(self) -> None:
+        if not self.can_afford(UnitTypeId.MARINE):
+            return
+        await self.marine_builder.build_marine()
+        self.set_next_action()
+
     async def build_base(self) -> None:
         if not self.new_base_location:
             self.new_base_location = await self.base_builder.find_next_base_location()
@@ -172,7 +193,7 @@ class MyBot(BotAI):
             return
         self.base_worker.build(UnitTypeId.COMMANDCENTER, self.new_base_location, queue=True)
         self.el_list[self.new_base_location] = True
-        self.busy_workers.update({self.base_worker.tag: self.CC_BUILD_TIME_SECONDS})
+        self.busy_workers.update({self.base_worker.tag: self.build_times[UnitTypeId.COMMANDCENTER]})
         self.new_base_location = None
         self.base_worker = None
         self.set_next_action()
@@ -222,6 +243,7 @@ class MyBot(BotAI):
                 self.el_list[el] = False
 
     async def on_building_construction_complete(self, unit: Unit) -> None:
+        # TODO Make this a switch case
         if unit.type_id == UnitTypeId.COMMANDCENTER:
             self.worker_manager.th_data.update({unit.tag: TownhallData()})
         if unit.type_id == UnitTypeId.REFINERY:
@@ -235,6 +257,7 @@ class MyBot(BotAI):
         self.mcts.stop_search()
         end_state = translate_state(self)
         save_result(self, end_state, self.time)
+        self.future_action_queue.queue.clear()
 
     def get_best_action(self) -> None:
         print(self.mcts.get_number_of_rollouts())
@@ -306,12 +329,6 @@ class MyBot(BotAI):
         self.worker_manager.distribute_workers()
         self.worker_manager.speed_mine()
 
-
-    async def on_end(self, game_result: Result):
-        self.mcts.stop_search()
-        end_state = translate_state(self)
-        save_result(self, end_state, self.time)
-        self.future_action_queue.queue.clear()
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
         if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_left < 5:
