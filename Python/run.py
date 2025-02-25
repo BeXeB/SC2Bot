@@ -7,7 +7,7 @@ from sc2 import maps
 from testbot import MyBot, PeacefulBot, ActionSelection
 from sc2_mcts import ValueHeuristic, RolloutHeuristic
 
-NUMBER_OF_GAMES: int = 2
+NUMBER_OF_GAMES: int = 1
 GAME_LENGTH: int = 480
 matches: List[GameMatch] = []
 

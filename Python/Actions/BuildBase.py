@@ -21,8 +21,8 @@ class BaseBuilder():
     async def find_next_base_location(self) -> Optional[Point2]:
         closest = None
         distance = math.inf
-        for el in self.bot.el_list:
-            if (self.bot.el_list[el]):
+        for el in self.bot.information_manager.el_list:
+            if (self.bot.information_manager.el_list[el]):
                 # already taken
                 continue
 

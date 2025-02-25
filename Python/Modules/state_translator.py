@@ -9,7 +9,7 @@ import math
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 
-from Python.sc2_mcts import *
+from sc2_mcts import *
 
 def get_bases(bot: 'MyBot') -> list[Base]:
     bases = []
@@ -58,67 +58,67 @@ def get_constructions(bot: 'MyBot') -> list[Construction]:
     return constructions
 
 
-def get_marine_constructions(bot):
+def get_marine_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     for barracks in bot.structures(UnitTypeId.BARRACKS):
         if barracks.orders and barracks.orders[0].ability.id == AbilityId.BARRACKSTRAIN_MARINE:
             construction = Construction(
-                time_left=math.ceil((1 - barracks.orders[0].progress) * bot.build_times[UnitTypeId.MARINE]),
+                time_left=math.ceil((1 - barracks.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.MARINE]),
                 action=Action.build_marine
             )
             constructions.append(construction)
     return constructions
 
 
-def get_worker_constructions(bot):
+def get_worker_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     for th in bot.townhalls:
         if th.orders and th.orders[0].ability.id == AbilityId.COMMANDCENTERTRAIN_SCV:
             construction = Construction(
-                time_left=math.ceil((1 - th.orders[0].progress) * bot.build_times[UnitTypeId.SCV]),
+                time_left=math.ceil((1 - th.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.SCV]),
                 action=Action.build_worker
             )
             constructions.append(construction)
     return constructions
 
 
-def get_pending_barracks_constructions(bot):
+def get_pending_barracks_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.BARRACKS)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.BARRACKS))):
         construction = Construction(
-            time_left=math.ceil(bot.build_times[UnitTypeId.BARRACKS]),
+            time_left=math.ceil(bot.information_manager.build_times[UnitTypeId.BARRACKS]),
             action=Action.build_marine
         )
         constructions.append(construction)
     return constructions
 
 
-def get_pending_vespene_constructions(bot):
+def get_pending_vespene_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.REFINERY)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.REFINERY))):
         construction = Construction(
-            time_left=math.ceil(bot.build_times[UnitTypeId.REFINERY]),
+            time_left=math.ceil(bot.information_manager.build_times[UnitTypeId.REFINERY]),
             action=Action.build_vespene_collector
         )
         constructions.append(construction)
     return constructions
 
 
-def get_pending_base_constructions(bot):
+def get_pending_base_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.COMMANDCENTER)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.COMMANDCENTER))):
         construction = Construction(
-            time_left=math.ceil(bot.build_times[UnitTypeId.COMMANDCENTER]),
+            time_left=math.ceil(bot.information_manager.build_times[UnitTypeId.COMMANDCENTER]),
             action=Action.build_base
         )
         constructions.append(construction)
     return constructions
 
-def get_pending_house_constructions(bot):
+def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.SUPPLYDEPOT)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.SUPPLYDEPOT))):
         construction = Construction(
-            time_left=math.ceil(bot.build_times[UnitTypeId.SUPPLYDEPOT]),
+            time_left=math.ceil(bot.information_manager.build_times[UnitTypeId.SUPPLYDEPOT]),
             action=Action.build_house
         )
         constructions.append(construction)

@@ -1,10 +1,13 @@
 from sc2.ids.unit_typeid import UnitTypeId
 
 from Python.Modules.information_manager import WorkerRole
+import typing
+if typing.TYPE_CHECKING:
+    from Python.testbot import MyBot
 
 
 class VespeneBuilder:
-    def __init__(self, bot):
+    def __init__(self, bot: 'MyBot'):
         self.bot = bot
         # Track geysers that already have an extractor or are being built
         self.processed_geysers = set()
@@ -28,7 +31,7 @@ class VespeneBuilder:
                 worker = self.bot.worker_manager.select_worker(geyser.position, WorkerRole.BUILD)
                 worker.build(UnitTypeId.REFINERY, geyser, queue=True)
                 # self.bot.busy_workers.update({worker.tag: self.bot.REFINERY_BUILD_TIME_STEPS + self.bot.REFINERY_TRAVEL_TIME_STEPS})
-                self.bot.busy_workers.update({worker.tag: self.bot.build_times[UnitTypeId.REFINERY]})
+                self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[UnitTypeId.REFINERY]})
                 # Mark this geyser as processed
                 self.processed_geysers.add(geyser.tag)
                 return
