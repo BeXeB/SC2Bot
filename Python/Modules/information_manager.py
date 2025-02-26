@@ -3,6 +3,7 @@ import typing
 from enum import Enum
 from typing import Optional, List
 
+from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
 from sc2.unit import UnitOrder
@@ -132,6 +133,11 @@ class InformationManager:
                 self.el_list[self.bot.new_base_location] = False
                 self.bot.base_worker = None
                 self.bot.new_base_location = None
+            worker = self.bot._units_previous_map[tag]
+            for order in worker.orders:
+                if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
+                    self.el_list[order.target] = False
+                    # TODO: If it was working on the base, cancel it if it still exists
             self.worker_data.pop(tag)
         elif tag in self.th_data:
             # remove all assigned workers from the townhall, make location available

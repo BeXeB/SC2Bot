@@ -33,7 +33,7 @@ class ActionSelection(Enum):
     MultiBestAction = 2
     MultiBestActionFixed = 3
     MultiBestActionMin = 4
-    
+
 # TODO: Dont build bases at base locations with no minerals
 # TODO: Refactor the worker manager
 # TODO: Save replay option
@@ -144,12 +144,20 @@ class MyBot(BotAI):
         blocs = self.barracks_builder.build_locations
         for bloc in blocs:
             height = self.get_terrain_z_height(bloc) + 0.1
-            self.client.debug_sphere_out(Point3((bloc.x, bloc.y, height)), 1.5, (255, 0, 0))
+            self.client.debug_sphere_out(Point3((bloc.x, bloc.y, height)), 1.5, (0, 0, 255))
+            self.client.debug_text_3d("B", Point3((bloc.x, bloc.y, height)), (255, 255, 255))
 
         slocs = self.supply_builder.possible_supply_positions
         for sloc in slocs:
             height = self.get_terrain_z_height(sloc) + 0.1
-            self.client.debug_sphere_out(Point3((sloc.x, sloc.y, height)), 1, (0, 255, 0))
+            self.client.debug_sphere_out(Point3((sloc.x, sloc.y, height)), 1, (0, 0, 255))
+            self.client.debug_text_3d("S", Point3((sloc.x, sloc.y, height)), (255, 255, 255))
+
+        thlocs = self.information_manager.el_list
+        for thloc in thlocs:
+            height = self.get_terrain_z_height(thloc) + 0.1
+            color = (255, 0, 0) if self.information_manager.el_list[thloc] else (0, 255, 0)
+            self.client.debug_sphere_out(Point3((thloc.x, thloc.y, height)), 2.5, color)
 
     async def build_barracks(self) -> None:
         if not self.can_afford(UnitTypeId.BARRACKS):
