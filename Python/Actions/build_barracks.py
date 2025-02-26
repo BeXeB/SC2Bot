@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Dict
+from typing import List
 
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
@@ -17,27 +17,24 @@ class BarracksBuilder:
         self.build_locations = self.__find_build_locations()
 
     # Figure out where the barracks will be built
-    def __find_build_locations(self) -> Dict[Point2, bool]:
+    def __find_build_locations(self) -> List[Point2]:
         left_or_right = -1 if self.bot.start_location.x > self.bot.game_info.map_size.x / 2 else 1
         start_location = self.bot.start_location
         first_barracks_position = Point2((start_location.x + (6+(-1*left_or_right)) * left_or_right, start_location.y + 10 * left_or_right))
-        possible_barracks_positions = {}
+        possible_barracks_positions = []
         for i in range(2):
             for j in range(6):
                 if i == 0 and j == 1:
                     continue
-                possible_barracks_positions.update({
+                possible_barracks_positions.append(
                     Point2((first_barracks_position.x + i * 6 * left_or_right, first_barracks_position.y - j * 3 * left_or_right))
-                    : False
-                })
+                )
         return possible_barracks_positions
 
     async def build_barracks(self) -> None:
         if self.build_locations is None:
             return
         for build_location in self.build_locations:
-            if self.build_locations[build_location]:
-                continue
             can_place = await self.bot.can_place_single(UnitTypeId.BARRACKS, build_location)
             if not can_place:
                 continue
@@ -46,9 +43,4 @@ class BarracksBuilder:
                 break
             self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[UnitTypeId.BARRACKS]})
             worker.build(UnitTypeId.BARRACKS, build_location)
-            self.bot.information_manager.worker_data[worker.tag].orders = worker.orders
-            self.build_locations[build_location] = True
             break
-
-    async def destroy_barracks(self, barracks_position: Point2) -> None:
-        self.build_locations[barracks_position] = False

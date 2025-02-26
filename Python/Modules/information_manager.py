@@ -132,11 +132,6 @@ class InformationManager:
                 self.el_list[self.bot.new_base_location] = False
                 self.bot.base_worker = None
                 self.bot.new_base_location = None
-            # TODO if it was going to build something, make their space available
-            # TODO cancel the building it was building
-            if tag in self.bot._units_previous_map:
-                worker = self.bot._units_previous_map[tag]
-                pass
             self.worker_data.pop(tag)
         elif tag in self.th_data:
             # remove all assigned workers from the townhall, make location available
@@ -162,14 +157,8 @@ class InformationManager:
                 self.completed_bases.remove(closest_th_tag)
             self.gas_data.pop(tag)
         elif tag in self.barracks_data:
-            # make location available
-            location = self.barracks_data[tag].position
-            await self.bot.barracks_builder.destroy_barracks(location)
             self.barracks_data.pop(tag)
         elif tag in self.supply_depot_data:
-            # make location available
-            location = self.supply_depot_data[tag].position
-            await self.bot.supply_builder.destroy_supply(location)
             self.supply_depot_data.pop(tag)
         elif tag in self.marine_data:
             self.marine_data.pop(tag)

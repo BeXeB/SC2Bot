@@ -15,10 +15,10 @@ class MarineBuilder:
         self.bot = bot
 
     async def build_marine(self, close_to: Optional[Point2] = None) -> None:
-        # If no position is given, we will use the position of a random townhall, that is ready and has no queue
+        # If no position is given, we will use the position of a random barracks, that is ready and has no queue
         available_barracks = self.bot.structures.filter(lambda sr: sr.type_id == UnitTypeId.BARRACKS).ready.filter(lambda t: len(t.orders) == 0)
         if len(available_barracks) == 0:
-            return  # No townhall is ready
+            return  # No barracks is ready
         if close_to is None:
             closest_barracks = available_barracks.random
         else:

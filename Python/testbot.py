@@ -33,10 +33,7 @@ class ActionSelection(Enum):
     MultiBestAction = 2
     MultiBestActionFixed = 3
     MultiBestActionMin = 4
-
-# TODO: The whole disabling placements for buildings is a mess, just check if it is possible to build
-# TODO: Handle losing bases and workers on their way to build
-# TODO: Worker manager might not handle bases and workers dying
+    
 # TODO: Dont build bases at base locations with no minerals
 # TODO: Refactor the worker manager
 # TODO: Save replay option
@@ -230,7 +227,6 @@ class MyBot(BotAI):
             case UnitTypeId.BARRACKS:
                 self.information_manager.barracks_data.update({unit.tag: BarracksData(unit.position, unit.tag)})
         building_worker = self.workers.closest_to(unit)
-        self.information_manager.worker_data[building_worker.tag].orders = None
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
 
     async def on_unit_created(self, unit: Unit):

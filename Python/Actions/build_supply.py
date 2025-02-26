@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 import typing
-from typing import Dict
+from typing import List
 
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
@@ -23,20 +23,17 @@ class SupplyBuilder:
             if left_or_right == 1 else (
             Point2((math.ceil(start_location.x), math.ceil(start_location.y))))
         first_supply_position: Point2 = Point2((start_location.x - 9 * left_or_right, start_location.y - 5 * left_or_right))
-        self.possible_supply_positions: Dict[Point2, bool] = {}
+        self.possible_supply_positions = []
         for i in range(5):
             for j in range(5):
-                self.possible_supply_positions.update({
+                self.possible_supply_positions.append(
                     Point2((first_supply_position.x + i * 2 * left_or_right, first_supply_position.y - j * 2 * left_or_right))
-                    : False
-                })
+                )
 
     async def build_supply(self):
         if self.possible_supply_positions is None:
             return
         for position in self.possible_supply_positions:
-            if self.possible_supply_positions[position]:
-                continue
             can_place = await self.bot.can_place_single(UnitTypeId.SUPPLYDEPOT, position)
             if not can_place:
                 continue
@@ -45,9 +42,4 @@ class SupplyBuilder:
                 break
             self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[UnitTypeId.SUPPLYDEPOT]})
             worker.build(UnitTypeId.SUPPLYDEPOT, position)
-            self.bot.information_manager.worker_data[worker.tag].orders = worker.orders
-            self.possible_supply_positions[position] = True
             break
-
-    async def destroy_supply(self, supply_position: Point2):
-        self.possible_supply_positions[supply_position] = False

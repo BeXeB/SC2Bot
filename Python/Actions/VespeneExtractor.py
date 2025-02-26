@@ -32,7 +32,6 @@ class VespeneBuilder:
             if self.bot.can_afford(UnitTypeId.REFINERY):
                 worker = self.bot.worker_manager.select_worker(geyser.position, WorkerRole.BUILD)
                 worker.build(UnitTypeId.REFINERY, geyser, queue=True)
-                self.bot.information_manager.worker_data[worker.tag].orders = worker.orders
                 self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[UnitTypeId.REFINERY]})
                 # Mark this geyser as processed
                 self.processed_geysers.add(geyser.tag)
