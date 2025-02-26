@@ -97,7 +97,7 @@ namespace Sc2 {
         }
 
         void destroyPlayerBase() {
-            _workerPopulation = _workerPopulation >= 3 ? _workerPopulation - 3 : 0;
+            _workerPopulation = _workerPopulation >= 10 ? _workerPopulation - 10 : 0;
             if (!_bases.empty()) {
                 _bases.pop_back();
                 _populationLimit -= 15;
@@ -108,10 +108,10 @@ namespace Sc2 {
             const double initialUnits = _marinePopulation;
             const double initialEnemies = _enemyCombatUnits;
             const auto bias = (*_combatBiases)[_currentTime];
-            auto updatedUnits = std::floor(initialUnits - (initialEnemies * std::get<0>(bias)));
+            const auto updatedUnits = std::floor(initialUnits - (initialEnemies * std::get<0>(bias)));
             _marinePopulation = updatedUnits > 0 ? updatedUnits : 0;
 
-            auto updatedEnemies = std::floor(initialEnemies - (initialUnits * std::get<1>(bias)));
+            const auto updatedEnemies = std::floor(initialEnemies - (initialUnits * std::get<1>(bias)));
             _enemyCombatUnits = updatedEnemies > 0 ? updatedEnemies : 0;
         }
 
