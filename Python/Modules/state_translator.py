@@ -26,7 +26,6 @@ def get_bases(bot: 'MyBot') -> list[Base]:
     return bases
 
 def get_constructions(bot: 'MyBot') -> list[Construction]:
-    # TODO: This is a very hacky way to get the pending constructions
     constructions = []
     constructions.extend(get_pending_house_constructions(bot))
     constructions.extend(get_pending_base_constructions(bot))

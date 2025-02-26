@@ -63,21 +63,16 @@ class MarineData:
 class WorkerData:
     assigned_to_tag: Optional[int]
     role: WorkerRole
-    orders: Optional[List[UnitOrder]]
     tag: int
 
     def __init__(self, role: WorkerRole, tag: int) -> None:
         self.role = role
         self.assigned_to_tag = None
-        self.orders = None
         self.tag = tag
 
     def assign_to(self, assigned_to_tag: Optional[int], role: WorkerRole) -> None:
         self.assigned_to_tag = assigned_to_tag
         self.role = role
-
-    def set_orders(self, orders: List[UnitOrder]) -> None:
-        self.orders = orders
 
 
 class InformationManager:
@@ -133,8 +128,15 @@ class InformationManager:
                     self.th_data[self.worker_data[tag].assigned_to_tag].current_harvesters -= 1
                 elif self.worker_data[tag].role == WorkerRole.GAS:
                     self.gas_data[self.worker_data[tag].assigned_to_tag].current_harvesters -= 1
-            # TODO: if it had orders, remove them
-            # if self.worker_data[tag].orders is not None:
+            if self.bot.base_worker and self.bot.base_worker.tag == tag:
+                self.el_list[self.bot.new_base_location] = False
+                self.bot.base_worker = None
+                self.bot.new_base_location = None
+            # TODO if it was going to build something, make their space available
+            # TODO cancel the building it was building
+            if tag in self.bot._units_previous_map:
+                worker = self.bot._units_previous_map[tag]
+                pass
             self.worker_data.pop(tag)
         elif tag in self.th_data:
             # remove all assigned workers from the townhall, make location available

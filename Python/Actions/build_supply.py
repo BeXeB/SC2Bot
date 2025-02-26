@@ -45,6 +45,7 @@ class SupplyBuilder:
                 break
             self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[UnitTypeId.SUPPLYDEPOT]})
             worker.build(UnitTypeId.SUPPLYDEPOT, position)
+            self.bot.information_manager.worker_data[worker.tag].orders = worker.orders
             self.possible_supply_positions[position] = True
             break
 

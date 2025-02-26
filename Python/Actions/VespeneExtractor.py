@@ -19,6 +19,8 @@ class VespeneBuilder:
         for geyser in geysers:
             # Skip geysers that are already processed
             if geyser.tag in self.processed_geysers:
+                if not self.__is_vespene_extractor_built(geyser):
+                    self.processed_geysers.remove(geyser.tag)
                 continue
 
             # Check if a refinery is already built on the geyser
@@ -30,7 +32,7 @@ class VespeneBuilder:
             if self.bot.can_afford(UnitTypeId.REFINERY):
                 worker = self.bot.worker_manager.select_worker(geyser.position, WorkerRole.BUILD)
                 worker.build(UnitTypeId.REFINERY, geyser, queue=True)
-                # self.bot.busy_workers.update({worker.tag: self.bot.REFINERY_BUILD_TIME_STEPS + self.bot.REFINERY_TRAVEL_TIME_STEPS})
+                self.bot.information_manager.worker_data[worker.tag].orders = worker.orders
                 self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[UnitTypeId.REFINERY]})
                 # Mark this geyser as processed
                 self.processed_geysers.add(geyser.tag)

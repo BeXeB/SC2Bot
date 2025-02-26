@@ -3,7 +3,7 @@ import queue
 from enum import Enum
 
 from sc2.data import Result
-from sc2.position import Point3
+from sc2.position import Point3, Point2
 
 from Actions.build_barracks import BarracksBuilder
 from Actions.build_marine import MarineBuilder
@@ -34,6 +34,7 @@ class ActionSelection(Enum):
     MultiBestActionFixed = 3
     MultiBestActionMin = 4
 
+# TODO: The whole disabling placements for buildings is a mess, just check if it is possible to build
 # TODO: Handle losing bases and workers on their way to build
 # TODO: Worker manager might not handle bases and workers dying
 # TODO: Dont build bases at base locations with no minerals
@@ -229,6 +230,7 @@ class MyBot(BotAI):
             case UnitTypeId.BARRACKS:
                 self.information_manager.barracks_data.update({unit.tag: BarracksData(unit.position, unit.tag)})
         building_worker = self.workers.closest_to(unit)
+        self.information_manager.worker_data[building_worker.tag].orders = None
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
 
     async def on_unit_created(self, unit: Unit):
@@ -318,8 +320,7 @@ class MyBot(BotAI):
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
-            await self.client.debug_create_unit([[UnitTypeId.MARINE, 10, self.enemy_start_locations[0], 2]])
-            await self.client.debug_create_unit([[UnitTypeId.SUPPLYDEPOT, 1, self.townhalls.random.position, 1]])
+            await self.client.debug_create_unit([[UnitTypeId.MARINE, 10, Point2((self.enemy_start_locations[0].x+10, self.enemy_start_locations[0].y+10)), 2]])
         if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_left < 5:
             await self.build(UnitTypeId.SUPPLYDEPOT, near=self.townhalls.random)
         if self.can_afford(UnitTypeId.BARRACKS) and self.structures(UnitTypeId.BARRACKS).amount < 3:

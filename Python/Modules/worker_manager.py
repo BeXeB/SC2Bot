@@ -41,7 +41,6 @@ class WorkerManager:
                     continue
                 if th_data.current_harvesters < th.ideal_harvesters:
                     self.assign_worker(worker.tag, WorkerRole.MINERALS, th.tag)
-                    # TODO: change the random selection when we have a better way to select the mineral field
                     fields = self.bot.mineral_field.closer_than(10, th)
                     if fields.amount > 0:
                         mf = fields.random
@@ -82,7 +81,6 @@ class WorkerManager:
 
                 has_been_assigned = __try_assign_to_minerals(worker)
 
-                # TODO: this will have to change
                 if not has_been_assigned:
                     worker(AbilityId.STOP_STOP)
                     self.assign_worker(worker.tag, WorkerRole.IDLE, None)

@@ -46,6 +46,7 @@ class BarracksBuilder:
                 break
             self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[UnitTypeId.BARRACKS]})
             worker.build(UnitTypeId.BARRACKS, build_location)
+            self.bot.information_manager.worker_data[worker.tag].orders = worker.orders
             self.build_locations[build_location] = True
             break
 
