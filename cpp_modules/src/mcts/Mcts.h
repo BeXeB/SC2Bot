@@ -39,6 +39,9 @@ namespace Sc2::Mcts {
 		std::vector<double> _actionWeights = std::vector<double>(10);
 		std::discrete_distribution<int> _weightedDist = std::discrete_distribution<int>();
 
+		std::shared_ptr<std::map<int, Action> > _enemyActions = std::make_shared<std::map<int, Action> >();
+		std::shared_ptr<std::map<int, std::tuple<double, double> > > _combatBiases = std::make_shared<std::map<int,
+			std::tuple<double, double> > >();
 
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
@@ -67,6 +70,10 @@ namespace Sc2::Mcts {
 			_mctsMutex.unlock();
 			return state;
 		}
+
+		auto getBias() { return _combatBiases; }
+
+		auto getEnemyActions() { return _enemyActions; }
 
 		void setEndTime(const int time) {
 			_mctsMutex.lock();
@@ -115,11 +122,11 @@ namespace Sc2::Mcts {
 		                     const int enemyCombatUnits,
 		                     bool hasHouse) {
 			std::uniform_int_distribution<unsigned int> dist;
-			const auto state = State::SeededStateBuilder(minerals, vespene, workerPopulation, marinePopulation,
-			                                             incomingWorkers, incomingMarines, populationLimit,
-			                                             bases, barracksAmount, constructions, occupiedWorkerTimers,
-			                                             currentTime, endTime, enemyCombatUnits, dist(_rng), hasHouse,
-			                                             12);
+			const auto state = State::InternalStateBuilder(minerals, vespene, workerPopulation, marinePopulation,
+			                                               incomingWorkers, incomingMarines, populationLimit,
+			                                               bases, barracksAmount, constructions, occupiedWorkerTimers,
+			                                               currentTime, endTime, enemyCombatUnits, dist(_rng), hasHouse,
+			                                               _enemyActions, _combatBiases, 12);
 
 			updateRootState(state);
 		}
@@ -131,6 +138,34 @@ namespace Sc2::Mcts {
 			_mctsMutex.unlock();
 			_mctsRequestsPending = false;
 			return n;
+		}
+
+		void instantiateActionsAndBiases(const int timeSteps) {
+			// Over the span of 60 seconds we assume that the enemy:
+			// Specifies how many enemy units will be built
+			const double buildUnitAction = 3;
+			// Specifies how many times the enemy will attack
+			const double attackAction = 0.4;
+			// Specifies how many times the enemy will do nothing
+			const double noneAction = 60 - buildUnitAction - attackAction;
+
+			const auto actionWeights = {noneAction, buildUnitAction, attackAction};
+			std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
+			std::uniform_real_distribution<double> combatDist(0.0, 2.0);
+			for (int i = 0; i < timeSteps; i++) {
+				// 0: None, 1: Build unit, 2: Attack
+				switch (dist(_rng)) {
+					case 1:
+						(*_enemyActions)[i] = Action::addEnemyUnit;
+						break;
+					case 2:
+						(*_enemyActions)[i] = Action::attackPlayer;
+						(*_combatBiases)[i] = std::tuple(combatDist(_rng), combatDist(_rng));
+						break;
+					default:
+						break;
+				}
+			}
 		}
 
 		[[nodiscard]] std::string toString() const {
@@ -174,19 +209,28 @@ namespace Sc2::Mcts {
 		                                                         _valueHeuristic(valueHeuristic),
 		                                                         _rolloutHeuristic(rolloutHeuristic) {
 			_rng = std::mt19937(seed);
-			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)));
+			instantiateActionsAndBiases(_rolloutEndTime);
+			const auto deepCopy = State::DeepCopy(*rootState);
+			deepCopy->setBiases(_combatBiases);
+			deepCopy->setEnemyActions(_enemyActions);
+			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, deepCopy));
 		}
 
 		explicit Mcts(const std::shared_ptr<State> &rootState) {
 			const auto seed = std::random_device{}();
 			_rng = std::mt19937(seed);
-			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*rootState)));
+			instantiateActionsAndBiases(_rolloutEndTime);
+			const auto deepCopy = State::DeepCopy(*rootState);
+			deepCopy->setBiases(_combatBiases);
+			deepCopy->setEnemyActions(_enemyActions);
+			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, deepCopy));
 		}
 
 		Mcts() {
 			const auto seed = std::random_device{}();
-			auto rootState = std::make_shared<State>(_rolloutEndTime, seed);
 			_rng = std::mt19937(seed);
+			instantiateActionsAndBiases(_rolloutEndTime);
+			auto rootState = std::make_shared<State>(_rolloutEndTime, seed, _enemyActions, _combatBiases);
 			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
 		}
 	};
