@@ -86,7 +86,7 @@ def get_pending_barracks_constructions(bot: 'MyBot') -> list[Construction]:
     for i in range(int(bot.worker_en_route_to_build(UnitTypeId.BARRACKS))):
         construction = Construction(
             time_left=math.ceil(bot.information_manager.build_times[UnitTypeId.BARRACKS]),
-            action=Action.build_marine
+            action=Action.build_barracks
         )
         constructions.append(construction)
     return constructions
