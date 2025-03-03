@@ -212,10 +212,10 @@ namespace Sc2 {
 
 
         double getValue() const {
-            return _marinePopulation;
-            // return softmax(std::vector{
-            // static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemyCombatUnits) / 4
-            // }, 0);
+            // return _marinePopulation;
+            return softmax(std::vector{
+                               static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemyCombatUnits) / 4
+                           }, 0);
         }
 
         static double softmax(std::vector<double> vector, const int index) {
