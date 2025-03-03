@@ -270,6 +270,7 @@ void Sc2::State::buildMarine() {
 
     while (!hasFreeBarracks()) {
         advanceTime();
+        if (_barracksAmount < 1) return;
     }
 
     if (!populationLimitReached()) {
@@ -367,7 +368,6 @@ void Sc2::State::buildHouse() {
         if (initialMineral == _minerals) {
             return;
         }
-
     }
 
     while (!hasUnoccupiedWorker()) {
