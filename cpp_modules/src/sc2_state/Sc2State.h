@@ -36,6 +36,9 @@ namespace Sc2 {
         int _currentTime = 0;
         bool _hasHouse = false;
 
+        bool _onRollout = false;
+        bool _wasAttacked = false;
+
         struct ActionCost {
             int minerals;
             int vespene;
@@ -169,10 +172,11 @@ namespace Sc2 {
         void addEnemyUnit() { _enemyCombatUnits += 1; }
 
         void attackPlayer() {
-            simulateBattle();
+            _wasAttacked = true;
+            /*simulateBattle();
             if (_marinePopulation == 0 && _enemyCombatUnits > 0) {
                 destroyPlayerBase();
-            }
+            }*/
         }
 
         void wait();
@@ -233,10 +237,14 @@ namespace Sc2 {
             return _currentTime >= _endTime;
         }
 
+        bool GameOver() {
+            return endTimeReached() || _wasAttacked;
+        }
+
         int getCurrentTime() const { return _currentTime; }
         void resetCurrentTime() { _currentTime = 0; }
 
-        static std::shared_ptr<State> DeepCopy(const State &state);
+        static std::shared_ptr<State> DeepCopy(const State &state, bool onRollout = false);
 
         static std::shared_ptr<State> StateBuilder(const int minerals,
                                                    const int vespene,
