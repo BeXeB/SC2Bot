@@ -98,6 +98,9 @@ namespace Sc2 {
 
         void destroyPlayerBase() {
             _workerPopulation = _workerPopulation >= 10 ? _workerPopulation - 10 : 0;
+            // _marinePopulation -= _marinePopulation >= 10 ? _marinePopulation - 10 : 0;
+            // _barracksAmount = _barracksAmount <= 0 ? 0 : _barracksAmount - 1;
+
             if (!_bases.empty()) {
                 _bases.pop_back();
                 _populationLimit -= 15;
@@ -207,7 +210,22 @@ namespace Sc2 {
 
         std::vector<Action> getLegalActions() const;
 
-        double getValue() const { return mineralGainedPerTimestep() + 1.5 * vespeneGainedPerTimestep(); }
+
+        double getValue() const {
+            return _marinePopulation;
+            // return softmax(std::vector{
+            // static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemyCombatUnits) / 4
+            // }, 0);
+        }
+
+        static double softmax(std::vector<double> vector, const int index) {
+            double sum = 0;
+            for (const auto &value: vector) {
+                sum += std::exp(value);
+            }
+            return std::exp(vector.at(index)) / sum;
+        }
+
         std::vector<int> &getOccupiedWorkerTimers() { return _occupiedWorkerTimers; }
 
 
