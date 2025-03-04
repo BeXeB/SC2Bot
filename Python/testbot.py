@@ -29,10 +29,8 @@ from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuil
 
 class ActionSelection(Enum):
     BestAction = 0
-    BestActionFixed = 1
-    MultiBestAction = 2
-    MultiBestActionFixed = 3
-    MultiBestActionMin = 4
+    MultiBestAction = 1
+    MultiBestActionMin = 1
 
 # TODO: Dont build bases at base locations with no minerals
 # TODO: Refactor the worker manager
@@ -125,20 +123,13 @@ class MyBot(BotAI):
                 await self.build_marine()
                 self.actions_taken.update({iteration: Action.build_marine})
             case Action.none:
-                # try:
-                    match self.action_selection:
-                        case ActionSelection.BestAction:
-                            self.get_best_action()
-                        case ActionSelection.BestActionFixed:
-                            self.get_best_action_fixed()
-                        case ActionSelection.MultiBestAction:
-                            self.get_multi_best_action()
-                        case ActionSelection.MultiBestActionFixed:
-                            self.get_multi_best_action_fixed()
-                        case ActionSelection.MultiBestActionMin:
-                            self.get_multi_best_action_min()
-                # except:
-                #     return
+                match self.action_selection:
+                    case ActionSelection.BestAction:
+                        self.get_best_action()
+                    case ActionSelection.MultiBestAction:
+                        self.get_multi_best_action()
+                    case ActionSelection.MultiBestActionMin:
+                        self.get_multi_best_action_min()
 
     async def draw_debug(self):
         blocs = self.barracks_builder.build_locations
@@ -176,6 +167,7 @@ class MyBot(BotAI):
             self.new_base_location = await self.base_builder.find_next_base_location()
             if not self.new_base_location:
                 self.set_next_action()
+                print("Unable to find free base location")
                 return
             self.base_worker = self.worker_manager.select_worker(self.new_base_location, WorkerRole.BUILD)
             self.base_worker.move(self.new_base_location)
@@ -194,6 +186,7 @@ class MyBot(BotAI):
         available_ths = self.townhalls.filter(lambda t: t.tag not in self.information_manager.completed_bases)
         if not available_ths:
             self.set_next_action()
+            print("Unable to find free vespene location")
             return
         th = available_ths.first
         if th.tag not in self.information_manager.completed_bases and th.is_ready:
@@ -259,13 +252,6 @@ class MyBot(BotAI):
         state.perform_action(action)
         self.mcts.update_root_state(state)
 
-    def get_best_action_fixed(self) -> None:
-        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
-            return
-        self.get_best_action()
-        self.mcts.stop_search()
-        self.mcts.start_search_rollout(self.fixed_search_rollouts)
-
     def get_multi_best_action(self) -> None:
         if not self.future_action_queue.empty():
             self.set_next_action(self.future_action_queue.get())
@@ -283,16 +269,6 @@ class MyBot(BotAI):
             state.perform_action(a)
         self.set_next_action(action)
         self.mcts.update_root_state(state)
-
-    def get_multi_best_action_fixed(self) -> None:
-        if not self.future_action_queue.empty():
-            self.set_next_action(self.future_action_queue.get())
-            return
-        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
-            return
-        self.get_multi_best_action()
-        self.mcts.stop_search()
-        self.mcts.start_search_rollout(self.fixed_search_rollouts)
 
     def get_multi_best_action_min(self) -> None:
         if not self.future_action_queue.empty():
