@@ -86,10 +86,7 @@ class MyBot(BotAI):
         self.worker_builder = WorkerBuilder(self)
         self.barracks_builder = BarracksBuilder(self)
         self.marine_builder = MarineBuilder(self)
-        if self.action_selection is ActionSelection.MultiBestActionFixed or self.action_selection is ActionSelection.BestActionFixed:
-            self.mcts.start_search_rollout(self.fixed_search_rollouts)
-        else:
-            self.mcts.start_search()
+        self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
