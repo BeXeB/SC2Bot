@@ -275,6 +275,7 @@ class MyBot(BotAI):
         self.mcts.perform_action(action)
         for i in range(self.future_action_queue.maxsize):
             a = self.mcts.get_best_action()
+            self.mcts.perform_action(a)
             self.future_action_queue.put(a)
         state = translate_state(self)
         state.perform_action(action)

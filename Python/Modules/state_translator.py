@@ -136,7 +136,7 @@ def translate_state(bot: 'MyBot') -> State:
         incoming_marines=math.floor(bot.already_pending(UnitTypeId.MARINE)),
         population_limit=math.floor(bot.supply_cap),
         bases=bases,
-        barracks_amount=bot.structures(UnitTypeId.BARRACKS).amount,
+        barracks_amount=bot.structures(UnitTypeId.BARRACKS).ready.amount,
         constructions=constructions,
         occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
         current_time=round(bot.time),
