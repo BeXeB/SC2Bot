@@ -323,8 +323,8 @@ class MyBot(BotAI):
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
-        if iteration == 0:
-            await self.client.debug_create_unit([[UnitTypeId.MARINE, 10, Point2((self.enemy_start_locations[0].x+10, self.enemy_start_locations[0].y+10)), 2]])
+        # if iteration == 0:
+        #     await self.client.debug_create_unit([[UnitTypeId.MARINE, 10, Point2((self.enemy_start_locations[0].x+10, self.enemy_start_locations[0].y+10)), 2]])
         if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_left < 5:
             await self.build(UnitTypeId.SUPPLYDEPOT, near=self.townhalls.random)
         if self.can_afford(UnitTypeId.BARRACKS) and self.structures(UnitTypeId.BARRACKS).amount < 3:
