@@ -38,7 +38,7 @@ class MyBot(BotAI):
     # Completed_bases is used to keep track of processed vespene extractors
     def __init__(self,
                  mcts_seed: int = 0,
-                 mcts_rollout_end_time: int = 300,
+                 mcts_rollout_end_time: int = 1000,
                  mcts_exploration: float = math.sqrt(2),
                  mcts_value_heuristics: ValueHeuristic = ValueHeuristic.UCT,
                  mcts_rollout_heuristics: RolloutHeuristic = RolloutHeuristic.weighted_choice,
@@ -176,7 +176,6 @@ class MyBot(BotAI):
                 self.actions_taken.update({iteration: Action.build_marine})
                 self.set_next_action()
             case Action.none:
-                try:
                     match self.action_selection:
                         case ActionSelection.BestAction:
                             self.get_best_action()
@@ -188,8 +187,7 @@ class MyBot(BotAI):
                             self.get_multi_best_action_fixed()
                         case ActionSelection.MultiBestActionMin:
                             self.get_multi_best_action_min()
-                except:
-                    return
+
 
     async def draw_debug(self):
         blocs = self.barracks_builder.build_locations
@@ -207,8 +205,8 @@ class MyBot(BotAI):
         action = self.mcts.get_best_action()
         self.set_next_action(action)
         state = translate_state(self)
-        state.perform_action(action)
         self.mcts.update_root_state(state)
+        self.mcts.perform_action(action)
 
     def get_best_action_fixed(self) -> None:
         if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
@@ -229,11 +227,11 @@ class MyBot(BotAI):
             a = self.mcts.get_best_action()
             self.future_action_queue.put(a)
         state = translate_state(self)
-        state.perform_action(action)
-        for a in list(self.future_action_queue.queue):
-            state.perform_action(a)
-        self.set_next_action(action)
         self.mcts.update_root_state(state)
+        self.mcts.perform_action(action)
+        for a in list(self.future_action_queue.queue):
+            self.mcts.perform_action(a)
+        self.set_next_action(action)
 
     def get_multi_best_action_fixed(self) -> None:
         if not self.future_action_queue.empty():

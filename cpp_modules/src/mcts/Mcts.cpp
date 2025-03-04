@@ -310,7 +310,7 @@ double Mcts::value(const std::shared_ptr<Node> &node) {
 }
 
 
-void Mcts::performAction(Action action) {
+void Mcts::performAction(const Action action) {
 	// Check if the action matches any explored nodes
 	for (const auto childAction: _rootNode->children | std::views::keys) {
 		if (childAction == action) {
@@ -319,6 +319,13 @@ void Mcts::performAction(Action action) {
 			return;
 		}
 	}
+	auto state = _rootNode->getState();
+	auto actions = state->getLegalActions();
+	if (std::ranges::find(actions, action) != actions.end()) {
+		_rootNode->getState()->performAction(action);
+		return;
+	}
+	std::cout << "action not found: " << action << std::endl;
 }
 
 Action Mcts::getBestAction() {
