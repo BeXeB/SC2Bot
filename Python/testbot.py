@@ -246,8 +246,8 @@ class MyBot(BotAI):
         action = self.mcts.get_best_action()
         self.set_next_action(action)
         state = translate_state(self)
-        state.perform_action(action)
         self.mcts.update_root_state(state)
+        self.mcts.perform_action(action)
 
     def get_multi_best_action(self) -> None:
         if not self.future_action_queue.empty():
@@ -261,11 +261,11 @@ class MyBot(BotAI):
             self.mcts.perform_action(a)
             self.future_action_queue.put(a)
         state = translate_state(self)
-        state.perform_action(action)
-        for a in list(self.future_action_queue.queue):
-            state.perform_action(a)
-        self.set_next_action(action)
         self.mcts.update_root_state(state)
+        self.mcts.perform_action(action)
+        for a in list(self.future_action_queue.queue):
+            self.mcts.perform_action(a)
+        self.set_next_action(action)
 
     def get_multi_best_action_min(self) -> None:
         if not self.future_action_queue.empty():
