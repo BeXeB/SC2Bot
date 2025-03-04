@@ -156,6 +156,8 @@ class MyBot(BotAI):
     async def build_marine(self) -> None:
         if not self.can_afford(UnitTypeId.MARINE):
             return
+        if not self.structures.filter(lambda sr: sr.type_id == UnitTypeId.BARRACKS).ready.filter(lambda t: len(t.orders) == 0):
+            return
         await self.marine_builder.build_marine()
         self.set_next_action()
 
