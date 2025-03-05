@@ -5,12 +5,12 @@ import typing
 from typing import List
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
 
-from Modules.worker_manager import WorkerRole
+from Python.Modules.information_manager import WorkerRole
 
 
 class SupplyBuilder:
@@ -23,7 +23,7 @@ class SupplyBuilder:
             if left_or_right == 1 else (
             Point2((math.ceil(start_location.x), math.ceil(start_location.y))))
         first_supply_position: Point2 = Point2((start_location.x - 9 * left_or_right, start_location.y - 5 * left_or_right))
-        self.possible_supply_positions: List[Point2] = []
+        self.possible_supply_positions = []
         for i in range(5):
             for j in range(5):
                 self.possible_supply_positions.append(
@@ -31,15 +31,15 @@ class SupplyBuilder:
                 )
 
     async def build_supply(self):
-        if self.possible_supply_positions:
-            for position in self.possible_supply_positions:
-                can_place = await self.bot.can_place_single(UnitTypeId.SUPPLYDEPOT, position)
-                if can_place:
-                    worker = self.bot.worker_manager.select_worker(position, WorkerRole.BUILD)
-                    if worker:
-                        # self.bot.busy_workers.update({worker.tag: self.bot.SUPPLY_BUILD_TIME_STEPS + self.bot.SUPPLY_TRAVEL_TIME_STEPS})
-                        self.bot.busy_workers.update({worker.tag: self.bot.build_times[UnitTypeId.SUPPLYDEPOT]})
-                        worker.build(UnitTypeId.SUPPLYDEPOT, position)
-                        # TODO: Change this so it becomes available if its destroyed
-                        self.possible_supply_positions.remove(position)
-                        break
+        if self.possible_supply_positions is None:
+            return
+        for position in self.possible_supply_positions:
+            can_place = await self.bot.can_place_single(UnitTypeId.SUPPLYDEPOT, position)
+            if not can_place:
+                continue
+            worker = self.bot.worker_manager.select_worker(position, WorkerRole.BUILD)
+            if not worker:
+                break
+            self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[UnitTypeId.SUPPLYDEPOT]})
+            worker.build(UnitTypeId.SUPPLYDEPOT, position)
+            break

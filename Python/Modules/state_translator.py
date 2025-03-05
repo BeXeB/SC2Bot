@@ -1,8 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 import typing
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 import math
 
@@ -26,7 +26,6 @@ def get_bases(bot: 'MyBot') -> list[Base]:
     return bases
 
 def get_constructions(bot: 'MyBot') -> list[Construction]:
-    # TODO: This is a very hacky way to get the pending constructions
     constructions = []
     constructions.extend(get_pending_house_constructions(bot))
     constructions.extend(get_pending_base_constructions(bot))
@@ -58,67 +57,67 @@ def get_constructions(bot: 'MyBot') -> list[Construction]:
     return constructions
 
 
-def get_marine_constructions(bot):
+def get_marine_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     for barracks in bot.structures(UnitTypeId.BARRACKS):
         if barracks.orders and barracks.orders[0].ability.id == AbilityId.BARRACKSTRAIN_MARINE:
             construction = Construction(
-                time_left=math.ceil((1 - barracks.orders[0].progress) * bot.build_times[UnitTypeId.MARINE]),
+                time_left=math.ceil((1 - barracks.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.MARINE]),
                 action=Action.build_marine
             )
             constructions.append(construction)
     return constructions
 
 
-def get_worker_constructions(bot):
+def get_worker_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     for th in bot.townhalls:
         if th.orders and th.orders[0].ability.id == AbilityId.COMMANDCENTERTRAIN_SCV:
             construction = Construction(
-                time_left=math.ceil((1 - th.orders[0].progress) * bot.build_times[UnitTypeId.SCV]),
+                time_left=math.ceil((1 - th.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.SCV]),
                 action=Action.build_worker
             )
             constructions.append(construction)
     return constructions
 
 
-def get_pending_barracks_constructions(bot):
+def get_pending_barracks_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.BARRACKS)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.BARRACKS))):
         construction = Construction(
-            time_left=math.ceil(bot.build_times[UnitTypeId.BARRACKS]),
-            action=Action.build_marine
+            time_left=math.ceil(bot.information_manager.build_times[UnitTypeId.BARRACKS]),
+            action=Action.build_barracks
         )
         constructions.append(construction)
     return constructions
 
 
-def get_pending_vespene_constructions(bot):
+def get_pending_vespene_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.REFINERY)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.REFINERY))):
         construction = Construction(
-            time_left=math.ceil(bot.build_times[UnitTypeId.REFINERY]),
+            time_left=math.ceil(bot.information_manager.build_times[UnitTypeId.REFINERY]),
             action=Action.build_vespene_collector
         )
         constructions.append(construction)
     return constructions
 
 
-def get_pending_base_constructions(bot):
+def get_pending_base_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.COMMANDCENTER)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.COMMANDCENTER))):
         construction = Construction(
-            time_left=math.ceil(bot.build_times[UnitTypeId.COMMANDCENTER]),
+            time_left=math.ceil(bot.information_manager.build_times[UnitTypeId.COMMANDCENTER]),
             action=Action.build_base
         )
         constructions.append(construction)
     return constructions
 
-def get_pending_house_constructions(bot):
+def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
-    for i in range(bot.worker_en_route_to_build(UnitTypeId.SUPPLYDEPOT)):
+    for i in range(int(bot.worker_en_route_to_build(UnitTypeId.SUPPLYDEPOT))):
         construction = Construction(
-            time_left=math.ceil(bot.build_times[UnitTypeId.SUPPLYDEPOT]),
+            time_left=math.ceil(bot.information_manager.build_times[UnitTypeId.SUPPLYDEPOT]),
             action=Action.build_house
         )
         constructions.append(construction)
@@ -137,11 +136,11 @@ def translate_state(bot: 'MyBot') -> State:
         incoming_marines=math.floor(bot.already_pending(UnitTypeId.MARINE)),
         population_limit=math.floor(bot.supply_cap),
         bases=bases,
-        barracks_amount=bot.structures(UnitTypeId.BARRACKS).amount,
+        barracks_amount=bot.structures(UnitTypeId.BARRACKS).ready.amount,
         constructions=constructions,
         occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
         current_time=round(bot.time),
-        end_time = bot.time_limit,
+        end_time = math.floor(bot.time)+600,
         # TODO: This assumes the enemy is terran
         enemy_combat_units=bot.enemy_units.filter(lambda u: u.type_id != UnitTypeId.SCV).amount,
         max_bases = 17,

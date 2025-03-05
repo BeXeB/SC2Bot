@@ -7,7 +7,7 @@ from sc2.position import Point2
 import typing
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 
 class WorkerBuilder:
