@@ -157,7 +157,6 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
-
 	}
 
 	return state->getValue();
@@ -324,8 +323,8 @@ void Mcts::performAction(const Action action) {
 			return;
 		}
 	}
-	auto state = _rootNode->getState();
-	auto actions = state->getLegalActions();
+
+	auto actions = _rootNode->getState()->getLegalActions();
 	if (std::ranges::find(actions, action) != actions.end()) {
 		_rootNode->getState()->performAction(action);
 		_mctsMutex.unlock();
