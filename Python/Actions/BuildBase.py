@@ -20,20 +20,20 @@ class BaseBuilder():
 
     async def find_next_base_location(self) -> Optional[Point2]:
         closest = None
-        distance = math.inf
-        for el in self.bot.information_manager.el_list:
-            if (self.bot.information_manager.el_list[el]):
+        min_distance = math.inf
+        for expansion_location in self.bot.information_manager.expansion_locations:
+            if (self.bot.information_manager.expansion_locations[expansion_location]):
                 # already taken
                 continue
 
-            startp = self.bot.game_info.player_start_location
-            d = await self.bot.client.query_pathing(startp, el)
-            if d is None:
+            start_position = self.bot.game_info.player_start_location
+            distance = await self.bot.client.query_pathing(start_position, expansion_location)
+            if distance is None:
                 continue
 
-            if d < distance:
-                distance = d
-                closest = el
+            if distance < min_distance:
+                min_distance = distance
+                closest = expansion_location
 
         return closest
 

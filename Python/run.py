@@ -21,7 +21,7 @@ match = GameMatch(
             mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
             action_selection=ActionSelection.BestAction,
             future_action_queue_length=2,
-            fixed_search_rollouts=5000
+            minimum_search_rollouts=5000
         )), Bot(Race.Terran, PeacefulBot())],
         realtime=False,
         disable_fog=True,
