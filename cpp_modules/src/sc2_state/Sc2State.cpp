@@ -1,6 +1,6 @@
 #include "Sc2State.h"
 
-std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state) {
+std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state, const bool onRollout) {
     auto copyState = std::make_shared<State>(state);
 
     const auto stateConstructions = state.getConstructions();
@@ -16,6 +16,8 @@ std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state) {
 
     copyState->setBiases(state._combatBiases);
     copyState->setEnemyActions(state._enemyActions);
+
+    copyState->_onRollout = onRollout;
 
     return copyState;
 }
@@ -72,7 +74,9 @@ void Sc2::State::advanceEnemyActions() {
             addEnemyUnit();
             break;
         case Action::attackPlayer:
-            attackPlayer();
+            if (_onRollout) {
+                attackPlayer();
+            }
             break;
         default:
             throw std::invalid_argument("invalid action");
@@ -270,6 +274,7 @@ void Sc2::State::buildMarine() {
 
     while (!hasFreeBarracks()) {
         advanceTime();
+        if (_barracksAmount < 1) return;
     }
 
     if (!populationLimitReached()) {
@@ -367,7 +372,6 @@ void Sc2::State::buildHouse() {
         if (initialMineral == _minerals) {
             return;
         }
-
     }
 
     while (!hasUnoccupiedWorker()) {

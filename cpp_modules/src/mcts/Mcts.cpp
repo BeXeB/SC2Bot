@@ -135,7 +135,7 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
-	const auto state = State::DeepCopy(*node->getState());
+	const auto state = State::DeepCopy(*node->getState(), true);
 	while (!state->endTimeReached()) {
 		auto legalActions = state->getLegalActions();
 
@@ -157,7 +157,6 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
-
 	}
 
 	return state->getValue();
@@ -310,15 +309,31 @@ double Mcts::value(const std::shared_ptr<Node> &node) {
 }
 
 
-void Mcts::performAction(Action action) {
+void Mcts::performAction(const Action action) {
+	_mctsRequestsPending = true;
+	_mctsMutex.lock();
+
 	// Check if the action matches any explored nodes
 	for (const auto childAction: _rootNode->children | std::views::keys) {
 		if (childAction == action) {
 			_rootNode = _rootNode->children[action];
 			_rootNode->setParent(nullptr);
+			_mctsMutex.unlock();
+			_mctsRequestsPending = false;
 			return;
 		}
 	}
+
+	auto actions = _rootNode->getState()->getLegalActions();
+	if (std::ranges::find(actions, action) != actions.end()) {
+		_rootNode->getState()->performAction(action);
+		_mctsMutex.unlock();
+		_mctsRequestsPending = false;
+		return;
+	}
+	std::cout << "action not found: " << action << std::endl;
+	_mctsMutex.unlock();
+	_mctsRequestsPending = false;
 }
 
 Action Mcts::getBestAction() {

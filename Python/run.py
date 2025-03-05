@@ -16,10 +16,10 @@ match = GameMatch(
         [Bot(Race.Terran, MyBot(
             mcts_seed=0,
             mcts_rollout_end_time=GAME_LENGTH,
-            mcts_exploration=100,
-            mcts_value_heuristics=ValueHeuristic.UCT,
+            mcts_exploration=0.8,
+            mcts_value_heuristics=ValueHeuristic.EpsilonGreedy,
             mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
-            action_selection=ActionSelection.MultiBestActionMin,
+            action_selection=ActionSelection.BestAction,
             future_action_queue_length=2,
             minimum_search_rollouts=5000
         )), Bot(Race.Terran, PeacefulBot())],

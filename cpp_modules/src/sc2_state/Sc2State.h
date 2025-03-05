@@ -36,6 +36,9 @@ namespace Sc2 {
         int _currentTime = 0;
         bool _hasHouse = false;
 
+        bool _onRollout = false;
+        bool _wasAttacked = false;
+
         struct ActionCost {
             int minerals;
             int vespene;
@@ -96,8 +99,14 @@ namespace Sc2 {
             _hasHouse = true;
         }
 
+        /*
+         *This method is not currently being used, but is kept for future purposes.
+         */
         void destroyPlayerBase() {
             _workerPopulation = _workerPopulation >= 10 ? _workerPopulation - 10 : 0;
+            // _marinePopulation -= _marinePopulation >= 10 ? _marinePopulation - 10 : 0;
+            // _barracksAmount = _barracksAmount <= 0 ? 0 : _barracksAmount - 1;
+
             if (!_bases.empty()) {
                 _bases.pop_back();
                 _populationLimit -= 15;
@@ -166,10 +175,7 @@ namespace Sc2 {
         void addEnemyUnit() { _enemyCombatUnits += 1; }
 
         void attackPlayer() {
-            simulateBattle();
-            if (_marinePopulation == 0 && _enemyCombatUnits > 0) {
-                destroyPlayerBase();
-            }
+            _wasAttacked = true;
         }
 
         void wait();
@@ -207,7 +213,21 @@ namespace Sc2 {
 
         std::vector<Action> getLegalActions() const;
 
-        double getValue() const { return mineralGainedPerTimestep() + 1.5 * vespeneGainedPerTimestep(); }
+
+        double getValue() const {
+            return softmax(std::vector{
+                               static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemyCombatUnits) / 4
+                           }, 0);
+        }
+
+        static double softmax(std::vector<double> vector, const int index) {
+            double sum = 0;
+            for (const auto &value: vector) {
+                sum += std::exp(value);
+            }
+            return std::exp(vector.at(index)) / sum;
+        }
+
         std::vector<int> &getOccupiedWorkerTimers() { return _occupiedWorkerTimers; }
 
 
@@ -215,10 +235,14 @@ namespace Sc2 {
             return _currentTime >= _endTime;
         }
 
+        bool GameOver() {
+            return endTimeReached() || _wasAttacked;
+        }
+
         int getCurrentTime() const { return _currentTime; }
         void resetCurrentTime() { _currentTime = 0; }
 
-        static std::shared_ptr<State> DeepCopy(const State &state);
+        static std::shared_ptr<State> DeepCopy(const State &state, bool onRollout = false);
 
         static std::shared_ptr<State> StateBuilder(const int minerals,
                                                    const int vespene,

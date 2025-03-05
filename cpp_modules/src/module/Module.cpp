@@ -31,8 +31,6 @@ namespace pymodule {
 
 		py::class_<Sc2::State, std::shared_ptr<Sc2::State> >(module, "State") 
 				.def(py::init<>())
-				.def("perform_action", &Sc2::State::performAction,
-					py::arg("action"))
 				.def("to_string", &Sc2::State::toString)
 				.def("get_minerals", &Sc2::State::getMinerals)
 				.def("get_vespene", &Sc2::State::getVespene)

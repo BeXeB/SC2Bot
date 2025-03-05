@@ -143,7 +143,7 @@ namespace Sc2::Mcts {
 		void instantiateActionsAndBiases(const int timeSteps) {
 			// Over the span of 60 seconds we assume that the enemy:
 			// Specifies how many enemy units will be built
-			const double buildUnitAction = 3;
+			const double buildUnitAction = 7;
 			// Specifies how many times the enemy will attack
 			const double attackAction = 0.4;
 			// Specifies how many times the enemy will do nothing
