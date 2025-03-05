@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-import math
 import typing
 from typing import List
 
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
 
-from Modules.worker_manager import WorkerRole
+from Python.Modules.information_manager import WorkerRole
 
 if typing.TYPE_CHECKING:
-    from testbot import MyBot
+    from Python.testbot import MyBot
 
 class BarracksBuilder:
     def __init__(self, bot: 'MyBot'):
@@ -42,8 +41,6 @@ class BarracksBuilder:
             worker = self.bot.worker_manager.select_worker(build_location, WorkerRole.BUILD)
             if not worker:
                 break
-            self.bot.busy_workers.update({worker.tag: self.bot.build_times[UnitTypeId.BARRACKS]})
+            self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[UnitTypeId.BARRACKS]})
             worker.build(UnitTypeId.BARRACKS, build_location)
-            # TODO: Change this so it becomes available if its destroyed
-            self.build_locations.remove(build_location)
             break

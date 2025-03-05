@@ -10,8 +10,7 @@ from sc2_mcts import ValueHeuristic, RolloutHeuristic
 NUMBER_OF_GAMES: int = 1
 GAME_LENGTH: int = 480
 matches: List[GameMatch] = []
-# Bot(Race.Terran, PeacefulBot())]
-# Computer(Race.Terran, Difficulty.Medium, AIBuild.Rush)]
+
 match = GameMatch(
         maps.get("KingsCoveLE"),
         [Bot(Race.Terran, MyBot(
@@ -25,15 +24,15 @@ match = GameMatch(
             fixed_search_rollouts=5000
         )), Bot(Race.Terran, PeacefulBot())],
         realtime=False,
-        random_seed=0,
         disable_fog=True,
+        random_seed=0,
         # game_time_limit=GAME_LENGTH,
     )
 for _ in range(NUMBER_OF_GAMES):
     matches.append(match)
 
 # EXPERIMENTS
-file = open("result.csv", "w")
+file = open("../result.csv", "w")
 file.write("Mcts Seed,"
            "Mcts Rollout Time,"
            "Mcts Exploration,"
