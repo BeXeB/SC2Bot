@@ -99,6 +99,9 @@ namespace Sc2 {
             _hasHouse = true;
         }
 
+        /*
+         *This method is not currently being used, but is kept for future purposes.
+         */
         void destroyPlayerBase() {
             _workerPopulation = _workerPopulation >= 10 ? _workerPopulation - 10 : 0;
             // _marinePopulation -= _marinePopulation >= 10 ? _marinePopulation - 10 : 0;
@@ -173,10 +176,6 @@ namespace Sc2 {
 
         void attackPlayer() {
             _wasAttacked = true;
-            /*simulateBattle();
-            if (_marinePopulation == 0 && _enemyCombatUnits > 0) {
-                destroyPlayerBase();
-            }*/
         }
 
         void wait();
@@ -216,7 +215,6 @@ namespace Sc2 {
 
 
         double getValue() const {
-            // return _marinePopulation;
             return softmax(std::vector{
                                static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemyCombatUnits) / 4
                            }, 0);
