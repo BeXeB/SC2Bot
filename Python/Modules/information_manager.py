@@ -89,12 +89,6 @@ class InformationManager:
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
-        self.worker_data = {}
-        self.townhall_data = {}
-        self.gas_data = {}
-        self.barracks_data = {}
-        self.supply_depot_data = {}
-        self.marine_data = {}
         self.expansion_locations = {el: el.distance_to(self.bot.start_location) < 15
             for el in self.bot.expansion_locations_list}
         self.worker_data = {worker.tag: WorkerData(WorkerRole.IDLE, worker.tag)
