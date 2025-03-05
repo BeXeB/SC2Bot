@@ -35,17 +35,17 @@ class WorkerManager:
             return False
 
         def __try_assign_to_minerals(worker: Unit) -> bool:
-            for th in self.bot.townhalls.filter(lambda t: t.build_progress == 1).sorted(lambda t: t.distance_to(worker)):
-                th_data: TownhallData = self.bot.information_manager.th_data[th.tag]
-                if th_data is None:
+            for townhall in self.bot.townhalls.filter(lambda t: t.build_progress == 1).sorted(lambda t: t.distance_to(worker)):
+                townhall_data: TownhallData = self.bot.information_manager.townhall_data[townhall.tag]
+                if townhall_data is None:
                     continue
-                if th_data.current_harvesters < th.ideal_harvesters:
-                    self.assign_worker(worker.tag, WorkerRole.MINERALS, th.tag)
-                    fields = self.bot.mineral_field.closer_than(10, th)
+                if townhall_data.current_harvesters < townhall.ideal_harvesters:
+                    self.assign_worker(worker.tag, WorkerRole.MINERALS, townhall.tag)
+                    fields = self.bot.mineral_field.closer_than(10, townhall)
                     if fields.amount > 0:
-                        mf = fields.random
-                        if mf is not None:
-                            worker(AbilityId.SMART, mf, queue=True)
+                        mineral_field = fields.random
+                        if mineral_field is not None:
+                            worker(AbilityId.SMART, mineral_field, queue=True)
                         else:
                             self.assign_worker(worker.tag, WorkerRole.IDLE, None)
                         return True
@@ -96,7 +96,7 @@ class WorkerManager:
         __reallocate_workers(self.bot.gas_buildings.filter(lambda g: g.build_progress == 1), self.bot.information_manager.gas_data)
 
         # If there are too many workers assigned to a base, try to reallocate them
-        __reallocate_workers(self.bot.townhalls.filter(lambda t: t.build_progress == 1), self.bot.information_manager.th_data)
+        __reallocate_workers(self.bot.townhalls.filter(lambda t: t.build_progress == 1), self.bot.information_manager.townhall_data)
 
     # This method makes workers mine minerals faster
     def speed_mine(self) -> None:
@@ -114,32 +114,32 @@ class WorkerManager:
         data: WorkerData = self.bot.information_manager.worker_data[worker.tag]
         if data.assigned_to_tag is None:
             return
-        th: Unit = self.bot.townhalls.by_tag(data.assigned_to_tag)
-        if not th:
+        townhall: Unit = self.bot.townhalls.by_tag(data.assigned_to_tag)
+        if not townhall:
             return
 
         if len(worker.orders) == 0:
-            mf: Unit = self.bot.mineral_field.closer_than(10, th).random
-            if not self.mineral_targets.__contains__(mf.tag):
-                self.mineral_targets.update({mf.tag: mf.position.towards(th, MINING_RADIUS)})
-            target: Point2 = self.mineral_targets[mf.tag]
+            mineral_field: Unit = self.bot.mineral_field.closer_than(10, townhall).random
+            if not self.mineral_targets.__contains__(mineral_field.tag):
+                self.mineral_targets.update({mineral_field.tag: mineral_field.position.towards(townhall, MINING_RADIUS)})
+            target: Point2 = self.mineral_targets[mineral_field.tag]
             worker.move(target)
-            worker(AbilityId.SMART, mf, queue=True)
+            worker(AbilityId.SMART, mineral_field, queue=True)
             return
 
         if worker.is_returning and len(worker.orders) == 1:
-            target: Point2 = th.position.towards(worker.position, th.radius + worker.radius)
-            __move_worker_to_target(worker, th, target)
+            target: Point2 = townhall.position.towards(worker.position, townhall.radius + worker.radius)
+            __move_worker_to_target(worker, townhall, target)
 
         if not worker.is_returning and len(worker.orders) == 1 and isinstance(worker.order_target, int):
             target = worker.order_target
             if self.bot.mineral_field.__contains__(target):
-                mf: Unit = self.bot.mineral_field.by_tag(worker.order_target)
-                if mf is not None and mf.is_mineral_field:
-                    if not self.mineral_targets.__contains__(mf.tag):
-                        self.mineral_targets.update({mf.tag: mf.position.towards(th, MINING_RADIUS)})
-                    target = self.mineral_targets[mf.tag]
-                    __move_worker_to_target(worker, mf, target)
+                mineral_field: Unit = self.bot.mineral_field.by_tag(worker.order_target)
+                if mineral_field is not None and mineral_field.is_mineral_field:
+                    if not self.mineral_targets.__contains__(mineral_field.tag):
+                        self.mineral_targets.update({mineral_field.tag: mineral_field.position.towards(townhall, MINING_RADIUS)})
+                    target = self.mineral_targets[mineral_field.tag]
+                    __move_worker_to_target(worker, mineral_field, target)
 
     # This method selects all the workers that should be mining minerals
     def __find_mineral_workers(self) -> Units:
@@ -155,13 +155,13 @@ class WorkerManager:
         # remove worker from previous assignment
         if self.bot.information_manager.worker_data[worker_tag].assigned_to_tag is not None:
             old_assigned_to_tag = self.bot.information_manager.worker_data[worker_tag].assigned_to_tag
-            if old_assigned_to_tag in self.bot.information_manager.th_data:
-                self.bot.information_manager.th_data[old_assigned_to_tag].current_harvesters -= 1
+            if old_assigned_to_tag in self.bot.information_manager.townhall_data:
+                self.bot.information_manager.townhall_data[old_assigned_to_tag].current_harvesters -= 1
             if old_assigned_to_tag in self.bot.information_manager.gas_data:
                 self.bot.information_manager.gas_data[old_assigned_to_tag].current_harvesters -= 1
         if assigned_to_tag is not None:
-            if assigned_to_tag in self.bot.information_manager.th_data:
-                self.bot.information_manager.th_data[assigned_to_tag].current_harvesters += 1
+            if assigned_to_tag in self.bot.information_manager.townhall_data:
+                self.bot.information_manager.townhall_data[assigned_to_tag].current_harvesters += 1
             if assigned_to_tag in self.bot.information_manager.gas_data:
                 self.bot.information_manager.gas_data[assigned_to_tag].current_harvesters += 1
         self.bot.information_manager.worker_data[worker_tag].assign_to(assigned_to_tag, role)

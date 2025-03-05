@@ -4,39 +4,35 @@ from enum import Enum
 
 from sc2.data import Result
 from sc2.position import Point3, Point2
-
-from Actions.build_barracks import BarracksBuilder
-from Actions.build_marine import MarineBuilder
-from sc2_mcts import *
-
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 
-from Actions.build_worker import WorkerBuilder
-from Modules.state_translator import translate_state
-from Modules.result_saver import save_result
-
+from sc2_mcts import *
+from Actions.build_barracks import BarracksBuilder
+from Actions.build_marine import MarineBuilder
 from Actions.BuildBase import BaseBuilder
 from Actions.VespeneExtractor import VespeneBuilder
 from Actions.build_supply import SupplyBuilder
-
+from Actions.build_worker import WorkerBuilder
+from Modules.state_translator import translate_state
+from Modules.result_saver import save_result
 from Modules.worker_manager import WorkerManager
 from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, InformationManager, \
     SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData
 
-
 class ActionSelection(Enum):
     BestAction = 0
-    MultiBestAction = 1
-    MultiBestActionMin = 1
+    BestActionMin = 1
+    MultiBestAction = 2
+    MultiBestActionMin = 3
 
-# TODO: Dont build bases at base locations with no minerals
-# TODO: Refactor the worker manager
-# TODO: Save replay option
+# TODO: Fix vespene extractor location finding, somehow we run out of locations with a lot of them being available
+# TODO: Fix the worker selection, sometimes workers that are already on the way to build something are selected
 # TODO: Better build supply
 # TODO: Better build barracks
+# TODO: Save replay option
 
 class MyBot(BotAI):
     information_manager: InformationManager
@@ -62,7 +58,7 @@ class MyBot(BotAI):
                  time_limit: int = 600,
                  action_selection: ActionSelection = ActionSelection.BestAction,
                  future_action_queue_length: int = 1,
-                 fixed_search_rollouts: int = 5000) -> None:
+                 minimum_search_rollouts: int = 5000) -> None:
         self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics)
         self.mcts_settings = [
             mcts_seed,
@@ -73,7 +69,7 @@ class MyBot(BotAI):
         ]
         self.time_limit = time_limit
         self.action_selection = action_selection
-        self.fixed_search_rollouts = fixed_search_rollouts
+        self.fixed_search_rollouts = minimum_search_rollouts
         self.next_action: Action = Action.none
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
@@ -123,6 +119,8 @@ class MyBot(BotAI):
                 match self.action_selection:
                     case ActionSelection.BestAction:
                         self.get_best_action()
+                    case ActionSelection.BestActionMin:
+                        self.get_best_action_min()
                     case ActionSelection.MultiBestAction:
                         self.get_multi_best_action()
                     case ActionSelection.MultiBestActionMin:
@@ -141,10 +139,10 @@ class MyBot(BotAI):
             self.client.debug_sphere_out(Point3((sloc.x, sloc.y, height)), 1, (0, 0, 255))
             self.client.debug_text_3d("S", Point3((sloc.x, sloc.y, height)), (255, 255, 255))
 
-        thlocs = self.information_manager.el_list
+        thlocs = self.information_manager.expansion_locations
         for thloc in thlocs:
             height = self.get_terrain_z_height(thloc) + 0.1
-            color = (255, 0, 0) if self.information_manager.el_list[thloc] else (0, 255, 0)
+            color = (255, 0, 0) if self.information_manager.expansion_locations[thloc] else (0, 255, 0)
             self.client.debug_sphere_out(Point3((thloc.x, thloc.y, height)), 2.5, color)
 
     async def build_barracks(self) -> None:
@@ -173,7 +171,7 @@ class MyBot(BotAI):
         if not self.can_afford(UnitTypeId.COMMANDCENTER):
             return
         self.base_worker.build(UnitTypeId.COMMANDCENTER, self.new_base_location, queue=True)
-        self.information_manager.el_list[self.new_base_location] = True
+        self.information_manager.expansion_locations[self.new_base_location] = True
         self.busy_workers.update({self.base_worker.tag: self.information_manager.build_times[UnitTypeId.COMMANDCENTER]})
         self.new_base_location = None
         self.base_worker = None
@@ -187,12 +185,12 @@ class MyBot(BotAI):
             self.set_next_action()
             print("Unable to find free vespene location")
             return
-        th = available_ths.first
-        if th.tag not in self.information_manager.completed_bases and th.is_ready:
+        townhall = available_ths.first
+        if townhall.tag not in self.information_manager.completed_bases and townhall.is_ready:
             await self.vespene_builder.build_vespene_extractor(self.townhalls.random.position)
-            if len(self.vespene_geyser.closer_than(10, th.position)) == len(
-                    self.gas_buildings.closer_than(10, th.position)) + 1:
-                self.information_manager.completed_bases.add(th.tag)
+            if len(self.vespene_geyser.closer_than(10, townhall.position)) == len(
+                    self.gas_buildings.closer_than(10, townhall.position)) + 1:
+                self.information_manager.completed_bases.add(townhall.tag)
         self.set_next_action()
 
     async def build_worker(self) -> None:
@@ -218,7 +216,7 @@ class MyBot(BotAI):
     async def on_building_construction_complete(self, unit: Unit) -> None:
         match unit.type_id:
             case UnitTypeId.COMMANDCENTER:
-                self.information_manager.th_data.update({unit.tag: TownhallData(unit.position, unit.tag)})
+                self.information_manager.townhall_data.update({unit.tag: TownhallData(unit.position, unit.tag)})
             case UnitTypeId.REFINERY:
                 self.information_manager.gas_data.update({unit.tag: GasBuildingData(unit.position, unit.tag)})
             case UnitTypeId.SUPPLYDEPOT:
@@ -250,6 +248,11 @@ class MyBot(BotAI):
         state = translate_state(self)
         self.mcts.update_root_state(state)
         self.mcts.perform_action(action)
+
+    def get_best_action_min(self) -> None:
+        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
+            return
+        self.get_best_action()
 
     def get_multi_best_action(self) -> None:
         if not self.future_action_queue.empty():
