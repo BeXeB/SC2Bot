@@ -62,14 +62,10 @@ void Sc2::State::advanceOccupiedWorkers() {
     }
 }
 
-void Sc2::State::advanceEnemyActions() {
-    const auto action = _enemyActions->find(_currentTime);
+void Sc2::State::advanceEnemyAction() {
+    const auto action = generateEnemyAction();
 
-    if (action == _enemyActions->end()) {
-        return;
-    }
-
-    switch (action->second) {
+    switch (action) {
         case Action::addEnemyUnit:
             addEnemyUnit();
             break;
@@ -78,6 +74,8 @@ void Sc2::State::advanceEnemyActions() {
                 attackPlayer();
             }
             break;
+        case Action::none:
+            return;
         default:
             throw std::invalid_argument("invalid action");
     }
@@ -88,7 +86,7 @@ void Sc2::State::advanceTime() {
     advanceResources();
     advanceOccupiedWorkers();
     advanceConstructions();
-    advanceEnemyActions();
+    advanceEnemyAction();
 }
 
 void Sc2::State::wait() {

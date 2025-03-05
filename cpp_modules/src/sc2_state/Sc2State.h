@@ -60,7 +60,7 @@ namespace Sc2 {
         void advanceConstructions();
         void advanceResources();
         void advanceOccupiedWorkers();
-        void advanceEnemyActions();
+        void advanceEnemyAction();
         void advanceTime();
 
         bool hasEnoughMinerals(const int cost) const { return _minerals >= cost; };
@@ -241,6 +241,30 @@ namespace Sc2 {
 
         int getCurrentTime() const { return _currentTime; }
         void resetCurrentTime() { _currentTime = 0; }
+
+        Action generateEnemyAction(){
+            // Over the span of 60 seconds we assume that the enemy:
+            // Specifies how many enemy units will be built
+            constexpr double buildUnitAction = 7;
+            // Specifies how many times the enemy will attack
+            constexpr double attackAction = 0.4;
+            // Specifies how many times the enemy will do nothing
+            constexpr double noneAction = 60 - buildUnitAction - attackAction;
+
+            const auto actionWeights = {noneAction, buildUnitAction, attackAction};
+            std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
+            // 0: None, 1: Build unit, 2: Attack
+            auto testDist = dist(_rng);
+            switch (testDist) {
+                case 1:
+                    return Action::addEnemyUnit;
+                case 2:
+                    return Action::attackPlayer;
+                default:
+                    return Action::none;
+            }
+        }
+
 
         static std::shared_ptr<State> DeepCopy(const State &state, bool onRollout = false);
 

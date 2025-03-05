@@ -136,7 +136,7 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState(), true);
-	while (!state->endTimeReached()) {
+	while (!state->GameOver()) {
 		auto legalActions = state->getLegalActions();
 
 		if (legalActions[0] == Action::none) {
