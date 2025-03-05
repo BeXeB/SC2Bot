@@ -343,59 +343,59 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 	std::vector<BenchmarkResult> results;
 	BenchmarkResult result = {};
 
-	// // ------ UCT ------
-	// //----- Random ------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = sqrt(2),
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.4,
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.8,
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 2,
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
+	// ------ UCT ------
+	//----- Random ------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = sqrt(2),
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.4,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.8,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 2,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
 
 	// ------ UCT ------
 	//----- weighted ------
@@ -408,7 +408,6 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = sqrt(2),
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-		.shouldPrintActions = true,
 
 	});
 	results.push_back(result);
@@ -451,101 +450,101 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 
 	});
 	results.push_back(result);
-	//
-	// // ------ UCB normal --------
-	// //--------- Random ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 1,
-	// 	.valueHeuristic = ValueHeuristic::UCB1Normal,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
-	//
-	// // ------ UCB1 normal --------
-	// //--------- weighted choice ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 1,
-	// 	.valueHeuristic = ValueHeuristic::UCB1Normal,
-	// 	.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	// });
-	// results.push_back(result);
-	//
-	// // ------ UCB1 normal2 --------
-	// //--------- Random ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 1,
-	// 	.valueHeuristic = ValueHeuristic::UCB1Normal2,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// });
-	// results.push_back(result);
-	//
-	// // ------ UCB1 normal2 --------
-	// //--------- weighted choice ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 1,
-	// 	.valueHeuristic = ValueHeuristic::UCB1Normal2,
-	// 	.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	// });
-	// results.push_back(result);
-	//
-	// // ------ Epsilon greedy --------
-	// //--------- Random ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.2,
-	// 	.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.5,
-	// 	.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.8,
-	// 	.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// });
-	// results.push_back(result);
+
+	// ------ UCB normal --------
+	//--------- Random ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 1,
+		.valueHeuristic = ValueHeuristic::UCB1Normal,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+
+	});
+	results.push_back(result);
+
+	// ------ UCB1 normal --------
+	//--------- weighted choice ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 1,
+		.valueHeuristic = ValueHeuristic::UCB1Normal,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	// ------ UCB1 normal2 --------
+	//--------- Random ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 1,
+		.valueHeuristic = ValueHeuristic::UCB1Normal2,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+	});
+	results.push_back(result);
+
+	// ------ UCB1 normal2 --------
+	//--------- weighted choice ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 1,
+		.valueHeuristic = ValueHeuristic::UCB1Normal2,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	});
+	results.push_back(result);
+
+	// ------ Epsilon greedy --------
+	//--------- Random ----------
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.2,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.5,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+	});
+	results.push_back(result);
+
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = 0.8,
+		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
+		.rolloutHeuristic = RolloutHeuristic::Random,
+	});
+	results.push_back(result);
 
 	// ------ Epsilon greedy --------
 	//--------- Weighted choice ----------
@@ -558,7 +557,6 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.2,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-		.shouldPrintActions = true,
 	});
 	results.push_back(result);
 
@@ -572,7 +570,6 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.5,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-		.shouldPrintActions = true,
 	});
 	results.push_back(result);
 
@@ -594,12 +591,12 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed, const int endTime) {
 	std::vector<BenchmarkResult> allResults;
 	int index = 0;
-	std::vector<BenchmarkResult> results; // = BenchmarkSuite(seed, 500, endTime, index);
-	// allResults.insert(allResults.end(), results.begin(), results.end());
+	std::vector<BenchmarkResult> results = BenchmarkSuite(seed, 500, endTime, index);
+	allResults.insert(allResults.end(), results.begin(), results.end());
 
-	// index += 18;
-	// results = BenchmarkSuite(seed, 1000, endTime, index);
-	// allResults.insert(allResults.end(), results.begin(), results.end());
+	index += 18;
+	results = BenchmarkSuite(seed, 1000, endTime, index);
+	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 18;
 	results = BenchmarkSuite(seed, 2000, endTime, index);
