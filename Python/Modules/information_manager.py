@@ -123,48 +123,65 @@ class InformationManager:
 
     async def remove_unit_by_tag(self, tag: int) -> None:
         if tag in self.worker_data:
-            # remove assigned worker from assigned structure
-            if self.worker_data[tag].assigned_to_tag is not None:
-                if self.worker_data[tag].role == WorkerRole.MINERALS:
-                    self.th_data[self.worker_data[tag].assigned_to_tag].current_harvesters -= 1
-                elif self.worker_data[tag].role == WorkerRole.GAS:
-                    self.gas_data[self.worker_data[tag].assigned_to_tag].current_harvesters -= 1
-            if self.bot.base_worker and self.bot.base_worker.tag == tag:
-                self.el_list[self.bot.new_base_location] = False
-                self.bot.base_worker = None
-                self.bot.new_base_location = None
-            worker = self.bot._units_previous_map[tag]
-            for order in worker.orders:
-                if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
-                    self.el_list[order.target] = False
-                    # TODO: If it was working on the base, cancel it if it still exists
-            self.worker_data.pop(tag)
+            self.handle_worker_destroyed(tag)
         elif tag in self.th_data:
-            # remove all assigned workers from the townhall, make location available
-            for worker in self.worker_data.values():
-                if worker.assigned_to_tag == tag:
-                    worker.assigned_to_tag = None
-                    worker.role = WorkerRole.IDLE
-            self.el_list[self.th_data[tag].position] = False
-            if tag in self.completed_bases:
-                self.completed_bases.remove(tag)
-            if tag in self.th_data:
-                self.th_data.pop(tag)
+            self.handle_townhall_destroyed(tag)
         elif tag in self.gas_data:
-            # remove all assigned workers from the gas geyser, make location available
-            for worker in self.worker_data.values():
-                if worker.assigned_to_tag == tag:
-                    worker.assigned_to_tag = None
-                    worker.role = WorkerRole.IDLE
-            # the tag of the closest townhall
-            position = self.gas_data[tag].position
-            closest_th_tag = min(self.th_data, key=lambda th: position.distance_to(self.th_data[th].position))
-            if position.distance_to(self.th_data[closest_th_tag].position) < 15:
-                self.completed_bases.remove(closest_th_tag)
-            self.gas_data.pop(tag)
+            self.handle_gas_destroyed(tag)
         elif tag in self.barracks_data:
-            self.barracks_data.pop(tag)
+            self.handle_barracks_destroyed(tag)
         elif tag in self.supply_depot_data:
-            self.supply_depot_data.pop(tag)
+            self.handle_supply_depot_destroyed(tag)
         elif tag in self.marine_data:
-            self.marine_data.pop(tag)
+            self.handle_marine_destroyed(tag)
+
+    def handle_worker_destroyed(self, tag: int) -> None:
+        # remove assigned worker from assigned structure
+        if self.worker_data[tag].assigned_to_tag is not None:
+            if self.worker_data[tag].role == WorkerRole.MINERALS:
+                self.th_data[self.worker_data[tag].assigned_to_tag].current_harvesters -= 1
+            elif self.worker_data[tag].role == WorkerRole.GAS:
+                self.gas_data[self.worker_data[tag].assigned_to_tag].current_harvesters -= 1
+        # if the worker was on the way to build a base, make the location available
+        if self.bot.base_worker and self.bot.base_worker.tag == tag:
+            self.el_list[self.bot.new_base_location] = False
+            self.bot.base_worker = None
+            self.bot.new_base_location = None
+        # if the worker was building a base, make the location available
+        worker = self.bot._units_previous_map[tag]
+        for order in worker.orders:
+            if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
+                self.el_list[order.target] = False
+        self.worker_data.pop(tag)
+
+    def handle_townhall_destroyed(self, tag: int) -> None:
+        # remove all assigned workers from the townhall, make location available
+        for worker in self.worker_data.values():
+            if worker.assigned_to_tag == tag:
+                self.bot.worker_manager.assign_worker(worker.tag, WorkerRole.IDLE, None)
+        self.el_list[self.th_data[tag].position] = False
+        if tag in self.completed_bases:
+            self.completed_bases.remove(tag)
+        self.th_data.pop(tag)
+
+    def handle_gas_destroyed(self, tag: int) -> None:
+        # remove all assigned workers from the gas geyser, make location available
+        for worker in self.worker_data.values():
+            if worker.assigned_to_tag == tag:
+                self.bot.worker_manager.assign_worker(worker.tag, WorkerRole.IDLE, None)
+        # the tag of the closest townhall
+        position = self.gas_data[tag].position
+        closest_th_tag = min(self.th_data, key=lambda th: position.distance_to(self.th_data[th].position))
+        # if the townhall is close enough, remove the base from the completed bases
+        if position.distance_to(self.th_data[closest_th_tag].position) < 15:
+            self.completed_bases.remove(closest_th_tag)
+        self.gas_data.pop(tag)
+
+    def handle_barracks_destroyed(self, tag: int) -> None:
+        self.barracks_data.pop(tag)
+
+    def handle_supply_depot_destroyed(self, tag: int) -> None:
+        self.supply_depot_data.pop(tag)
+
+    def handle_marine_destroyed(self, tag: int) -> None:
+        self.marine_data.pop(tag)
