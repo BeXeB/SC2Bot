@@ -10,15 +10,16 @@ from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 
 from sc2_mcts import *
-from Actions.build_barracks import BarracksBuilder
-from Actions.build_marine import MarineBuilder
-from Actions.BuildBase import BaseBuilder
-from Actions.VespeneExtractor import VespeneBuilder
-from Actions.build_supply import SupplyBuilder
-from Actions.build_worker import WorkerBuilder
-from Modules.state_translator import translate_state
-from Modules.result_saver import save_result
-from Modules.worker_manager import WorkerManager
+from Python.Actions.build_barracks import BarracksBuilder
+from Python.Actions.build_marine import MarineBuilder
+from Python.Actions.BuildBase import BaseBuilder
+from Python.Actions.VespeneExtractor import VespeneBuilder
+from Python.Actions.build_supply import SupplyBuilder
+from Python.Actions.build_worker import WorkerBuilder
+from Python.Modules.state_translator import translate_state
+from Python.Modules.result_saver import save_result
+from Python.Modules.worker_manager import WorkerManager
+from Python.Modules.army_manager import ArmyManager
 from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, InformationManager, \
     SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData
 
@@ -43,6 +44,7 @@ class MyBot(BotAI):
     worker_builder: WorkerBuilder
     barracks_builder: BarracksBuilder
     marine_builder: MarineBuilder
+    army_manager: ArmyManager
     new_base_location = None
     base_worker = None
     busy_workers: dict[int, float] = {}
@@ -82,10 +84,12 @@ class MyBot(BotAI):
         self.worker_builder = WorkerBuilder(self)
         self.barracks_builder = BarracksBuilder(self)
         self.marine_builder = MarineBuilder(self)
+        self.army_manager = ArmyManager(self)
         self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
+            await self.client.debug_show_map()
             for worker in self.workers:
                 worker(AbilityId.STOP_STOP)
             for townhall in self.townhalls:
@@ -95,6 +99,7 @@ class MyBot(BotAI):
 
         self.update_busy_workers()
         self.manage_workers()
+        self.army_manager.manage_army()
 
         match self.next_action:
             case Action.build_base:

@@ -11,6 +11,7 @@ NUMBER_OF_GAMES: int = 1
 GAME_LENGTH: int = 480
 matches: List[GameMatch] = []
 
+# Bot(Race.Terran, PeacefulBot())
 match = GameMatch(
         maps.get("KingsCoveLE"),
         [Bot(Race.Terran, MyBot(
@@ -22,7 +23,7 @@ match = GameMatch(
             action_selection=ActionSelection.MultiBestActionMin,
             future_action_queue_length=2,
             minimum_search_rollouts=5000
-        )), Bot(Race.Terran, PeacefulBot())],
+        )), Computer(race=Race.Terran, difficulty=Difficulty.Medium)],
         realtime=False,
         disable_fog=True,
         random_seed=0,
