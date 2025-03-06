@@ -153,6 +153,8 @@ class WorkerManager:
     # This method assigns a role to a worker
     def assign_worker(self, worker_tag: int, role: WorkerRole, assigned_to_tag: Optional[int]) -> None:
         # remove worker from previous assignment
+        if not worker_tag in self.bot.information_manager.worker_data:
+            return
         if self.bot.information_manager.worker_data[worker_tag].assigned_to_tag is not None:
             old_assigned_to_tag = self.bot.information_manager.worker_data[worker_tag].assigned_to_tag
             if old_assigned_to_tag in self.bot.information_manager.townhall_data:
@@ -182,8 +184,8 @@ class WorkerManager:
 
         for worker in self.bot.workers:
             data: WorkerData = self.bot.information_manager.worker_data[worker.tag]
-            additional_weight: float = 2 if worker.is_carrying_resource else 99 if worker.is_constructing_scv or (data.role == WorkerRole.BUILD and not worker.is_idle) else 1
-            weighted_distance: float = worker.distance_to(location) * role_weights[data.role] * additional_weight
+            additional_weight: int = 9999 if data.role == WorkerRole.BUILD else 1
+            weighted_distance: float = worker.distance_to(location) * role_weights[data.role] + additional_weight
             if weighted_distance < closest_distance:
                 closest_worker = worker
                 closest_distance = weighted_distance

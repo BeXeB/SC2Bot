@@ -260,9 +260,14 @@ class MyBot(BotAI):
             return
         print(self.mcts.get_number_of_rollouts())
         action = self.mcts.get_best_action()
+        if action == Action.build_base:
+            print("asd")
+            print(self.mcts.get_root_node().to_string())
         self.mcts.perform_action(action)
         for i in range(self.future_action_queue.maxsize):
             a = self.mcts.get_best_action()
+            if action == Action.build_base:
+                print(self.mcts.get_root_node().to_string())
             self.mcts.perform_action(a)
             self.future_action_queue.put(a)
         state = translate_state(self)
@@ -282,8 +287,8 @@ class MyBot(BotAI):
 
     def set_next_action(self, action: Action = Action.none):
         self.next_action = action
-        if action is not Action.none:
-            print(action)
+        # if action is not Action.none:
+            # print(action)
 
     # Update the busy workers for the state translator
     def update_busy_workers(self) -> None:
@@ -304,10 +309,13 @@ class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
         # if iteration == 0:
         #     await self.client.debug_create_unit([[UnitTypeId.MARINE, 10, Point2((self.enemy_start_locations[0].x+10, self.enemy_start_locations[0].y+10)), 2]])
-        if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_left < 5:
-            await self.build(UnitTypeId.SUPPLYDEPOT, near=self.townhalls.random)
-        if self.can_afford(UnitTypeId.BARRACKS) and self.structures(UnitTypeId.BARRACKS).amount < 3:
-            await self.build(UnitTypeId.BARRACKS, near=self.townhalls.random)
-        if self.can_afford(UnitTypeId.MARINE):
-            self.train(UnitTypeId.MARINE)
-        await self.distribute_workers()
+        try:
+            if self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.supply_left < 5:
+                await self.build(UnitTypeId.SUPPLYDEPOT, near=self.townhalls.random)
+            if self.can_afford(UnitTypeId.BARRACKS) and self.structures(UnitTypeId.BARRACKS).amount < 3:
+                await self.build(UnitTypeId.BARRACKS, near=self.townhalls.random)
+            if self.can_afford(UnitTypeId.MARINE):
+                self.train(UnitTypeId.MARINE)
+            await self.distribute_workers()
+        except:
+            return

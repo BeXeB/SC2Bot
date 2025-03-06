@@ -139,11 +139,12 @@ def translate_state(bot: 'MyBot') -> State:
         barracks_amount=bot.structures(UnitTypeId.BARRACKS).ready.amount,
         constructions=constructions,
         occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
-        current_time=round(bot.time),
-        end_time = math.floor(bot.time)+600,
+        current_time=math.floor(bot.time),
+        end_time = math.floor(bot.time)+bot.time_limit,
         # TODO: This assumes the enemy is terran
         enemy_combat_units=bot.enemy_units.filter(lambda u: u.type_id != UnitTypeId.SCV).amount,
         max_bases = 17,
-        has_house = bot.structures(UnitTypeId.SUPPLYDEPOT).filter(lambda s: s.build_progress >= 1).amount > 0
+        has_house = bot.tech_requirement_progress(UnitTypeId.BARRACKS) >= 1,
     )
+    # print(state.to_string())
     return state

@@ -19,7 +19,7 @@ match = GameMatch(
             mcts_exploration=0.8,
             mcts_value_heuristics=ValueHeuristic.EpsilonGreedy,
             mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
-            action_selection=ActionSelection.BestAction,
+            action_selection=ActionSelection.MultiBestActionMin,
             future_action_queue_length=2,
             minimum_search_rollouts=5000
         )), Bot(Race.Terran, PeacefulBot())],
