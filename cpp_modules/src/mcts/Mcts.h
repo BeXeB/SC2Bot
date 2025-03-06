@@ -120,13 +120,15 @@ namespace Sc2::Mcts {
 		                     const int currentTime,
 		                     const int endTime,
 		                     const int enemyCombatUnits,
-		                     bool hasHouse) {
+		                     const bool incomingHouse,
+		                     const int incomingBases,
+		                     const bool hasHouse) {
 			std::uniform_int_distribution<unsigned int> dist;
 			const auto state = State::InternalStateBuilder(minerals, vespene, workerPopulation, marinePopulation,
 			                                               incomingWorkers, incomingMarines, populationLimit,
 			                                               bases, barracksAmount, constructions, occupiedWorkerTimers,
 			                                               currentTime, endTime, enemyCombatUnits, dist(_rng), hasHouse,
-			                                               _enemyActions, _combatBiases, 12);
+			                                               _enemyActions, _combatBiases, incomingHouse, incomingBases, 12);
 
 			updateRootState(state);
 		}

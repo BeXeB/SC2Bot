@@ -284,14 +284,16 @@ namespace Sc2 {
                                                    const std::vector<int> &occupiedWorkerTimers,
                                                    const int current_time,
                                                    const int endTime, const int enemyCombatUnits,
-                                                   const bool hasHouse,
+                                                   const bool hasHouse, const bool incomingHouse,
+                                                   const int incomingBases = 0,
                                                    const int maxBases = 17) {
             const unsigned int seed = std::random_device{}();
             return InternalStateBuilder(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
                                         incomingMarines,
                                         populationLimit, bases, barracksAmount, constructions, occupiedWorkerTimers,
                                         current_time,
-                                        endTime, enemyCombatUnits, seed, hasHouse, nullptr, nullptr, maxBases);
+                                        endTime, enemyCombatUnits, seed, hasHouse, nullptr, nullptr,
+                                        incomingHouse, incomingBases, maxBases);
         }
 
         /*
@@ -314,13 +316,14 @@ namespace Sc2 {
                                                            bool hasHouse,
                                                            const std::shared_ptr<std::map<int, Action> > &enemyActions,
                                                            const std::shared_ptr<std::map<int, std::tuple<double,
-                                                               double> > > &combatBiases,
+                                                           double> > > &combatBiases, const bool incomingHouse,
+                                                           const int incomingBases,
                                                            int maxBases) {
             auto state = std::make_shared<State>(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
                                                  incomingMarines, populationLimit,
                                                  bases, barracksAmount, occupiedWorkerTimers, current_time, endTime,
                                                  enemyCombatUnits, seed, hasHouse, enemyActions, combatBiases,
-                                                 maxBases);
+                                                 incomingHouse, incomingBases, maxBases);
 
             for (auto &construction: constructions) {
                 construction.setState(state);
@@ -335,8 +338,8 @@ namespace Sc2 {
               const int barracksAmount, std::vector<int> occupiedWorkerTimers, const int currentTime, const int endTime,
               const int enemyCombatUnits, const unsigned int seed, const bool hasHouse,
               const std::shared_ptr<std::map<int, Action> > &enemyActions,
-              const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases,
-              const int maxBases = 17): _minerals(minerals),
+              const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases, const bool incomingHouse,
+              const int incomingBases = 0, const int maxBases = 17): _minerals(minerals),
                                         _vespene(vespene),
                                         _workerPopulation(workerPopulation),
                                         _marinePopulation(marinePopulation),
@@ -352,7 +355,9 @@ namespace Sc2 {
                                         _enemyCombatUnits(enemyCombatUnits),
                                         _endTime(endTime),
                                         _currentTime(currentTime),
-                                        _hasHouse(hasHouse) {
+                                        _hasHouse(hasHouse),
+                                        _incomingHouse(incomingHouse),
+                                        _incomingBases(incomingBases){
             _rng = std::mt19937(seed);
             _enemyActions = enemyActions;
             _combatBiases = combatBiases;
@@ -386,6 +391,9 @@ namespace Sc2 {
 
             _combatBiases = state._combatBiases;
             _enemyActions = state._enemyActions;
+
+            _incomingHouse = state._incomingHouse;
+            _incomingBases = state._incomingBases;
         };
 
         explicit State(const int endTime, const unsigned int seed,
