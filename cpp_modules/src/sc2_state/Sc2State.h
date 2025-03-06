@@ -12,9 +12,9 @@
 
 namespace Sc2 {
     class State : public std::enable_shared_from_this<State> {
-        int _minerals = 0;
+        int _minerals = 50;
         int _vespene = 0;
-        int _workerPopulation = 5;
+        int _workerPopulation = 12;
         int _marinePopulation = 0;
         int _incomingWorkers = 0;
         int _incomingMarines = 0;
@@ -38,6 +38,8 @@ namespace Sc2 {
 
         bool _onRollout = false;
         bool _wasAttacked = false;
+        bool _incomingHouse = false;
+        int _incomingBases = 0;
 
         struct ActionCost {
             int minerals;
@@ -75,6 +77,7 @@ namespace Sc2 {
 
         void addBase() {
             _populationLimit += 15;
+            _incomingBases--;
             _populationLimit = _populationLimit >= MAX_POPULATION_LIMIT ? MAX_POPULATION_LIMIT : _populationLimit;
             _bases.emplace_back();
         }
@@ -175,9 +178,6 @@ namespace Sc2 {
         void addEnemyUnit() { _enemyCombatUnits += 1; }
 
         void attackPlayer() {
-            if (_currentTime < 150) {
-                return;
-            }
             _wasAttacked = true;
         }
 
@@ -245,10 +245,10 @@ namespace Sc2 {
         int getCurrentTime() const { return _currentTime; }
         void resetCurrentTime() { _currentTime = 0; }
 
-        Action generateEnemyAction(){
+        Action generateEnemyAction() {
             // Over the span of 60 seconds we assume that the enemy:
             // Specifies how many enemy units will be built
-            constexpr double buildUnitAction = 7;
+            constexpr double buildUnitAction = 8;
             // Specifies how many times the enemy will attack
             constexpr double attackAction = 0.4;
             // Specifies how many times the enemy will do nothing

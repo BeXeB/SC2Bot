@@ -67,9 +67,15 @@ void Sc2::State::advanceEnemyAction() {
 
     switch (action) {
         case Action::addEnemyUnit:
+            if (_currentTime < 90) {
+                break;
+            }
             addEnemyUnit();
             break;
         case Action::attackPlayer:
+            if (_currentTime < 140) {
+                break;
+            }
             if (_onRollout) {
                 attackPlayer();
             }
@@ -189,7 +195,7 @@ std::vector<Action> Sc2::State::getLegalActions() const {
     std::vector<Action> actions = {};
     const auto hasWorkers = _workerPopulation > 0;
 
-    if (_bases.size() < MAX_BASES && hasWorkers) {
+    if (_bases.size() + _incomingBases < MAX_BASES && hasWorkers) {
         actions.emplace_back(Action::buildBase);
     }
 
@@ -209,7 +215,7 @@ std::vector<Action> Sc2::State::getLegalActions() const {
         actions.emplace_back(Action::buildMarine);
     }
 
-    if (hasWorkers && _hasHouse) {
+    if (hasWorkers && (_hasHouse || _incomingHouse)) {
         actions.emplace_back(Action::buildBarracks);
     }
 
@@ -234,6 +240,13 @@ void Sc2::State::addVespeneCollector() {
 
 
 void Sc2::State::buildBarracks() {
+    while (!_hasHouse) {
+        if (!_incomingHouse) {
+            return;
+        }
+        advanceTime();
+    }
+
     while (!canAffordConstruction(buildBarracksCost)) {
         const auto initialMineral = _minerals;
         advanceTime();
@@ -333,6 +346,7 @@ void Sc2::State::buildBase() {
     _minerals -= buildBaseCost.minerals;
     _vespene -= buildBaseCost.vespene;
 
+    _incomingBases++;
     _occupiedWorkerTimers.emplace_back(buildBaseCost.buildTime);
     _constructions.emplace_back(buildBaseCost.buildTime, shared_from_this(), &State::addBase);
 }
@@ -379,9 +393,10 @@ void Sc2::State::buildHouse() {
         }
     }
 
+
     _minerals -= buildHouseCost.minerals;
     _vespene -= buildHouseCost.vespene;
-
+    _incomingHouse = true;
     _occupiedWorkerTimers.emplace_back(buildHouseCost.buildTime);
     _constructions.emplace_back(buildHouseCost.buildTime, shared_from_this(), &State::addHouse);
 }
