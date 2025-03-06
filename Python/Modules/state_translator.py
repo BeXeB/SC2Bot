@@ -13,7 +13,7 @@ from sc2_mcts import *
 
 def get_bases(bot: 'MyBot') -> list[Base]:
     bases = []
-    for townhall in bot.townhalls.filter(lambda th: th.build_progress == 1):
+    for townhall in bot.townhalls.ready:
         vespene_collectors = bot.structures.filter(lambda s: s.type_id == UnitTypeId.REFINERY).closer_than(10, townhall)
         base = Base(
             # id=townhall.tag,

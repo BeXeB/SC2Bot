@@ -15,6 +15,6 @@ class ArmyManager:
     def manage_army(self):
         marine_count = self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE).amount
         if marine_count > 20:
-            closest_enemy_building = self.bot.enemy_structures.closest_to(self.bot.start_location)
+            position = self.bot.enemy_start_locations[0] if self.bot.enemy_structures.empty else self.bot.enemy_structures.closest_to(self.bot.start_location).position
             for marine in self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE):
-                marine.attack(closest_enemy_building.position)
+                marine.attack(position)

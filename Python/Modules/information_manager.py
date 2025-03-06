@@ -1,12 +1,11 @@
 ﻿import math
 import typing
 from enum import Enum
-from typing import Optional, List
+from typing import Optional
 
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
-from sc2.unit import UnitOrder
 
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
