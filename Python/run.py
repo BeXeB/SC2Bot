@@ -23,7 +23,7 @@ match = GameMatch(
             action_selection=ActionSelection.MultiBestActionMin,
             future_action_queue_length=2,
             minimum_search_rollouts=5000
-        )), Computer(race=Race.Terran, difficulty=Difficulty.Medium)],
+        )), Computer(race=Race.Terran, difficulty=Difficulty.MediumHard)],
         realtime=False,
         disable_fog=True,
         random_seed=0,

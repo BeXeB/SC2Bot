@@ -145,6 +145,8 @@ def translate_state(bot: 'MyBot') -> State:
         enemy_combat_units=bot.enemy_units.filter(lambda u: u.type_id != UnitTypeId.SCV).amount,
         max_bases = 17,
         has_house = bot.tech_requirement_progress(UnitTypeId.BARRACKS) >= 1,
+        incoming_bases = math.floor(bot.already_pending(UnitTypeId.COMMANDCENTER)),
+        incoming_house = math.floor(bot.already_pending(UnitTypeId.SUPPLYDEPOT)) > 0
     )
     # print(state.to_string())
     return state
