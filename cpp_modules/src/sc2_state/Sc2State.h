@@ -175,6 +175,9 @@ namespace Sc2 {
         void addEnemyUnit() { _enemyCombatUnits += 1; }
 
         void attackPlayer() {
+            if (_currentTime < 150) {
+                return;
+            }
             _wasAttacked = true;
         }
 
