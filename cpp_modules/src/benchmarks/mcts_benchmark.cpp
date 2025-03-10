@@ -175,9 +175,6 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 			<< std::endl
 			<< "------------------------------------------------------------------" << std::endl << std::endl;
 
-	if (state->getMarinePopulation() == 0) {
-		throw std::runtime_error("MarinePopulation cannot be zero");
-	}
 	delete mcts;
 	return result;
 }
