@@ -103,12 +103,12 @@ class InformationManager:
         self.marine_data = {marine.tag: MarineData(marine.tag)
             for marine in self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE)}
         self.build_times = {
-            UnitTypeId.COMMANDCENTER: math.ceil(self.bot.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.REFINERY: math.ceil(self.bot.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.SCV: math.ceil(self.bot.game_data.units[UnitTypeId.SCV.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.SUPPLYDEPOT: math.ceil(self.bot.game_data.units[UnitTypeId.SUPPLYDEPOT.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.BARRACKS: math.ceil(self.bot.game_data.units[UnitTypeId.BARRACKS.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.MARINE: math.ceil(self.bot.game_data.units[UnitTypeId.MARINE.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.COMMANDCENTER: math.ceil(self.bot.game_data.units[UnitTypeId.COMMANDCENTER.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.REFINERY: math.ceil(self.bot.game_data.units[UnitTypeId.REFINERY.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.SCV: math.ceil(self.bot.game_data.units[UnitTypeId.SCV.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.SUPPLYDEPOT: math.ceil(self.bot.game_data.units[UnitTypeId.SUPPLYDEPOT.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.BARRACKS: math.ceil(self.bot.game_data.units[UnitTypeId.BARRACKS.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.MARINE: math.ceil(self.bot.game_data.units[UnitTypeId.MARINE.value].cost.time / STEPS_PER_SECOND),
         }
 
     async def remove_unit_by_tag(self, tag: int) -> None:
@@ -127,16 +127,7 @@ class InformationManager:
 
     def handle_worker_destroyed(self, tag: int) -> None:
         # remove assigned worker from assigned structure
-        assigned_to_tag = self.worker_data[tag].assigned_to_tag
-        if assigned_to_tag is not None:
-            if self.worker_data[tag].role == WorkerRole.MINERALS:
-                if not assigned_to_tag in self.townhall_data:
-                    return
-                self.townhall_data[assigned_to_tag].current_harvesters -= 1
-            elif self.worker_data[tag].role == WorkerRole.GAS:
-                if not assigned_to_tag in self.gas_data:
-                    return
-                self.gas_data[assigned_to_tag].current_harvesters -= 1
+        self.remove_worker_from_assigned_structure(tag)
         # if the worker was on the way to build a base, make the location available
         if self.bot.base_worker and self.bot.base_worker.tag == tag:
             self.expansion_locations[self.bot.new_base_location] = False
@@ -148,6 +139,15 @@ class InformationManager:
             if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
                 self.expansion_locations[order.target] = False
         self.worker_data.pop(tag)
+
+    def remove_worker_from_assigned_structure(self, tag: int) -> None:
+        assigned_to_tag: Optional[int] = self.worker_data[tag].assigned_to_tag
+        if not assigned_to_tag:
+            return
+        if self.worker_data[tag].role == WorkerRole.MINERALS and assigned_to_tag in self.townhall_data:
+            self.townhall_data[assigned_to_tag].current_harvesters -= 1
+        elif self.worker_data[tag].role == WorkerRole.GAS and assigned_to_tag in self.gas_data:
+            self.gas_data[assigned_to_tag].current_harvesters -= 1
 
     def handle_townhall_destroyed(self, tag: int) -> None:
         # remove all assigned workers from the townhall, make location available

@@ -34,7 +34,7 @@ def get_constructions(bot: 'MyBot') -> list[Construction]:
 
     for str in bot.structures.not_ready:
         # Calculate time left based on the build progress
-        time_left = math.floor((1-str.build_progress) * bot.game_data.units[str.type_id.value]._proto.build_time / 22.4)
+        time_left = math.floor((1-str.build_progress) * bot.game_data.units[str.type_id.value].cost.time / 22.4)
         match str.type_id:
             case UnitTypeId.SUPPLYDEPOT:
                 action = Action.build_house
