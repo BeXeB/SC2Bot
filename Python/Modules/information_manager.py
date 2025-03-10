@@ -140,13 +140,13 @@ class InformationManager:
         self.worker_data.pop(tag)
 
     def remove_worker_from_assigned_structure(self, tag: int) -> None:
-        assigned_to_tag: Optional[int] = self.worker_data[tag].assigned_to_tag
-        if not assigned_to_tag:
+        assigned_structure_tag: Optional[int] = self.worker_data[tag].assigned_to_tag
+        if not assigned_structure_tag:
             return
-        if self.worker_data[tag].role == WorkerRole.MINERALS and assigned_to_tag in self.townhall_data:
-            self.townhall_data[assigned_to_tag].current_harvesters -= 1
-        elif self.worker_data[tag].role == WorkerRole.GAS and assigned_to_tag in self.gas_data:
-            self.gas_data[assigned_to_tag].current_harvesters -= 1
+        if self.worker_data[tag].role == WorkerRole.MINERALS and assigned_structure_tag in self.townhall_data:
+            self.townhall_data[assigned_structure_tag].current_harvesters -= 1
+        elif self.worker_data[tag].role == WorkerRole.GAS and assigned_structure_tag in self.gas_data:
+            self.gas_data[assigned_structure_tag].current_harvesters -= 1
 
     def handle_townhall_destroyed(self, tag: int) -> None:
         # remove all assigned workers from the townhall, make location available
@@ -166,7 +166,6 @@ class InformationManager:
         # the tag of the closest townhall
         position = self.gas_data[tag].position
         closest_th_tag = min(self.townhall_data, key=lambda th: position.distance_to(self.townhall_data[th].position))
-        print(closest_th_tag)
         # if the townhall is close enough, remove the base from the completed bases
         if position.distance_to(self.townhall_data[closest_th_tag].position) < 15:
             if closest_th_tag in self.completed_bases:

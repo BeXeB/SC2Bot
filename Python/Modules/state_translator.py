@@ -148,5 +148,4 @@ def translate_state(bot: 'MyBot') -> State:
         incoming_bases = math.floor(bot.already_pending(UnitTypeId.COMMANDCENTER)),
         incoming_house = math.floor(bot.already_pending(UnitTypeId.SUPPLYDEPOT)) > 0
     )
-    # print(state.to_string())
     return state
