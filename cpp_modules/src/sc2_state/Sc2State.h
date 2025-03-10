@@ -12,9 +12,9 @@
 
 namespace Sc2 {
     class State : public std::enable_shared_from_this<State> {
-        int _minerals = 0;
+        int _minerals = 50;
         int _vespene = 0;
-        int _workerPopulation = 5;
+        int _workerPopulation = 12;
         int _marinePopulation = 0;
         int _incomingWorkers = 0;
         int _incomingMarines = 0;
@@ -38,6 +38,8 @@ namespace Sc2 {
 
         bool _onRollout = false;
         bool _wasAttacked = false;
+        bool _incomingHouse = false;
+        int _incomingBases = 0;
 
         struct ActionCost {
             int minerals;
@@ -60,7 +62,7 @@ namespace Sc2 {
         void advanceConstructions();
         void advanceResources();
         void advanceOccupiedWorkers();
-        void advanceEnemyActions();
+        void advanceEnemyAction();
         void advanceTime();
 
         bool hasEnoughMinerals(const int cost) const { return _minerals >= cost; };
@@ -75,6 +77,7 @@ namespace Sc2 {
 
         void addBase() {
             _populationLimit += 15;
+            _incomingBases--;
             _populationLimit = _populationLimit >= MAX_POPULATION_LIMIT ? MAX_POPULATION_LIMIT : _populationLimit;
             _bases.emplace_back();
         }
@@ -242,6 +245,29 @@ namespace Sc2 {
         int getCurrentTime() const { return _currentTime; }
         void resetCurrentTime() { _currentTime = 0; }
 
+        Action generateEnemyAction() {
+            // Over the span of 60 seconds we assume that the enemy:
+            // Specifies how many enemy units will be built
+            constexpr double buildUnitAction = 8;
+            // Specifies how many times the enemy will attack
+            constexpr double attackAction = 0.4;
+            // Specifies how many times the enemy will do nothing
+            constexpr double noneAction = 60 - buildUnitAction - attackAction;
+
+            const auto actionWeights = {noneAction, buildUnitAction, attackAction};
+            std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
+            // 0: None, 1: Build unit, 2: Attack
+            switch (dist(_rng)) {
+                case 1:
+                    return Action::addEnemyUnit;
+                case 2:
+                    return Action::attackPlayer;
+                default:
+                    return Action::none;
+            }
+        }
+
+
         static std::shared_ptr<State> DeepCopy(const State &state, bool onRollout = false);
 
         static std::shared_ptr<State> StateBuilder(const int minerals,
@@ -257,14 +283,16 @@ namespace Sc2 {
                                                    const std::vector<int> &occupiedWorkerTimers,
                                                    const int current_time,
                                                    const int endTime, const int enemyCombatUnits,
-                                                   const bool hasHouse,
+                                                   const bool hasHouse, const bool incomingHouse,
+                                                   const int incomingBases = 0,
                                                    const int maxBases = 17) {
             const unsigned int seed = std::random_device{}();
             return InternalStateBuilder(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
                                         incomingMarines,
                                         populationLimit, bases, barracksAmount, constructions, occupiedWorkerTimers,
                                         current_time,
-                                        endTime, enemyCombatUnits, seed, hasHouse, nullptr, nullptr, maxBases);
+                                        endTime, enemyCombatUnits, seed, hasHouse, nullptr, nullptr,
+                                        incomingHouse, incomingBases, maxBases);
         }
 
         /*
@@ -287,13 +315,14 @@ namespace Sc2 {
                                                            bool hasHouse,
                                                            const std::shared_ptr<std::map<int, Action> > &enemyActions,
                                                            const std::shared_ptr<std::map<int, std::tuple<double,
-                                                               double> > > &combatBiases,
+                                                               double> > > &combatBiases, const bool incomingHouse,
+                                                           const int incomingBases,
                                                            int maxBases) {
             auto state = std::make_shared<State>(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
                                                  incomingMarines, populationLimit,
                                                  bases, barracksAmount, occupiedWorkerTimers, current_time, endTime,
                                                  enemyCombatUnits, seed, hasHouse, enemyActions, combatBiases,
-                                                 maxBases);
+                                                 incomingHouse, incomingBases, maxBases);
 
             for (auto &construction: constructions) {
                 construction.setState(state);
@@ -309,23 +338,26 @@ namespace Sc2 {
               const int enemyCombatUnits, const unsigned int seed, const bool hasHouse,
               const std::shared_ptr<std::map<int, Action> > &enemyActions,
               const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases,
-              const int maxBases = 17): _minerals(minerals),
-                                        _vespene(vespene),
-                                        _workerPopulation(workerPopulation),
-                                        _marinePopulation(marinePopulation),
-                                        _incomingWorkers(incomingWorkers),
-                                        _incomingMarines(incomingMarines),
-                                        MAX_BASES(maxBases),
-                                        _populationLimit(populationLimit),
-                                        _barracksAmount(barracksAmount),
-                                        _bases(std::move(bases)),
-                                        _constructions(std::list<Construction>()),
-                                        _occupiedWorkerTimers(
-                                            std::move(occupiedWorkerTimers)),
-                                        _enemyCombatUnits(enemyCombatUnits),
-                                        _endTime(endTime),
-                                        _currentTime(currentTime),
-                                        _hasHouse(hasHouse) {
+              const bool incomingHouse,
+              const int incomingBases = 0, const int maxBases = 17): _minerals(minerals),
+                                                                     _vespene(vespene),
+                                                                     _workerPopulation(workerPopulation),
+                                                                     _marinePopulation(marinePopulation),
+                                                                     _incomingWorkers(incomingWorkers),
+                                                                     _incomingMarines(incomingMarines),
+                                                                     MAX_BASES(maxBases),
+                                                                     _populationLimit(populationLimit),
+                                                                     _barracksAmount(barracksAmount),
+                                                                     _bases(std::move(bases)),
+                                                                     _constructions(std::list<Construction>()),
+                                                                     _occupiedWorkerTimers(
+                                                                         std::move(occupiedWorkerTimers)),
+                                                                     _enemyCombatUnits(enemyCombatUnits),
+                                                                     _endTime(endTime),
+                                                                     _currentTime(currentTime),
+                                                                     _hasHouse(hasHouse),
+                                                                     _incomingHouse(incomingHouse),
+                                                                     _incomingBases(incomingBases) {
             _rng = std::mt19937(seed);
             _enemyActions = enemyActions;
             _combatBiases = combatBiases;
@@ -359,6 +391,9 @@ namespace Sc2 {
 
             _combatBiases = state._combatBiases;
             _enemyActions = state._enemyActions;
+
+            _incomingHouse = state._incomingHouse;
+            _incomingBases = state._incomingBases;
         };
 
         explicit State(const int endTime, const unsigned int seed,

@@ -120,13 +120,15 @@ namespace Sc2::Mcts {
 		                     const int currentTime,
 		                     const int endTime,
 		                     const int enemyCombatUnits,
-		                     bool hasHouse) {
+		                     const bool incomingHouse,
+		                     const int incomingBases,
+		                     const bool hasHouse) {
 			std::uniform_int_distribution<unsigned int> dist;
 			const auto state = State::InternalStateBuilder(minerals, vespene, workerPopulation, marinePopulation,
 			                                               incomingWorkers, incomingMarines, populationLimit,
 			                                               bases, barracksAmount, constructions, occupiedWorkerTimers,
 			                                               currentTime, endTime, enemyCombatUnits, dist(_rng), hasHouse,
-			                                               _enemyActions, _combatBiases, 12);
+			                                               _enemyActions, _combatBiases, incomingHouse, incomingBases, 12);
 
 			updateRootState(state);
 		}
@@ -140,7 +142,7 @@ namespace Sc2::Mcts {
 			return n;
 		}
 
-		void instantiateActionsAndBiases(const int timeSteps) {
+		void initializeActionsAndBiases(const int timeSteps) {
 			// Over the span of 60 seconds we assume that the enemy:
 			// Specifies how many enemy units will be built
 			const double buildUnitAction = 7;
@@ -209,7 +211,7 @@ namespace Sc2::Mcts {
 		                                                         _valueHeuristic(valueHeuristic),
 		                                                         _rolloutHeuristic(rolloutHeuristic) {
 			_rng = std::mt19937(seed);
-			instantiateActionsAndBiases(_rolloutEndTime);
+			initializeActionsAndBiases(_rolloutEndTime);
 			const auto deepCopy = State::DeepCopy(*rootState);
 			deepCopy->setBiases(_combatBiases);
 			deepCopy->setEnemyActions(_enemyActions);
@@ -219,7 +221,7 @@ namespace Sc2::Mcts {
 		explicit Mcts(const std::shared_ptr<State> &rootState) {
 			const auto seed = std::random_device{}();
 			_rng = std::mt19937(seed);
-			instantiateActionsAndBiases(_rolloutEndTime);
+			initializeActionsAndBiases(_rolloutEndTime);
 			const auto deepCopy = State::DeepCopy(*rootState);
 			deepCopy->setBiases(_combatBiases);
 			deepCopy->setEnemyActions(_enemyActions);
@@ -229,7 +231,7 @@ namespace Sc2::Mcts {
 		Mcts() {
 			const auto seed = std::random_device{}();
 			_rng = std::mt19937(seed);
-			instantiateActionsAndBiases(_rolloutEndTime);
+			initializeActionsAndBiases(_rolloutEndTime);
 			auto rootState = std::make_shared<State>(_rolloutEndTime, seed, _enemyActions, _combatBiases);
 			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
 		}

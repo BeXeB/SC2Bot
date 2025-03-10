@@ -73,7 +73,7 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 				_actionWeights[i] = 2.0;
 				break;
 			case Action::buildBarracks:
-				_actionWeights[i] = 2.0;
+				_actionWeights[i] = 3.0;
 				break;
 			case Action::buildMarine:
 				_actionWeights[i] = 15.0;
@@ -136,7 +136,7 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState(), true);
-	while (!state->endTimeReached()) {
+	while (!state->GameOver()) {
 		auto legalActions = state->getLegalActions();
 
 		if (legalActions[0] == Action::none) {
