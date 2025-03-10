@@ -126,7 +126,6 @@ class InformationManager:
             self.handle_marine_destroyed(tag)
 
     def handle_worker_destroyed(self, tag: int) -> None:
-        # remove assigned worker from assigned structure
         self.remove_worker_from_assigned_structure(tag)
         # if the worker was on the way to build a base, make the location available
         if self.bot.base_worker and self.bot.base_worker.tag == tag:

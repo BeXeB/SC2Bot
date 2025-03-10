@@ -1,3 +1,4 @@
+import math
 import typing
 from typing import Optional, Union
 
@@ -176,21 +177,22 @@ class WorkerManager:
             WorkerRole.IDLE: 1,
             WorkerRole.MINERALS: 2,
             WorkerRole.GAS: 3,
-            WorkerRole.BUILD: 1
+            WorkerRole.BUILD: math.inf
         }
 
         closest_worker: Optional[Unit] = None
-        closest_distance: float = 999999
+        closest_distance: float = math.inf
 
         for worker in self.bot.workers:
             data: WorkerData = self.bot.information_manager.worker_data[worker.tag]
-            additional_weight: int = 9999 if data.role == WorkerRole.BUILD else 1
-            weighted_distance: float = worker.distance_to(location) * role_weights[data.role] + additional_weight
+            weighted_distance: float = worker.distance_to(location) * role_weights[data.role]
             if weighted_distance < closest_distance:
                 closest_worker = worker
                 closest_distance = weighted_distance
 
-        self.assign_worker(closest_worker.tag, role, None)
+        if closest_worker:
+            self.assign_worker(closest_worker.tag, role, None)
+
         return closest_worker
 
     # This method calculates the mineral targets for the workers
