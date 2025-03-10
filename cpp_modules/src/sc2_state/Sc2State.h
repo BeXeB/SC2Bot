@@ -257,8 +257,7 @@ namespace Sc2 {
             const auto actionWeights = {noneAction, buildUnitAction, attackAction};
             std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
             // 0: None, 1: Build unit, 2: Attack
-            auto testDist = dist(_rng);
-            switch (testDist) {
+            switch (dist(_rng)) {
                 case 1:
                     return Action::addEnemyUnit;
                 case 2:
@@ -316,7 +315,7 @@ namespace Sc2 {
                                                            bool hasHouse,
                                                            const std::shared_ptr<std::map<int, Action> > &enemyActions,
                                                            const std::shared_ptr<std::map<int, std::tuple<double,
-                                                           double> > > &combatBiases, const bool incomingHouse,
+                                                               double> > > &combatBiases, const bool incomingHouse,
                                                            const int incomingBases,
                                                            int maxBases) {
             auto state = std::make_shared<State>(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
@@ -338,26 +337,27 @@ namespace Sc2 {
               const int barracksAmount, std::vector<int> occupiedWorkerTimers, const int currentTime, const int endTime,
               const int enemyCombatUnits, const unsigned int seed, const bool hasHouse,
               const std::shared_ptr<std::map<int, Action> > &enemyActions,
-              const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases, const bool incomingHouse,
+              const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases,
+              const bool incomingHouse,
               const int incomingBases = 0, const int maxBases = 17): _minerals(minerals),
-                                        _vespene(vespene),
-                                        _workerPopulation(workerPopulation),
-                                        _marinePopulation(marinePopulation),
-                                        _incomingWorkers(incomingWorkers),
-                                        _incomingMarines(incomingMarines),
-                                        MAX_BASES(maxBases),
-                                        _populationLimit(populationLimit),
-                                        _barracksAmount(barracksAmount),
-                                        _bases(std::move(bases)),
-                                        _constructions(std::list<Construction>()),
-                                        _occupiedWorkerTimers(
-                                            std::move(occupiedWorkerTimers)),
-                                        _enemyCombatUnits(enemyCombatUnits),
-                                        _endTime(endTime),
-                                        _currentTime(currentTime),
-                                        _hasHouse(hasHouse),
-                                        _incomingHouse(incomingHouse),
-                                        _incomingBases(incomingBases){
+                                                                     _vespene(vespene),
+                                                                     _workerPopulation(workerPopulation),
+                                                                     _marinePopulation(marinePopulation),
+                                                                     _incomingWorkers(incomingWorkers),
+                                                                     _incomingMarines(incomingMarines),
+                                                                     MAX_BASES(maxBases),
+                                                                     _populationLimit(populationLimit),
+                                                                     _barracksAmount(barracksAmount),
+                                                                     _bases(std::move(bases)),
+                                                                     _constructions(std::list<Construction>()),
+                                                                     _occupiedWorkerTimers(
+                                                                         std::move(occupiedWorkerTimers)),
+                                                                     _enemyCombatUnits(enemyCombatUnits),
+                                                                     _endTime(endTime),
+                                                                     _currentTime(currentTime),
+                                                                     _hasHouse(hasHouse),
+                                                                     _incomingHouse(incomingHouse),
+                                                                     _incomingBases(incomingBases) {
             _rng = std::mt19937(seed);
             _enemyActions = enemyActions;
             _combatBiases = combatBiases;
