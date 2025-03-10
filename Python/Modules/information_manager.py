@@ -1,12 +1,11 @@
 ﻿import math
 import typing
 from enum import Enum
-from typing import Optional, List
+from typing import Optional
 
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
-from sc2.unit import UnitOrder
 
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
@@ -89,12 +88,6 @@ class InformationManager:
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
-        self.worker_data = {}
-        self.townhall_data = {}
-        self.gas_data = {}
-        self.barracks_data = {}
-        self.supply_depot_data = {}
-        self.marine_data = {}
         self.expansion_locations = {el: el.distance_to(self.bot.start_location) < 15
             for el in self.bot.expansion_locations_list}
         self.worker_data = {worker.tag: WorkerData(WorkerRole.IDLE, worker.tag)
@@ -110,12 +103,12 @@ class InformationManager:
         self.marine_data = {marine.tag: MarineData(marine.tag)
             for marine in self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE)}
         self.build_times = {
-            UnitTypeId.COMMANDCENTER: math.ceil(self.bot.game_data.units[UnitTypeId.COMMANDCENTER.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.REFINERY: math.ceil(self.bot.game_data.units[UnitTypeId.REFINERY.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.SCV: math.ceil(self.bot.game_data.units[UnitTypeId.SCV.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.SUPPLYDEPOT: math.ceil(self.bot.game_data.units[UnitTypeId.SUPPLYDEPOT.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.BARRACKS: math.ceil(self.bot.game_data.units[UnitTypeId.BARRACKS.value]._proto.build_time / STEPS_PER_SECOND),
-            UnitTypeId.MARINE: math.ceil(self.bot.game_data.units[UnitTypeId.MARINE.value]._proto.build_time / STEPS_PER_SECOND),
+            UnitTypeId.COMMANDCENTER: math.ceil(self.bot.game_data.units[UnitTypeId.COMMANDCENTER.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.REFINERY: math.ceil(self.bot.game_data.units[UnitTypeId.REFINERY.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.SCV: math.ceil(self.bot.game_data.units[UnitTypeId.SCV.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.SUPPLYDEPOT: math.ceil(self.bot.game_data.units[UnitTypeId.SUPPLYDEPOT.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.BARRACKS: math.ceil(self.bot.game_data.units[UnitTypeId.BARRACKS.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.MARINE: math.ceil(self.bot.game_data.units[UnitTypeId.MARINE.value].cost.time / STEPS_PER_SECOND),
         }
 
     async def remove_unit_by_tag(self, tag: int) -> None:
@@ -133,12 +126,7 @@ class InformationManager:
             self.handle_marine_destroyed(tag)
 
     def handle_worker_destroyed(self, tag: int) -> None:
-        # remove assigned worker from assigned structure
-        if self.worker_data[tag].assigned_to_tag is not None:
-            if self.worker_data[tag].role == WorkerRole.MINERALS:
-                self.townhall_data[self.worker_data[tag].assigned_to_tag].current_harvesters -= 1
-            elif self.worker_data[tag].role == WorkerRole.GAS:
-                self.gas_data[self.worker_data[tag].assigned_to_tag].current_harvesters -= 1
+        self.remove_worker_from_assigned_structure(tag)
         # if the worker was on the way to build a base, make the location available
         if self.bot.base_worker and self.bot.base_worker.tag == tag:
             self.expansion_locations[self.bot.new_base_location] = False
@@ -150,6 +138,15 @@ class InformationManager:
             if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
                 self.expansion_locations[order.target] = False
         self.worker_data.pop(tag)
+
+    def remove_worker_from_assigned_structure(self, tag: int) -> None:
+        assigned_structure_tag: Optional[int] = self.worker_data[tag].assigned_to_tag
+        if not assigned_structure_tag:
+            return
+        if self.worker_data[tag].role == WorkerRole.MINERALS and assigned_structure_tag in self.townhall_data:
+            self.townhall_data[assigned_structure_tag].current_harvesters -= 1
+        elif self.worker_data[tag].role == WorkerRole.GAS and assigned_structure_tag in self.gas_data:
+            self.gas_data[assigned_structure_tag].current_harvesters -= 1
 
     def handle_townhall_destroyed(self, tag: int) -> None:
         # remove all assigned workers from the townhall, make location available
@@ -171,7 +168,8 @@ class InformationManager:
         closest_th_tag = min(self.townhall_data, key=lambda th: position.distance_to(self.townhall_data[th].position))
         # if the townhall is close enough, remove the base from the completed bases
         if position.distance_to(self.townhall_data[closest_th_tag].position) < 15:
-            self.completed_bases.remove(closest_th_tag)
+            if closest_th_tag in self.completed_bases:
+                self.completed_bases.remove(closest_th_tag)
         self.gas_data.pop(tag)
 
     def handle_barracks_destroyed(self, tag: int) -> None:

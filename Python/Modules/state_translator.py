@@ -13,7 +13,7 @@ from sc2_mcts import *
 
 def get_bases(bot: 'MyBot') -> list[Base]:
     bases = []
-    for townhall in bot.townhalls.filter(lambda th: th.build_progress == 1):
+    for townhall in bot.townhalls.ready:
         vespene_collectors = bot.structures.filter(lambda s: s.type_id == UnitTypeId.REFINERY).closer_than(10, townhall)
         base = Base(
             # id=townhall.tag,
@@ -34,7 +34,7 @@ def get_constructions(bot: 'MyBot') -> list[Construction]:
 
     for str in bot.structures.not_ready:
         # Calculate time left based on the build progress
-        time_left = math.floor((1-str.build_progress) * bot.game_data.units[str.type_id.value]._proto.build_time / 22.4)
+        time_left = math.floor((1-str.build_progress) * bot.game_data.units[str.type_id.value].cost.time / 22.4)
         match str.type_id:
             case UnitTypeId.SUPPLYDEPOT:
                 action = Action.build_house
@@ -139,11 +139,13 @@ def translate_state(bot: 'MyBot') -> State:
         barracks_amount=bot.structures(UnitTypeId.BARRACKS).ready.amount,
         constructions=constructions,
         occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
-        current_time=round(bot.time),
-        end_time = math.floor(bot.time)+600,
+        current_time=math.floor(bot.time),
+        end_time = math.floor(bot.time)+bot.time_limit,
         # TODO: This assumes the enemy is terran
         enemy_combat_units=bot.enemy_units.filter(lambda u: u.type_id != UnitTypeId.SCV).amount,
         max_bases = 17,
-        has_house = bot.structures(UnitTypeId.SUPPLYDEPOT).filter(lambda s: s.build_progress >= 1).amount > 0
+        has_house = bot.tech_requirement_progress(UnitTypeId.BARRACKS) >= 1,
+        incoming_bases = math.floor(bot.already_pending(UnitTypeId.COMMANDCENTER)),
+        incoming_house = math.floor(bot.already_pending(UnitTypeId.SUPPLYDEPOT)) > 0
     )
     return state
