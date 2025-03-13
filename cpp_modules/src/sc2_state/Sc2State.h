@@ -1,5 +1,5 @@
 #pragma once
-#include <format>
+// #include <format>
 #include <iostream>
 #include <list>
 #include <map>
@@ -409,30 +409,30 @@ namespace Sc2 {
         }
 
         std::string toString() const {
-            std::string str;
-            str += std::format("State: {} ", id) + "{ \n";
-            str += std::format("    Minerals: {} \n", _minerals);
-            str += std::format("    Vespene: {} \n", _vespene);
-            str += std::format("    IncomingVespeneCollectors: {} \n", _incomingVespeneCollectors);
-            str += std::format("    Constructions: {} \n", _constructions.size());
-            str += std::format("    Occupied workers: {} \n", _occupiedWorkerTimers.size());
-            str += std::format("    Population: {} \n", getPopulation());
-            str += std::format("    Marine population: {} \n", _marinePopulation);
-            str += std::format("    PopulationLimit: {} \n", _populationLimit);
-            str += std::format("    MaxPopulationLimit {} \n", MAX_POPULATION_LIMIT);
-            str += std::format("    MaxBases: {} \n", MAX_BASES);
-            str += std::format("    IncomingPopulation: {} \n", getIncomingPopulation());
-            str += std::format("    IncomingMarines: {} \n", getIncomingMarines());
-            str += std::format("    Number of bases: {} \n", _bases.size());
-            str += std::format("    Number of barracks: {} \n", _barracksAmount);
-            str += std::format("    Number of constructions: {} \n", _constructions.size());
-            str += std::format("    Enemy combat units: {} \n", _enemyCombatUnits);
-            str += std::format("    current_time: {} \n", _currentTime);
-            str += std::format("    EndTime: {} \n", _endTime);
-            str += std::format("    HasHouse: {} \n", _hasHouse);
-            str += "}\n";
+            // std::string str;
+            // str += std::format("State: {} ", id) + "{ \n";
+            // str += std::format("    Minerals: {} \n", _minerals);
+            // str += std::format("    Vespene: {} \n", _vespene);
+            // str += std::format("    IncomingVespeneCollectors: {} \n", _incomingVespeneCollectors);
+            // str += std::format("    Constructions: {} \n", _constructions.size());
+            // str += std::format("    Occupied workers: {} \n", _occupiedWorkerTimers.size());
+            // str += std::format("    Population: {} \n", getPopulation());
+            // str += std::format("    Marine population: {} \n", _marinePopulation);
+            // str += std::format("    PopulationLimit: {} \n", _populationLimit);
+            // str += std::format("    MaxPopulationLimit {} \n", MAX_POPULATION_LIMIT);
+            // str += std::format("    MaxBases: {} \n", MAX_BASES);
+            // str += std::format("    IncomingPopulation: {} \n", getIncomingPopulation());
+            // str += std::format("    IncomingMarines: {} \n", getIncomingMarines());
+            // str += std::format("    Number of bases: {} \n", _bases.size());
+            // str += std::format("    Number of barracks: {} \n", _barracksAmount);
+            // str += std::format("    Number of constructions: {} \n", _constructions.size());
+            // str += std::format("    Enemy combat units: {} \n", _enemyCombatUnits);
+            // str += std::format("    current_time: {} \n", _currentTime);
+            // str += std::format("    EndTime: {} \n", _endTime);
+            // str += std::format("    HasHouse: {} \n", _hasHouse);
+            // str += "}\n";
 
-            return str;
+            return "str";
         }
 
         friend Construction;

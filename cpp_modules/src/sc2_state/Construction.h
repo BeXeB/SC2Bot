@@ -3,7 +3,7 @@
 //
 #ifndef CONSTRUCTION_H
 #define CONSTRUCTION_H
-#include <format>
+// #include <format>
 #include <memory>
 #include <utility>
 #include "ActionEnum.h"
@@ -49,12 +49,12 @@ namespace Sc2 {
         }
 
         [[nodiscard]] std::string toString() const {
-            std::string str = "Construction: {\n";
-            str += std::format("    timeLeft: {} \n", _timeLeft);
-            str += std::format("    action: {} \n", actionToString(_action));
-            str += "}";
+            // std::string str = "Construction: {\n";
+            // str += std::format("    timeLeft: {} \n", _timeLeft);
+            // str += std::format("    action: {} \n", actionToString(_action));
+            // str += "}";
 
-            return str;
+            return "str";
         }
 
 

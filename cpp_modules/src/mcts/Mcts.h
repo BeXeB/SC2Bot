@@ -194,14 +194,14 @@ namespace Sc2::Mcts {
 					break;
 			}
 
-			std::string str;
-			str += "MCTS: { \n";
-			str += std::format("Exploration: {}", EXPLORATION) + "\n";
-			str += std::format("Rollout Depth: {}", _rolloutEndTime) + "\n";
-			str += std::format("Value Heuristic: {} ", valueHeuristicStr) + "\n";
-			str += std::format("Rollout Heuristic: {} ", rolloutHeuristicStr) + "\n";
-			str += "} \n";
-			return str;
+			// std::string str;
+			// str += "MCTS: { \n";
+			// str += std::format("Exploration: {}", EXPLORATION) + "\n";
+			// str += std::format("Rollout Depth: {}", _rolloutEndTime) + "\n";
+			// str += std::format("Value Heuristic: {} ", valueHeuristicStr) + "\n";
+			// str += std::format("Rollout Heuristic: {} ", rolloutHeuristicStr) + "\n";
+			// str += "} \n";
+			return "str";
 		};
 
 		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed, const int rolloutEndTime,

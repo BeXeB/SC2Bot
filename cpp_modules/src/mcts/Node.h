@@ -4,7 +4,7 @@
 
 #ifndef NODE_H
 #define NODE_H
-#include <format>
+// #include <format>
 #include <map>
 #include <memory>
 #include <utility>
@@ -61,14 +61,14 @@ namespace Sc2::Mcts {
 		}
 
 		[[nodiscard]] std::string toString() const {
-			std::string str;
-			str += std::format("Node: {} ", static_cast<int>(_action)) + "{ \n";
-			str += std::format("parent: {} \n", _parent.lock() != nullptr);
-			str += std::format("children: {} \n", children.size());
-			str += std::format("numberOfSimulations: {} \n", N);
-			str += std::format("Q: {} \n", Q);
-			str += "} \n";
-			return str;
+			// std::string str;
+			// str += std::format("Node: {} ", static_cast<int>(_action)) + "{ \n";
+			// str += std::format("parent: {} \n", _parent.lock() != nullptr);
+			// str += std::format("children: {} \n", children.size());
+			// str += std::format("numberOfSimulations: {} \n", N);
+			// str += std::format("Q: {} \n", Q);
+			// str += "} \n";
+			return "str";
 		}
 
 		bool gameOver() const {
