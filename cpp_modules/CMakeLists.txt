@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.29)
 project(sc2modules)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS -static)
+
+if(WIN32)
+    set(CMAKE_CXX_FLAGS -static)
+endif()
 
 set(STATE_SOURCE "${PROJECT_SOURCE_DIR}/src/sc2_state")
 set(MCTS_SOURCE "${PROJECT_SOURCE_DIR}/src/mcts")
@@ -37,6 +40,7 @@ pybind11_add_module(
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
 )
+
 
 target_include_directories(
         sc2_mcts
