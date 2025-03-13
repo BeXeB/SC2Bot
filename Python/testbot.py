@@ -1,6 +1,7 @@
 import math
 import queue
 from enum import Enum
+from time import sleep
 
 from sc2.data import Result
 from sc2.position import Point3, Point2
@@ -257,8 +258,8 @@ class MyBot(BotAI):
         self.mcts.perform_action(action)
 
     def get_best_action_min(self) -> None:
-        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
-            return
+        while self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
+            sleep(0.01)
         self.get_best_action()
 
     def get_multi_best_action(self) -> None:
@@ -283,8 +284,8 @@ class MyBot(BotAI):
         if not self.future_action_queue.empty():
             self.set_next_action(self.future_action_queue.get())
             return
-        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
-            return
+        while self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
+            sleep(0.01)
         self.get_multi_best_action()
 
     def set_next_action(self, action: Action = Action.none):

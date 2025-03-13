@@ -22,7 +22,7 @@ match = GameMatch(
             mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
             action_selection=ActionSelection.MultiBestActionMin,
             future_action_queue_length=2,
-            minimum_search_rollouts=5000
+            minimum_search_rollouts=500000
         )), Computer(race=Race.Terran, difficulty=Difficulty.MediumHard)],
         realtime=False,
         disable_fog=True,
