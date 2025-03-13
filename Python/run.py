@@ -24,7 +24,7 @@ match = GameMatch(
             future_action_queue_length=2,
             minimum_search_rollouts=5000
         )), Computer(race=Race.Terran, difficulty=Difficulty.MediumHard)],
-        realtime=False,
+        realtime=True,
         disable_fog=True,
         random_seed=0,
         # game_time_limit=GAME_LENGTH,

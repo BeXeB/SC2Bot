@@ -1,6 +1,7 @@
 import math
 import queue
 from enum import Enum
+from typing import Set, Tuple
 
 from sc2.data import Result
 from sc2.position import Point3, Point2
@@ -22,7 +23,8 @@ from Python.Modules.result_saver import save_result
 from Python.Modules.worker_manager import WorkerManager
 from Python.Modules.army_manager import ArmyManager
 from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, InformationManager, \
-    SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData
+    SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData, PlacementType
+
 
 class ActionSelection(Enum):
     BestAction = 0
@@ -92,7 +94,7 @@ class MyBot(BotAI):
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
-            self.map_analyzer.print_map()
+            self.map_analyzer.setup_grid()
             await self.client.debug_show_map()
             for worker in self.workers:
                 worker(AbilityId.STOP_STOP)
@@ -136,23 +138,53 @@ class MyBot(BotAI):
                         self.get_multi_best_action_min()
 
     async def draw_debug(self):
-        blocs = self.barracks_builder.build_locations
-        for bloc in blocs:
-            height = self.get_terrain_z_height(bloc) + 0.1
-            self.client.debug_sphere_out(Point3((bloc.x, bloc.y, height)), 1.5, (0, 0, 255))
-            self.client.debug_text_3d("B", Point3((bloc.x, bloc.y, height)), (255, 255, 255))
+        def draw_box(loc: Point2, start_loc: Tuple[int, int], end_loc: Tuple[int, int], color:Tuple[int, int, int]):
+            height = self.get_terrain_z_height(loc) + 0.1
+            self.client.debug_box_out(Point3((start_loc[0], start_loc[1], height)), Point3((end_loc[0], end_loc[1], height)), color=color)
 
-        slocs = self.supply_builder.possible_supply_positions
-        for sloc in slocs:
-            height = self.get_terrain_z_height(sloc) + 0.1
-            self.client.debug_sphere_out(Point3((sloc.x, sloc.y, height)), 1, (0, 0, 255))
-            self.client.debug_text_3d("S", Point3((sloc.x, sloc.y, height)), (255, 255, 255))
+        def draw_production(locs: Set[Point2]):
+            color = (0, 0, 255)
+            for loc in locs:
+                start_loc = (math.floor(loc.x)-1, math.floor(loc.y)-1)
+                end_loc = (start_loc[0]+5, start_loc[1]+3)
+                draw_box(loc, start_loc, end_loc, color)
+
+        def draw_supply(locs: Set[Point2]):
+            color = (255, 0, 0)
+            for loc in locs:
+                start_loc = (math.floor(loc.x)-1, math.floor(loc.y)-1)
+                end_loc = (start_loc[0]+2, start_loc[1]+2)
+                draw_box(loc, start_loc, end_loc, color)
+
+        def draw_tech(locs: Set[Point2]):
+            color = (0, 255, 0)
+            for loc in locs:
+                start_loc = (math.floor(loc.x)-1, math.floor(loc.y)-1)
+                end_loc = (start_loc[0]+3, start_loc[1]+3)
+                draw_box(loc, start_loc, end_loc, color)
+
+        grid = self.map_analyzer.grid
+        for x in range(grid.width):
+            for y in range(grid.height):
+                if grid[(x, y)]:
+                    self.client.debug_text_3d(f"{x},{y}", Point3((x, y+0.5, self.get_terrain_z_height(Point2((x,y)))+0.1)), (255, 255, 255))
+
+        locs = self.information_manager.placements
+        for type in locs:
+            match type:
+                case PlacementType.PRODUCTION:
+                    draw_production(locs[type])
+                case PlacementType.SUPPLY:
+                    draw_supply(locs[type])
+                case PlacementType.TECH:
+                    draw_tech(locs[type])
 
         thlocs = self.information_manager.expansion_locations
         for thloc in thlocs:
-            height = self.get_terrain_z_height(thloc) + 0.1
             color = (255, 0, 0) if self.information_manager.expansion_locations[thloc] else (0, 255, 0)
-            self.client.debug_sphere_out(Point3((thloc.x, thloc.y, height)), 2.5, color)
+            start_loc = (math.floor(thloc.x)-2, math.floor(thloc.y)-2)
+            end_loc = (start_loc[0]+5, start_loc[1]+5)
+            draw_box(thloc, start_loc, end_loc, color)
 
     async def build_barracks(self) -> None:
         if not self.can_afford(UnitTypeId.BARRACKS):

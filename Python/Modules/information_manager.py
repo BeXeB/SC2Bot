@@ -1,7 +1,7 @@
 ﻿import math
 import typing
 from enum import Enum
-from typing import Optional
+from typing import Optional, Dict, Set, List
 
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
@@ -74,6 +74,10 @@ class WorkerData:
         self.assigned_to_tag = assigned_to_tag
         self.role = role
 
+class PlacementType(Enum):
+    PRODUCTION = 0
+    SUPPLY = 1
+    TECH = 3
 
 class InformationManager:
     worker_data: dict[int, WorkerData]
@@ -85,6 +89,8 @@ class InformationManager:
     build_times: dict[UnitTypeId, int]
     expansion_locations: dict[Point2, bool]
     completed_bases = set()
+    building_type_to_size: dict[UnitTypeId, (int, int)]
+    placements: Dict[PlacementType, Set[Point2]]
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
@@ -120,6 +126,23 @@ class InformationManager:
             UnitTypeId.LARVA,
             # Protoss
             UnitTypeId.PROBE
+        }
+        self.building_type_to_size = {
+            UnitTypeId.COMMANDCENTER: (5, 5),
+            UnitTypeId.SUPPLYDEPOT: (2, 2),
+            UnitTypeId.REFINERY: (3, 3),
+            UnitTypeId.BARRACKS: (5, 3),
+            UnitTypeId.FACTORY: (5, 3),
+            UnitTypeId.STARPORT: (5, 3),
+            UnitTypeId.ARMORY: (3, 3),
+            UnitTypeId.ENGINEERINGBAY: (3, 3),
+            UnitTypeId.FUSIONCORE: (3, 3),
+            UnitTypeId.GHOSTACADEMY: (3, 3),
+        }
+        self.placements = {
+            PlacementType.PRODUCTION: set(),
+            PlacementType.SUPPLY: set(),
+            PlacementType.TECH: set()
         }
 
     async def remove_unit_by_tag(self, tag: int) -> None:
