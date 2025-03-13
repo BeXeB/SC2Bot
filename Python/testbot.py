@@ -9,6 +9,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 
+from Python.Modules.map_analyzer import MapAnalyzer
 from sc2_mcts import *
 from Python.Actions.build_barracks import BarracksBuilder
 from Python.Actions.build_marine import MarineBuilder
@@ -45,6 +46,7 @@ class MyBot(BotAI):
     barracks_builder: BarracksBuilder
     marine_builder: MarineBuilder
     army_manager: ArmyManager
+    map_analyzer: MapAnalyzer
     new_base_location = None
     base_worker = None
     busy_workers: dict[int, float] = {}
@@ -85,10 +87,12 @@ class MyBot(BotAI):
         self.barracks_builder = BarracksBuilder(self)
         self.marine_builder = MarineBuilder(self)
         self.army_manager = ArmyManager(self)
+        self.map_analyzer = MapAnalyzer(self)
         self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
+            self.map_analyzer.print_map()
             await self.client.debug_show_map()
             for worker in self.workers:
                 worker(AbilityId.STOP_STOP)

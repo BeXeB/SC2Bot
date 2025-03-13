@@ -167,3 +167,5 @@ cython_debug/
 # visual studio
 .vs/
 result.csv
+
+asd.png
