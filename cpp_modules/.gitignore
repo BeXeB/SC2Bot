@@ -1,2 +1,3 @@
 /vsstudio
 /cmake-build*
+/docker-build

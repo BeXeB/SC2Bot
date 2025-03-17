@@ -1,0 +1,9 @@
+﻿version: '3.8'
+
+services:
+  compiler:
+    build:
+      context: .  # Build from your current directory
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app  # This will bind mount your local directory to /app in the container

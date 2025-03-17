@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy project files into the container
-COPY . .
+# Ensure the entrypoint script is executable
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-RUN cmake -S . -B vsstudio \
-    && cmake --build vsstudio --target sc2_mcts
+ENTRYPOINT ["/entrypoint.sh"]
