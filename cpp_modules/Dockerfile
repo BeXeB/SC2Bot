@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Ensure the entrypoint script is executable
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY /cpp_modules/entrypoint.sh /app/cpp_modules/entrypoint.sh
+RUN chmod +x /app/cpp_modules/entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/app/cpp_modules/entrypoint.sh"]

@@ -49,8 +49,7 @@ to the integration into that repository.
 - If you are using the aforementioned repository, put the SC2Bot into their
   "bots" folder
 - Make sure that the file in `SC2Bot/cpp_modules/entrypoint.sh` has LF line separators
-- Open a terminal in SC2Bot and enter the following commands
-  - `cd .\cpp_modules\`
+- Open a terminal in SC2Bot and enter the following command
   - `docker-compose up --build`
     - This will compile the cpp code to a python module that can be used in [local-play-bootstrap](https://github.com/aiarena/local-play-bootstrap)
 - Navigate to the local-play-bootstrap folder, in which
@@ -58,4 +57,4 @@ to the integration into that repository.
   - The name of the bot in the match must be the same as the folder name of the bot
 - Navigate to the root of the local-play-bootstrap folder and enter the following command:
   - `docker-compose up`
-    - The container should now build, and all matches entered in the `matches` file will start
+    - The container should now build, and start all matches entered in the `matches` file
