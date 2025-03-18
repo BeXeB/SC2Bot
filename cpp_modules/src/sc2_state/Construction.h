@@ -6,6 +6,7 @@
 // #include <format>
 #include <memory>
 #include <utility>
+#include <sstream>
 #include "ActionEnum.h"
 
 
@@ -49,12 +50,13 @@ namespace Sc2 {
         }
 
         [[nodiscard]] std::string toString() const {
-            // std::string str = "Construction: {\n";
-            // str += std::format("    timeLeft: {} \n", _timeLeft);
-            // str += std::format("    action: {} \n", actionToString(_action));
-            // str += "}";
+            std::ostringstream str;
+            str << "Construction: {\n"
+            << "    timeLeft: " << _timeLeft << "\n"
+            << "    action: " << actionToString(_action) << "\n"
+            << "}";
 
-            return "str";
+            return str.str();
         }
 
 

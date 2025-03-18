@@ -9,6 +9,7 @@
 #include <Sc2State.h>
 #include <thread>
 #include <mutex>
+#include <sstream>
 
 #include "Node.h"
 #include "ValueHeuristicEnum.h"
@@ -194,14 +195,14 @@ namespace Sc2::Mcts {
 					break;
 			}
 
-			// std::string str;
-			// str += "MCTS: { \n";
-			// str += std::format("Exploration: {}", EXPLORATION) + "\n";
-			// str += std::format("Rollout Depth: {}", _rolloutEndTime) + "\n";
-			// str += std::format("Value Heuristic: {} ", valueHeuristicStr) + "\n";
-			// str += std::format("Rollout Heuristic: {} ", rolloutHeuristicStr) + "\n";
-			// str += "} \n";
-			return "str";
+			std::ostringstream str;
+			str << "MCTS: { \n"
+			<< "Exploration: " << EXPLORATION << "\n"
+			<< "Rollout Depth: " << _rolloutEndTime << "\n"
+			<< "Value Heuristic: " << valueHeuristicStr << "\n"
+			<< "Rollout Heuristic: " << rolloutHeuristicStr << "\n"
+			<< "} \n";
+			return str.str();
 		};
 
 		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed, const int rolloutEndTime,
