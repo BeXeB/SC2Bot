@@ -3,7 +3,6 @@
 //
 #ifndef CONSTRUCTION_H
 #define CONSTRUCTION_H
-// #include <format>
 #include <memory>
 #include <utility>
 #include <sstream>
