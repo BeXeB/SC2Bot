@@ -169,11 +169,12 @@ class InformationManager:
                 self.bot.worker_manager.assign_worker(worker.tag, WorkerRole.IDLE, None)
         # the tag of the closest townhall
         position = self.gas_data[tag].position
-        closest_th_tag = min(self.townhall_data, key=lambda th: position.distance_to(self.townhall_data[th].position))
-        # if the townhall is close enough, remove the base from the completed bases
-        if position.distance_to(self.townhall_data[closest_th_tag].position) < 15:
-            if closest_th_tag in self.completed_bases:
-                self.completed_bases.remove(closest_th_tag)
+        if self.townhall_data:
+            closest_th_tag = min(self.townhall_data, key=lambda th: position.distance_to(self.townhall_data[th].position))
+            # if the townhall is close enough, remove the base from the completed bases
+            if position.distance_to(self.townhall_data[closest_th_tag].position) < 15:
+                if closest_th_tag in self.completed_bases:
+                    self.completed_bases.remove(closest_th_tag)
         self.gas_data.pop(tag)
 
     def handle_barracks_destroyed(self, tag: int) -> None:
