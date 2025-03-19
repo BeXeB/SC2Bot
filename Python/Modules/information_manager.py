@@ -138,11 +138,9 @@ class InformationManager:
             if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
 
                 p = Point2.from_proto(order.target)
-                print(p)
-                if p in self.expansion_locations:
-                    self.expansion_locations[p] = False
-                else:
-                    print(f"Error: {order.target} not in expansion location")
+
+                self.expansion_locations[p] = False
+
         self.worker_data.pop(tag)
 
     def remove_worker_from_assigned_structure(self, tag: int) -> None:
