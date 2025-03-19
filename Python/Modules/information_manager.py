@@ -136,7 +136,10 @@ class InformationManager:
         worker = self.bot._units_previous_map[tag]
         for order in worker.orders:
             if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
-                self.expansion_locations[order.target] = False
+                if order.target in self.expansion_locations:
+                    self.expansion_locations[order.target] = False
+                else:
+                    print(f"Error: {order.target} not in expansion location")
         self.worker_data.pop(tag)
 
     def remove_worker_from_assigned_structure(self, tag: int) -> None:
