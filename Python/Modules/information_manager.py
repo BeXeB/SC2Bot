@@ -136,8 +136,11 @@ class InformationManager:
         worker = self.bot._units_previous_map[tag]
         for order in worker.orders:
             if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
-                if order.target in self.expansion_locations:
-                    self.expansion_locations[order.target] = False
+
+                p = Point2.from_proto(order.target)
+                print(p)
+                if p in self.expansion_locations:
+                    self.expansion_locations[p] = False
                 else:
                     print(f"Error: {order.target} not in expansion location")
         self.worker_data.pop(tag)
