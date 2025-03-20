@@ -175,6 +175,9 @@ class MyBot(BotAI):
                 print("Unable to find free base location")
                 return
             self.base_worker = self.worker_manager.select_worker(self.new_base_location, WorkerRole.BUILD)
+            if not self.base_worker:
+                self.set_next_action()
+                return
             self.base_worker.move(self.new_base_location)
         if not self.can_afford(UnitTypeId.COMMANDCENTER):
             return
