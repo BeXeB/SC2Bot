@@ -55,45 +55,45 @@ struct BenchmarkResult {
 	float valuePerSecond = 0;
 
 	std::string toString() {
-		std::string str;
-		str += std::format(
-			"|{:<{}}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}.{}f}|",
-			benchmarkIndex, indexSize,
-			numberOfRollouts, numberOfActionsSize,
-			endTime, endTimeSize,
-			exploration, explorationSize, 4,
-			valueHeuristicToString(valueHeuristic), valueHeuristicSize,
-			rolloutHeuristicToString(rolloutHeuristic), rolloutHeuristicSize,
-			timeElapsed, timeElapsedSize, 2,
-			numberOfActions, numberOfActionsSize,
-			finalStateValue, finalStateValueSize, 4,
-			finalVespene, finalVespeneSize,
-			finalMinerals, finalMineralSize,
-			valuePerAction, valuePerActionSize, 4,
-			valuePerSecond, valuePerSecondSize, 4);
-		return str;
+		// std::string str;
+		// str += std::format(
+		// 	"|{:<{}}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}.{}f}|",
+		// 	benchmarkIndex, indexSize,
+		// 	numberOfRollouts, numberOfActionsSize,
+		// 	endTime, endTimeSize,
+		// 	exploration, explorationSize, 4,
+		// 	valueHeuristicToString(valueHeuristic), valueHeuristicSize,
+		// 	rolloutHeuristicToString(rolloutHeuristic), rolloutHeuristicSize,
+		// 	timeElapsed, timeElapsedSize, 2,
+		// 	numberOfActions, numberOfActionsSize,
+		// 	finalStateValue, finalStateValueSize, 4,
+		// 	finalVespene, finalVespeneSize,
+		// 	finalMinerals, finalMineralSize,
+		// 	valuePerAction, valuePerActionSize, 4,
+		// 	valuePerSecond, valuePerSecondSize, 4);
+		return "str";
 	}
 
 	std::string toCsvLine() {
-		std::string str = std::format(
-			"{},{},{},{:.{}f},{},{},{:.{}f},{},{:.{}f},{},{},{:.{}f},{:.{}f},{:.{}f},{:.{}f},{:.{}f}",
-			benchmarkIndex,
-			numberOfRollouts,
-			endTime,
-			exploration, 4,
-			valueHeuristicToString(valueHeuristic),
-			rolloutHeuristicToString(rolloutHeuristic),
-			timeElapsed, 4,
-			numberOfActions,
-			finalStateValue, 4,
-			finalVespene,
-			finalMinerals,
-			valuePerAction, 4,
-			valuePerSecond, 4,
-			numberOfWorkers, 1,
-			numberOfBases, 1,
-			numberOfVespeneCollectors, 1);
-		return str;
+		// std::string str = std::format(
+		// 	"{},{},{},{:.{}f},{},{},{:.{}f},{},{:.{}f},{},{},{:.{}f},{:.{}f},{:.{}f},{:.{}f},{:.{}f}",
+		// 	benchmarkIndex,
+		// 	numberOfRollouts,
+		// 	endTime,
+		// 	exploration, 4,
+		// 	valueHeuristicToString(valueHeuristic),
+		// 	rolloutHeuristicToString(rolloutHeuristic),
+		// 	timeElapsed, 4,
+		// 	numberOfActions,
+		// 	finalStateValue, 4,
+		// 	finalVespene,
+		// 	finalMinerals,
+		// 	valuePerAction, 4,
+		// 	valuePerSecond, 4,
+		// 	numberOfWorkers, 1,
+		// 	numberOfBases, 1,
+		// 	numberOfVespeneCollectors, 1);
+		return "str";
 	}
 };
 
@@ -263,39 +263,39 @@ float threadedMcts(const BenchmarkParams &params) {
 }
 
 void printBenchmarks(const std::vector<BenchmarkResult> &results) {
-	std::cout << std::format(
-				"|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|",
-				"Index", BenchmarkResult::indexSize,
-				"Rollout", BenchmarkResult::numberOfActionsSize,
-				"end", BenchmarkResult::endTimeSize,
-				"explore", BenchmarkResult::explorationSize,
-				"value", BenchmarkResult::valueHeuristicSize,
-				"rollout", BenchmarkResult::rolloutHeuristicSize,
-				"time", BenchmarkResult::timeElapsedSize,
-				"actions", BenchmarkResult::numberOfActionsSize,
-				"final", BenchmarkResult::finalStateValueSize,
-				"final", BenchmarkResult::finalVespeneSize,
-				"final", BenchmarkResult::finalMineralSize,
-				"value per", BenchmarkResult::valuePerActionSize,
-				"value per", BenchmarkResult::valuePerSecondSize) << std::endl
-			<< std::format(
-				"|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|",
-				"", BenchmarkResult::indexSize,
-				"", BenchmarkResult::numberOfActionsSize,
-				"time", BenchmarkResult::endTimeSize,
-				"", BenchmarkResult::explorationSize,
-				"heuristic", BenchmarkResult::valueHeuristicSize,
-				"heuristic", BenchmarkResult::rolloutHeuristicSize,
-				"elapsed", BenchmarkResult::timeElapsedSize,
-				"taken", BenchmarkResult::numberOfActionsSize,
-				"state value", BenchmarkResult::finalStateValueSize,
-				"vespene", BenchmarkResult::finalVespeneSize,
-				"mineral", BenchmarkResult::finalMineralSize,
-				"action", BenchmarkResult::valuePerActionSize,
-				"second", BenchmarkResult::valuePerSecondSize) << std::endl
-			<< "-----------------------------------------------------------------------------------------------------------------------"
-			<<
-			std::endl;
+	// std::cout << std::format(
+	// 			"|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|",
+	// 			"Index", BenchmarkResult::indexSize,
+	// 			"Rollout", BenchmarkResult::numberOfActionsSize,
+	// 			"end", BenchmarkResult::endTimeSize,
+	// 			"explore", BenchmarkResult::explorationSize,
+	// 			"value", BenchmarkResult::valueHeuristicSize,
+	// 			"rollout", BenchmarkResult::rolloutHeuristicSize,
+	// 			"time", BenchmarkResult::timeElapsedSize,
+	// 			"actions", BenchmarkResult::numberOfActionsSize,
+	// 			"final", BenchmarkResult::finalStateValueSize,
+	// 			"final", BenchmarkResult::finalVespeneSize,
+	// 			"final", BenchmarkResult::finalMineralSize,
+	// 			"value per", BenchmarkResult::valuePerActionSize,
+	// 			"value per", BenchmarkResult::valuePerSecondSize) << std::endl
+	// 		<< std::format(
+	// 			"|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|{:<{}}|",
+	// 			"", BenchmarkResult::indexSize,
+	// 			"", BenchmarkResult::numberOfActionsSize,
+	// 			"time", BenchmarkResult::endTimeSize,
+	// 			"", BenchmarkResult::explorationSize,
+	// 			"heuristic", BenchmarkResult::valueHeuristicSize,
+	// 			"heuristic", BenchmarkResult::rolloutHeuristicSize,
+	// 			"elapsed", BenchmarkResult::timeElapsedSize,
+	// 			"taken", BenchmarkResult::numberOfActionsSize,
+	// 			"state value", BenchmarkResult::finalStateValueSize,
+	// 			"vespene", BenchmarkResult::finalVespeneSize,
+	// 			"mineral", BenchmarkResult::finalMineralSize,
+	// 			"action", BenchmarkResult::valuePerActionSize,
+	// 			"second", BenchmarkResult::valuePerSecondSize) << std::endl
+	// 		<< "-----------------------------------------------------------------------------------------------------------------------"
+	// 		<<
+	// 		std::endl;
 
 	for (auto result: results) {
 		std::cout << result.toString() << std::endl;
@@ -316,23 +316,23 @@ void writeBenchmarksToFile(const std::vector<BenchmarkResult> &results) {
 		std::cerr << "Error opening file: " << fileName << std::endl;
 	}
 
-	file << std::format("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
-	                    "index",
-	                    "rollout",
-	                    "end time",
-	                    "explore",
-	                    "value heuristics",
-	                    "rollout heuristic",
-	                    "time elapsed",
-	                    "actions taken",
-	                    "final state value",
-	                    "final vespene",
-	                    "final mineral",
-	                    "value per action",
-	                    "value per second",
-	                    "workers",
-	                    "bases",
-	                    "vespene collectors");
+	// file << std::format("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+	//                     "index",
+	//                     "rollout",
+	//                     "end time",
+	//                     "explore",
+	//                     "value heuristics",
+	//                     "rollout heuristic",
+	//                     "time elapsed",
+	//                     "actions taken",
+	//                     "final state value",
+	//                     "final vespene",
+	//                     "final mineral",
+	//                     "value per action",
+	//                     "value per second",
+	//                     "workers",
+	//                     "bases",
+	//                     "vespene collectors");
 
 	for (auto result: results) {
 		file << result.toCsvLine() << std::endl;
