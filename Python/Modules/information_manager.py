@@ -186,3 +186,8 @@ class InformationManager:
 
     def handle_marine_destroyed(self, tag: int) -> None:
         self.marine_data.pop(tag)
+
+    def get_workers(self, worker_role: Optional[WorkerRole]) -> dict[int, WorkerData]:
+        if worker_role is None:
+            return self.worker_data
+        return {key: value for key, value in self.worker_data.items() if value.role == worker_role}

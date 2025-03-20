@@ -174,6 +174,7 @@ class WorkerManager:
                 gas_data[assigned_to_tag].current_harvesters += 1
         worker_data[worker_tag].assign_to(assigned_to_tag, role)
 
+
     # This method selects a worker to do a task
     # It selects the closest worker to the location
     # The method takes into account the worker's role
