@@ -17,6 +17,7 @@ class WorkerRole(Enum):
     MINERALS = 1
     GAS = 2
     BUILD = 3
+    SCOUT = 4
 
 class TownhallData:
     current_harvesters: int
