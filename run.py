@@ -30,8 +30,8 @@ if __name__ == "__main__":
     else:
         print("Starting local game...")
         match = GameMatch(
-            maps.get("KingsCoveLE"),
-            [bot, Computer(Race.Terran, Difficulty.MediumHard)],
+            maps.get("AcropolisAIE"),
+            [Computer(Race.Terran, Difficulty.MediumHard),bot],
             realtime=False,
             disable_fog=True,
             random_seed=0

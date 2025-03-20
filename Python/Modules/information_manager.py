@@ -89,8 +89,9 @@ class InformationManager:
     build_times: dict[UnitTypeId, int]
     expansion_locations: dict[Point2, bool]
     completed_bases = set()
-    building_type_to_size: dict[UnitTypeId, (int, int)]
-    placements: Dict[PlacementType, Set[Point2]]
+    building_type_to_placement_type: dict[UnitTypeId, PlacementType]
+    placement_type_to_size: dict[PlacementType, (int, int)]
+    # placements: Dict[PlacementType, Set[Point2]]
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
@@ -127,23 +128,26 @@ class InformationManager:
             # Protoss
             UnitTypeId.PROBE
         }
-        self.building_type_to_size = {
-            UnitTypeId.COMMANDCENTER: (5, 5),
-            UnitTypeId.SUPPLYDEPOT: (2, 2),
-            UnitTypeId.REFINERY: (3, 3),
-            UnitTypeId.BARRACKS: (5, 3),
-            UnitTypeId.FACTORY: (5, 3),
-            UnitTypeId.STARPORT: (5, 3),
-            UnitTypeId.ARMORY: (3, 3),
-            UnitTypeId.ENGINEERINGBAY: (3, 3),
-            UnitTypeId.FUSIONCORE: (3, 3),
-            UnitTypeId.GHOSTACADEMY: (3, 3),
+        self.building_type_to_placement_type = {
+            UnitTypeId.SUPPLYDEPOT: PlacementType.SUPPLY,
+            UnitTypeId.BARRACKS: PlacementType.PRODUCTION,
+            UnitTypeId.FACTORY: PlacementType.PRODUCTION,
+            UnitTypeId.STARPORT: PlacementType.PRODUCTION,
+            UnitTypeId.ARMORY: PlacementType.TECH,
+            UnitTypeId.ENGINEERINGBAY: PlacementType.TECH,
+            UnitTypeId.FUSIONCORE: PlacementType.TECH,
+            UnitTypeId.GHOSTACADEMY: PlacementType.TECH,
         }
-        self.placements = {
-            PlacementType.PRODUCTION: set(),
-            PlacementType.SUPPLY: set(),
-            PlacementType.TECH: set()
+        self.placement_type_to_size = {
+            PlacementType.SUPPLY: (2,2),
+            PlacementType.PRODUCTION: (5,3),
+            PlacementType.TECH: (3,3)
         }
+        # self.placements = {
+        #     PlacementType.PRODUCTION: set(),
+        #     PlacementType.SUPPLY: set(),
+        #     PlacementType.TECH: set()
+        # }
 
     async def remove_unit_by_tag(self, tag: int) -> None:
         if tag in self.worker_data:
@@ -170,11 +174,8 @@ class InformationManager:
         worker = self.bot._units_previous_map[tag]
         for order in worker.orders:
             if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
-
                 p = Point2.from_proto(order.target)
-
                 self.expansion_locations[p] = False
-
         self.worker_data.pop(tag)
 
     def remove_worker_from_assigned_structure(self, tag: int) -> None:
@@ -212,9 +213,17 @@ class InformationManager:
         self.gas_data.pop(tag)
 
     def handle_barracks_destroyed(self, tag: int) -> None:
+        if tag not in self.barracks_data:
+            return
+        position = self.barracks_data[tag].position
+        self.bot.map_analyzer.make_location_buildable(position, self.building_type_to_placement_type[UnitTypeId.BARRACKS])
         self.barracks_data.pop(tag)
 
     def handle_supply_depot_destroyed(self, tag: int) -> None:
+        if tag not in self.supply_depot_data:
+            return
+        position = self.supply_depot_data[tag].position
+        self.bot.map_analyzer.make_location_buildable(position, self.building_type_to_placement_type[UnitTypeId.SUPPLYDEPOT])
         self.supply_depot_data.pop(tag)
 
     def handle_marine_destroyed(self, tag: int) -> None:
