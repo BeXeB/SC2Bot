@@ -4,7 +4,7 @@ from sc2.player import Bot, Computer
 from sc2.data import Difficulty, Race
 from sc2.main import run_multiple_games, run_game, GameMatch
 from sc2 import maps
-from Python.testbot import MyBot, ActionSelection
+from Python.testbot import MyBot, ActionSelection, PeacefulBot
 from sc2_mcts import ValueHeuristic, RolloutHeuristic
 from __init__ import run_ladder_game  # Import ladder game function
 
@@ -29,9 +29,11 @@ if __name__ == "__main__":
         print(result, " against opponent ", opponentid)
     else:
         print("Starting local game...")
+        # opponent = Computer(Race.Terran, Difficulty.MediumHard)
+        opponent = Bot(Race.Terran, PeacefulBot())
         match = GameMatch(
-            maps.get("AcropolisAIE"),
-            [Computer(Race.Terran, Difficulty.MediumHard),bot],
+            maps.get("KingsCoveLE"),
+            [opponent,bot],
             realtime=False,
             disable_fog=True,
             random_seed=0

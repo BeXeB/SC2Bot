@@ -1,6 +1,6 @@
 import math
 import typing
-from typing import List, Optional
+from typing import List, Optional, Set, Tuple
 
 from Python.Modules.information_manager import PlacementType
 from sc2.units import Units
@@ -21,8 +21,9 @@ class MapAnalyzer:
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
 
-    def __placement_position_from_type_and_grid_corner(self, corner: (int, int), type: PlacementType) -> Optional[Point2]:
-        match type:
+    @staticmethod
+    def __placement_position_from_type_and_grid_corner(corner: Tuple[int, int], placement_type: PlacementType) -> Optional[Point2]:
+        match placement_type:
             case PlacementType.SUPPLY:
                 return Point2((corner[0] + 1, corner[1] + 1))
             case PlacementType.PRODUCTION:
@@ -43,14 +44,14 @@ class MapAnalyzer:
             for j in range(end_y - start_y):
                 self.grid.__setitem__((start_x + i, start_y + j), value)
 
-    def __check_buildable(self, corner: (int, int), size: (int, int)) -> bool:
-        for x in range(corner[0], corner[0] + size[0] + 1):
-            for y in range(corner[1], corner[1] + size[1] + 1):
+    def __check_buildable(self, corner: Tuple[int, int], size: Tuple[int, int]) -> bool:
+        for x in range(corner[0], corner[0] + size[0]):
+            for y in range(corner[1], corner[1] + size[1]):
                 if not self.grid.is_set((x,y)):
                     return False
         return True
 
-    def setup_grid(self):
+    def setup_grid(self) -> None:
         self.grid = self.bot.game_info.placement_grid.copy()
         self.ramps = self.bot.game_info.map_ramps.copy()
 
@@ -62,8 +63,8 @@ class MapAnalyzer:
             x = math.floor(base[0] - 2)
             y = math.floor(base[1] - 2)
             self.__set_grid(x, y, x + 5, y + 5)
-            minerals: Units = self.bot.mineral_field.filter(lambda mf: mf.distance_to(base) < 15)
-            geysers: Units = self.bot.vespene_geyser.filter(lambda m: m.distance_to(base) < 15)
+            minerals: Units = self.bot.mineral_field.filter(lambda mf: mf.distance_to(base) < 10)
+            geysers: Units = self.bot.vespene_geyser.filter(lambda m: m.distance_to(base) < 10)
             for unit in minerals + geysers:
                 unit_x = math.floor(unit.position[0])
                 unit_y = math.floor(unit.position[1])
@@ -79,62 +80,65 @@ class MapAnalyzer:
             y = math.floor(g[1] - 1)
             self.__set_grid(x, y, x + 3, y + 3)
 
-    def find_placement(self, type: PlacementType, near: Optional[Point2]) -> Optional[Point2]:
-        size = self.bot.information_manager.placement_type_to_size[type]
+    def find_placement(self, placement_type: PlacementType, near: Optional[Point2]) -> Optional[Point2]:
+        size: Tuple[int, int] = self.bot.information_manager.placement_type_to_size[placement_type]
+        start: Point2 = self.bot.start_location
+        corner: Optional[Tuple[int, int]] = None
+        directions: List[Tuple[int, int]] = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        visited: Set[Tuple[int, int]] = set()
+
         if near:
-            pass
-        corner: Optional[(int, int)] = None
-        for x in range(self.grid.width):
-            for y in range(self.grid.height):
-                if self.__check_buildable((x,y), size):
-                    corner = (x, y)
-                    break
-            if corner:
-                break
+            start = near
+
+        # TODO: Start the search from start location
+        # Ideas: Spiral, box search around bases, box search with check for build area for the base (if the box contains an other base it shouldnt build there)
+        # maybe do spiral from each base if we built a lot of stuff
+
+        x: int = math.floor(start.x)
+        y: int = math.floor(start.y)
+        visited.add((x, y))
+
+        steps: int = 1  # Step size increases after 2 moves
+        dir_idx: int = 0  # Index for direction
+        move_count: int = 0  # Count moves to adjust step size
+
+        while len(visited) < self.grid.height * self.grid.width and not corner:
+            for _ in range(steps):
+                x += directions[dir_idx][0]
+                y += directions[dir_idx][1]
+                if 0 <= x < self.grid.width and 0 <= y < self.grid.height and (x, y) not in visited:
+                    visited.add((x, y))
+                    if self.__check_buildable((x,y), size):
+                        corner = (x, y)
+                        break
+
+            # Change direction
+            dir_idx = (dir_idx + 1) % 4
+            move_count += 1
+
+            # Every two direction changes, increase the step size
+            if move_count % 2 == 0:
+                steps += 1
 
         self.__set_grid(corner[0], corner[1], corner[0] + size[0], corner[1] + size[1])
 
-        return self.__placement_position_from_type_and_grid_corner(corner, type)
+        return self.__placement_position_from_type_and_grid_corner(corner, placement_type)
 
-    def make_location_buildable(self, location: Point2, type: Optional[PlacementType] = None) -> None:
-        x = math.floor(location[0])
-        y = math.floor(location[1])
+    def make_location_buildable(self, location: Point2, placement_type: Optional[PlacementType] = None) -> None:
+        x: int = math.floor(location[0])
+        y: int = math.floor(location[1])
 
-        if not type:
+        if not placement_type:
             self.grid.__setitem__((x, y), 1)
-
-        # TODO: The grid stays unavailable if a worker dies on the way to build
+            return
 
         x -= 1
         y -= 1
-        size = self.bot.information_manager.placement_type_to_size[type]
+        size = self.bot.information_manager.placement_type_to_size[placement_type]
         self.__set_grid(x, y, x + size[0], y + size[1], 1)
 
-    def print(self, wide: bool = False):
+    def print(self, wide: bool = False) -> None:
         for y in range(self.grid.height):
             for x in range(self.grid.width):
                 print("#" if self.grid.is_set((x, self.grid.height - y - 1)) else " ", end=(" " if wide else ""))
             print("")
-
-    # These will be needed for the precalculated version
-    # def find_placements(self):
-    #     self.setup_grid()
-    #     self.__find_supply()
-    #     self.__find_tech()
-    #     self.__find_production()
-
-    # def __find_supply(self):
-    #     # generally behind the mineral line
-    #     # otherwise near the base
-    #     pass
-    #
-    # def __find_tech(self):
-    #     # generally behind the minara line/gas buildings
-    #     # otherwise near the base
-    #     pass
-    #
-    # def __find_production(self):
-    #     # generally further away from the base
-    #     pass
-
-

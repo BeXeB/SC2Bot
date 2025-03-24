@@ -1,7 +1,9 @@
 ﻿import math
 import typing
 from enum import Enum
-from typing import Optional, Dict, Set, List
+from typing import Optional, Dict, Set, List, Tuple
+
+from sc2.unit import Unit
 
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
@@ -80,18 +82,18 @@ class PlacementType(Enum):
     TECH = 3
 
 class InformationManager:
-    worker_data: dict[int, WorkerData]
-    townhall_data: dict[int, TownhallData]
-    gas_data: dict[int, GasBuildingData]
-    barracks_data: dict[int, BarracksData]
-    supply_depot_data: dict[int, SupplyDepotData]
-    marine_data: dict[int, MarineData]
-    build_times: dict[UnitTypeId, int]
-    expansion_locations: dict[Point2, bool]
-    completed_bases = set()
-    building_type_to_placement_type: dict[UnitTypeId, PlacementType]
-    placement_type_to_size: dict[PlacementType, (int, int)]
-    # placements: Dict[PlacementType, Set[Point2]]
+    worker_data: Dict[int, WorkerData]
+    townhall_data: Dict[int, TownhallData]
+    gas_data: Dict[int, GasBuildingData]
+    barracks_data: Dict[int, BarracksData]
+    supply_depot_data: Dict[int, SupplyDepotData]
+    marine_data: Dict[int, MarineData]
+    build_times: Dict[UnitTypeId, int]
+    expansion_locations: Dict[Point2, bool]
+    completed_bases: Set[int] = set()
+    building_type_to_placement_type: Dict[UnitTypeId, PlacementType]
+    placement_type_to_size: Dict[PlacementType, Tuple[int, int]]
+    terranbuild_mapping: Dict[AbilityId, UnitTypeId]
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
@@ -140,14 +142,19 @@ class InformationManager:
         }
         self.placement_type_to_size = {
             PlacementType.SUPPLY: (2,2),
-            PlacementType.PRODUCTION: (5,3),
+            PlacementType.PRODUCTION: (7,5),
             PlacementType.TECH: (3,3)
         }
-        # self.placements = {
-        #     PlacementType.PRODUCTION: set(),
-        #     PlacementType.SUPPLY: set(),
-        #     PlacementType.TECH: set()
-        # }
+        self.terranbuild_mapping = {
+            AbilityId.TERRANBUILD_SUPPLYDEPOT: UnitTypeId.SUPPLYDEPOT,
+            AbilityId.TERRANBUILD_BARRACKS: UnitTypeId.BARRACKS,
+            AbilityId.TERRANBUILD_FACTORY: UnitTypeId.FACTORY,
+            AbilityId.TERRANBUILD_STARPORT: UnitTypeId.STARPORT,
+            AbilityId.TERRANBUILD_ARMORY: UnitTypeId.ARMORY,
+            AbilityId.TERRANBUILD_GHOSTACADEMY: UnitTypeId.GHOSTACADEMY,
+            AbilityId.TERRANBUILD_ENGINEERINGBAY: UnitTypeId.ENGINEERINGBAY,
+            AbilityId.TERRANBUILD_FUSIONCORE: UnitTypeId.FUSIONCORE
+        }
 
     async def remove_unit_by_tag(self, tag: int) -> None:
         if tag in self.worker_data:
@@ -171,11 +178,16 @@ class InformationManager:
             self.bot.base_worker = None
             self.bot.new_base_location = None
         # if the worker was building a base, make the location available
-        worker = self.bot._units_previous_map[tag]
+        worker: Unit = self.bot._units_previous_map[tag]
         for order in worker.orders:
-            if order.ability.id == AbilityId.TERRANBUILD_COMMANDCENTER:
-                p = Point2.from_proto(order.target)
+            p: Point2 = Point2.from_proto(order.target)
+            ability: AbilityId = order.ability.id
+            if ability == AbilityId.TERRANBUILD_COMMANDCENTER:
                 self.expansion_locations[p] = False
+            elif ability in self.terranbuild_mapping:
+                placement_type = self.building_type_to_placement_type[self.terranbuild_mapping[ability]]
+                self.bot.map_analyzer.make_location_buildable(p, placement_type)
+
         self.worker_data.pop(tag)
 
     def remove_worker_from_assigned_structure(self, tag: int) -> None:

@@ -1,7 +1,7 @@
 import math
 import queue
 from enum import Enum
-from typing import Set, Tuple
+from typing import Tuple
 from time import sleep
 
 from sc2.data import Result
@@ -144,42 +144,11 @@ class MyBot(BotAI):
             height = self.get_terrain_z_height(loc) + 0.1
             self.client.debug_box_out(Point3((start_loc[0], start_loc[1], height)), Point3((end_loc[0], end_loc[1], height)), color=color)
 
-        # def draw_production(locs: Set[Point2]):
-        #     color = (0, 0, 255)
-        #     for loc in locs:
-        #         start_loc = (math.floor(loc.x)-1, math.floor(loc.y)-1)
-        #         end_loc = (start_loc[0]+5, start_loc[1]+3)
-        #         draw_box(loc, start_loc, end_loc, color)
-        #
-        # def draw_supply(locs: Set[Point2]):
-        #     color = (255, 0, 0)
-        #     for loc in locs:
-        #         start_loc = (math.floor(loc.x)-1, math.floor(loc.y)-1)
-        #         end_loc = (start_loc[0]+2, start_loc[1]+2)
-        #         draw_box(loc, start_loc, end_loc, color)
-        #
-        # def draw_tech(locs: Set[Point2]):
-        #     color = (0, 255, 0)
-        #     for loc in locs:
-        #         start_loc = (math.floor(loc.x)-1, math.floor(loc.y)-1)
-        #         end_loc = (start_loc[0]+3, start_loc[1]+3)
-        #         draw_box(loc, start_loc, end_loc, color)
-
         grid = self.map_analyzer.grid
         for x in range(grid.width):
             for y in range(grid.height):
                 if grid[(x, y)]:
                     self.client.debug_text_3d(f"{x},{y}", Point3((x, y+0.5, self.get_terrain_z_height(Point2((x,y)))+0.1)), (255, 255, 255))
-
-        # locs = self.information_manager.placements
-        # for type in locs:
-        #     match type:
-        #         case PlacementType.PRODUCTION:
-        #             draw_production(locs[type])
-        #         case PlacementType.SUPPLY:
-        #             draw_supply(locs[type])
-        #         case PlacementType.TECH:
-        #             draw_tech(locs[type])
 
         thlocs = self.information_manager.expansion_locations
         for thloc in thlocs:
