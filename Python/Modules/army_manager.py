@@ -26,4 +26,4 @@ class ArmyManager:
                 position = building.position
                 for marine in self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE):
                     marine.attack(position)
-            break
+                break
