@@ -16,7 +16,7 @@ class ScoutManager:
         self.target: Point2 = self.cluster_points[0]
         self.scout: Unit | None = None
         self.KITING_RANGE = 5
-        
+
     def manage_scouts(self) -> None:
         scout_list = self.bot.information_manager.get_workers(WorkerRole.SCOUT)
         if not scout_list:
@@ -37,7 +37,7 @@ class ScoutManager:
             self.__update_target()
         scout.move(self.target)
 
-    def __update_target(self):
+    def __update_target(self) -> None:
         initial_position = self.target
         while True:
             self.target = next(self.cluster_iter)
