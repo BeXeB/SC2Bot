@@ -18,3 +18,12 @@ class ArmyManager:
             position = self.bot.enemy_start_locations[0] if self.bot.enemy_structures.empty else self.bot.enemy_structures.closest_to(self.bot.start_location).position
             for marine in self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE):
                 marine.attack(position)
+
+
+    def check_base_radius(self):
+        for building in self.bot.structures:
+            if any (self.bot.enemy_units.closer_than(10, building)):
+                position = building.position
+                for marine in self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE):
+                    marine.attack(position)
+            break
