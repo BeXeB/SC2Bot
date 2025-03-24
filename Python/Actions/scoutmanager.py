@@ -61,9 +61,4 @@ class ScoutManager:
         return self.scout.distance_to(element)
 
 # TODO
-# 1. Rækkefølgen vi undersøger locations
-# 4. Variabel antal af scouts + Variabel type (Reaper)
-
-# Done
-# 2. Fix når vi kommer for tæt på fjender -> Tilføj bonus distance til når vi møder fjender
-# 3. Scout ikke baser vi selv har (Fjern dem fra location listen)
+# 4. Variable amount of scouts + Variable type (Reaper)
