@@ -13,7 +13,7 @@ class ScoutManager:
         self.bot = bot
         self.cluster_points: [Point2] = self.bot.expansion_locations_list
         self.cluster_iter = itertools.cycle(self.cluster_points)
-        self.target: Point2 = next(self.cluster_iter)
+        self.target: Point2 = self.cluster_points[0]
         self.scout: Unit | None = None
         self.KITING_RANGE = 5
 
@@ -21,12 +21,9 @@ class ScoutManager:
         enemy_units = self.bot.enemy_units
         if self.enemies_in_range(enemy_units, self.scout):
             self.update_target()
-            print("enemies oh noooooo")
         if scout.distance_to(self.target) < 5:
-            print("got to point")
             self.update_target()
         scout.move(self.target)
-        print("TARGET: " + str(self.target) + "ENEMY BASE: " + str(self.bot.enemy_start_locations[0]))
 
     def update_target(self):
         initial_position = self.target
@@ -41,7 +38,6 @@ class ScoutManager:
     def enemies_in_range(self, enemies: Units, scout: Unit) -> bool:
         for enemy in enemies:
             if enemy.distance_to(scout) < enemy.ground_range + self.KITING_RANGE:
-                print("enemy: " + str(enemy) + " distance: " + str(enemy.distance_to(scout)) + " ground range: " + str(enemy.ground_range))
                 return True
         return False
 
