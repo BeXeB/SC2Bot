@@ -31,7 +31,7 @@ if __name__ == "__main__":
         print("Starting local game...")
         match = GameMatch(
             maps.get("KingsCoveLE"),
-            [bot, Computer(Race.Terran, Difficulty.MediumHard)],
+            [bot, Computer(Race.Terran, Difficulty.Easy)],
             realtime=False,
             disable_fog=False,
             random_seed=0
