@@ -141,13 +141,25 @@ int Sc2::State::getVespeneWorkers() const {
     if (_workerPopulation <= _occupiedWorkerTimers.size()) {
         return 0;
     }
-    const int availablePopulation = _workerPopulation - static_cast<int>(_occupiedWorkerTimers.size());
+    const int availablePopulation = _workerPopulation - static_cast<int>(_occupiedWorkerTimers.size()) - getScoutWorkers();
+
     int availableVespeneJobs = 0;
     for (const auto &base: _bases) {
         availableVespeneJobs += base.getVespeneWorkerLimit();
     }
 
     return availablePopulation <= availableVespeneJobs ? availablePopulation : availableVespeneJobs;
+}
+
+int Sc2::State::getScoutWorkers() const {
+    const int occupiedWorkers = static_cast<int>(_occupiedWorkerTimers.size());
+    if (_workerPopulation <= occupiedWorkers) {
+        return 0;
+    }
+    const int availableWorkers = _workerPopulation - occupiedWorkers;
+    const int scoutWorkers = availableWorkers >= _MAX_SCOUT_POPULATION ? _MAX_SCOUT_POPULATION : availableWorkers;
+
+    return scoutWorkers;
 }
 
 int Sc2::State::mineralGainedPerTimestep() const {
