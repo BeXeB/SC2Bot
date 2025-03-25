@@ -104,7 +104,7 @@ class MyBot(BotAI):
 
         self.update_busy_workers()
         self.manage_workers()
-        #self.army_manager.manage_army()
+        self.army_manager.manage_army()
         self.army_manager.check_base_radius()
         self.scout_manager.manage_scouts()
 
