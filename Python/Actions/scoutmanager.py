@@ -23,8 +23,8 @@ class ScoutManager:
             self.scout = self.bot.worker_manager.select_worker(self.target, WorkerRole.SCOUT)
             if self.scout is not None:
                 self.bot.worker_manager.assign_worker(self.scout.tag, WorkerRole.SCOUT, None)
-            self.__sort_expansion_distances()
-            self.target = next(self.cluster_iter)
+                self.__sort_expansion_distances()
+                self.target = next(self.cluster_iter)
         if self.scout is not None:
             self.scout = self.bot.workers.by_tag(self.scout.tag)
             self.__kite_scout(self.scout)
