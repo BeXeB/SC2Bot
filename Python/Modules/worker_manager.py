@@ -153,21 +153,27 @@ class WorkerManager:
 
     # This method assigns a role to a worker
     def assign_worker(self, worker_tag: int, role: WorkerRole, assigned_to_tag: Optional[int]) -> None:
+        worker_data = self.bot.information_manager.worker_data
+        townhall_data = self.bot.information_manager.townhall_data
+        gas_data = self.bot.information_manager.gas_data
+
         # remove worker from previous assignment
-        if not worker_tag in self.bot.information_manager.worker_data:
+        if worker_tag not in worker_data:
             return
-        if self.bot.information_manager.worker_data[worker_tag].assigned_to_tag is not None:
-            old_assigned_to_tag = self.bot.information_manager.worker_data[worker_tag].assigned_to_tag
-            if old_assigned_to_tag in self.bot.information_manager.townhall_data:
-                self.bot.information_manager.townhall_data[old_assigned_to_tag].current_harvesters -= 1
-            if old_assigned_to_tag in self.bot.information_manager.gas_data:
-                self.bot.information_manager.gas_data[old_assigned_to_tag].current_harvesters -= 1
+
+        if worker_data[worker_tag].assigned_to_tag is not None:
+            old_assigned_to_tag = worker_data[worker_tag].assigned_to_tag
+            if old_assigned_to_tag in townhall_data:
+                townhall_data[old_assigned_to_tag].current_harvesters -= 1
+            if old_assigned_to_tag in gas_data:
+                gas_data[old_assigned_to_tag].current_harvesters -= 1
         if assigned_to_tag is not None:
-            if assigned_to_tag in self.bot.information_manager.townhall_data:
-                self.bot.information_manager.townhall_data[assigned_to_tag].current_harvesters += 1
-            if assigned_to_tag in self.bot.information_manager.gas_data:
-                self.bot.information_manager.gas_data[assigned_to_tag].current_harvesters += 1
-        self.bot.information_manager.worker_data[worker_tag].assign_to(assigned_to_tag, role)
+            if assigned_to_tag in townhall_data:
+                townhall_data[assigned_to_tag].current_harvesters += 1
+            if assigned_to_tag in gas_data:
+                gas_data[assigned_to_tag].current_harvesters += 1
+        worker_data[worker_tag].assign_to(assigned_to_tag, role)
+
 
     # This method selects a worker to do a task
     # It selects the closest worker to the location
@@ -177,6 +183,7 @@ class WorkerManager:
             WorkerRole.IDLE: 1,
             WorkerRole.MINERALS: 2,
             WorkerRole.GAS: 3,
+            WorkerRole.SCOUT: 10000,
             WorkerRole.BUILD: math.inf
         }
 

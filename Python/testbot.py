@@ -1,7 +1,9 @@
 import math
 import queue
 from enum import Enum
+from time import sleep
 
+from Python.Actions.scoutmanager import ScoutManager
 from sc2.data import Result
 from sc2.position import Point3, Point2
 from sc2.bot_ai import BotAI
@@ -45,6 +47,7 @@ class MyBot(BotAI):
     barracks_builder: BarracksBuilder
     marine_builder: MarineBuilder
     army_manager: ArmyManager
+    scout_manager: ScoutManager
     new_base_location = None
     base_worker = None
     busy_workers: dict[int, float] = {}
@@ -85,11 +88,13 @@ class MyBot(BotAI):
         self.barracks_builder = BarracksBuilder(self)
         self.marine_builder = MarineBuilder(self)
         self.army_manager = ArmyManager(self)
+        self.scout_manager = ScoutManager(self)
+
         self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
-            await self.client.debug_show_map()
+            #await self.client.debug_show_map()
             for worker in self.workers:
                 worker(AbilityId.STOP_STOP)
             for townhall in self.townhalls:
@@ -100,6 +105,7 @@ class MyBot(BotAI):
         self.update_busy_workers()
         self.manage_workers()
         self.army_manager.manage_army()
+        self.scout_manager.manage_scouts()
 
         match self.next_action:
             case Action.build_base:
@@ -174,6 +180,9 @@ class MyBot(BotAI):
                 print("Unable to find free base location")
                 return
             self.base_worker = self.worker_manager.select_worker(self.new_base_location, WorkerRole.BUILD)
+            if not self.base_worker:
+                self.set_next_action()
+                return
             self.base_worker.move(self.new_base_location)
         if not self.can_afford(UnitTypeId.COMMANDCENTER):
             return
@@ -257,8 +266,8 @@ class MyBot(BotAI):
         self.mcts.perform_action(action)
 
     def get_best_action_min(self) -> None:
-        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
-            return
+        while self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
+            sleep(0.01)
         self.get_best_action()
 
     def get_multi_best_action(self) -> None:
@@ -283,8 +292,8 @@ class MyBot(BotAI):
         if not self.future_action_queue.empty():
             self.set_next_action(self.future_action_queue.get())
             return
-        if self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
-            return
+        while self.mcts.get_number_of_rollouts() < self.fixed_search_rollouts:
+            sleep(0.01)
         self.get_multi_best_action()
 
     def set_next_action(self, action: Action = Action.none):

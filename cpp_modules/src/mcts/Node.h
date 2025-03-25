@@ -4,11 +4,11 @@
 
 #ifndef NODE_H
 #define NODE_H
-#include <format>
 #include <map>
 #include <memory>
 #include <utility>
 #include <vector>
+#include <sstream>
 
 #include "ActionEnum.h"
 
@@ -61,14 +61,14 @@ namespace Sc2::Mcts {
 		}
 
 		[[nodiscard]] std::string toString() const {
-			std::string str;
-			str += std::format("Node: {} ", static_cast<int>(_action)) + "{ \n";
-			str += std::format("parent: {} \n", _parent.lock() != nullptr);
-			str += std::format("children: {} \n", children.size());
-			str += std::format("numberOfSimulations: {} \n", N);
-			str += std::format("Q: {} \n", Q);
-			str += "} \n";
-			return str;
+			std::ostringstream str;
+			str << "Node: " << static_cast<int>(_action) << "{ \n"
+			<< "parent: " << (_parent.lock() != nullptr) << "\n"
+			<< "children: " << children.size() << "\n"
+			<< "numberOfSimulations: " << N << "\n"
+			<< "Q: " << Q << "\n"
+			<< "} \n";
+			return str.str();
 		}
 
 		bool gameOver() const {
