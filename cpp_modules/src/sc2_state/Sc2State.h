@@ -15,6 +15,7 @@ namespace Sc2 {
         int _minerals = 50;
         int _vespene = 0;
         int _workerPopulation = 12;
+        int _MAX_SCOUT_POPULATION = 1;
         int _marinePopulation = 0;
         int _incomingWorkers = 0;
         int _incomingMarines = 0;
@@ -162,6 +163,7 @@ namespace Sc2 {
 
         int getMineralWorkers() const;
         int getVespeneWorkers() const;
+        int getScoutWorkers() const;
 
         void buildWorker();
         void buildHouse();

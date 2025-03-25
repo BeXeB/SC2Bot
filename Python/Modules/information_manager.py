@@ -19,6 +19,7 @@ class WorkerRole(Enum):
     MINERALS = 1
     GAS = 2
     BUILD = 3
+    SCOUT = 4
 
 class TownhallData:
     current_harvesters: int
@@ -119,7 +120,7 @@ class InformationManager:
             UnitTypeId.BARRACKS: math.ceil(self.bot.game_data.units[UnitTypeId.BARRACKS.value].cost.time / STEPS_PER_SECOND),
             UnitTypeId.MARINE: math.ceil(self.bot.game_data.units[UnitTypeId.MARINE.value].cost.time / STEPS_PER_SECOND),
         }
-        self.units_to_ignore_for_enemy_army = {
+        self.units_to_ignore_for_army = {
             # Terran
             UnitTypeId.SCV,
             UnitTypeId.MULE,
@@ -240,3 +241,8 @@ class InformationManager:
 
     def handle_marine_destroyed(self, tag: int) -> None:
         self.marine_data.pop(tag)
+
+    def get_workers(self, worker_role: Optional[WorkerRole]) -> dict[int, WorkerData]:
+        if worker_role is None:
+            return self.worker_data
+        return {key: value for key, value in self.worker_data.items() if value.role == worker_role}

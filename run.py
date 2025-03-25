@@ -35,7 +35,7 @@ if __name__ == "__main__":
             maps.get("KingsCoveLE"),
             [opponent,bot],
             realtime=False,
-            disable_fog=True,
+            disable_fog=False,
             random_seed=0
         )
         run_multiple_games([match])

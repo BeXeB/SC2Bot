@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Tuple
 from time import sleep
 
+from Python.Actions.scoutmanager import ScoutManager
 from sc2.data import Result
 from sc2.position import Point3, Point2
 from sc2.bot_ai import BotAI
@@ -50,6 +51,7 @@ class MyBot(BotAI):
     marine_builder: MarineBuilder
     army_manager: ArmyManager
     map_analyzer: MapAnalyzer
+    scout_manager: ScoutManager
     new_base_location = None
     base_worker = None
     busy_workers: dict[int, float] = {}
@@ -91,13 +93,14 @@ class MyBot(BotAI):
         self.marine_builder = MarineBuilder(self)
         self.army_manager = ArmyManager(self)
         self.map_analyzer = MapAnalyzer(self)
+        self.scout_manager = ScoutManager(self)
         self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
+            #await self.client.debug_show_map()
             self.map_analyzer.setup_grid()
             self.map_analyzer.print()
-            await self.client.debug_show_map()
             for worker in self.workers:
                 worker(AbilityId.STOP_STOP)
             for townhall in self.townhalls:
@@ -108,6 +111,7 @@ class MyBot(BotAI):
         self.update_busy_workers()
         self.manage_workers()
         self.army_manager.manage_army()
+        self.scout_manager.manage_scouts()
 
         match self.next_action:
             case Action.build_base:
