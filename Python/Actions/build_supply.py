@@ -16,19 +16,6 @@ from Python.Modules.information_manager import WorkerRole, PlacementType
 class SupplyBuilder:
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
-        # left_or_right = -1 if self.bot.start_location.x > self.bot.game_info.map_size.x/2 else 1
-        # start_location: Point2 = self.bot.start_location
-        # start_location = (
-        #     Point2((math.floor(start_location.x), math.floor(start_location.y)))) \
-        #     if left_or_right == 1 else (
-        #     Point2((math.ceil(start_location.x), math.ceil(start_location.y))))
-        # first_supply_position: Point2 = Point2((start_location.x - 9 * left_or_right, start_location.y - 5 * left_or_right))
-        # self.possible_supply_positions = []
-        # for i in range(5):
-        #     for j in range(5):
-        #         self.possible_supply_positions.append(
-        #             Point2((first_supply_position.x + i * 2 * left_or_right, first_supply_position.y - j * 2 * left_or_right))
-        #         )
 
     async def build_supply(self):
         placement_type = self.bot.information_manager.building_type_to_placement_type[UnitTypeId.SUPPLYDEPOT]
