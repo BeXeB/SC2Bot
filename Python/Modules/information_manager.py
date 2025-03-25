@@ -111,7 +111,7 @@ class InformationManager:
             UnitTypeId.BARRACKS: math.ceil(self.bot.game_data.units[UnitTypeId.BARRACKS.value].cost.time / STEPS_PER_SECOND),
             UnitTypeId.MARINE: math.ceil(self.bot.game_data.units[UnitTypeId.MARINE.value].cost.time / STEPS_PER_SECOND),
         }
-        self.units_to_ignore_for_enemy_army = {
+        self.units_to_ignore_for_army = {
             # Terran
             UnitTypeId.SCV,
             UnitTypeId.MULE,
