@@ -127,6 +127,7 @@ def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
 def translate_state(bot: 'MyBot') -> State:
     bases = get_bases(bot)
     constructions = get_constructions(bot)
+    enemy_combat_units = bot.enemy_units.exclude_type(bot.information_manager.units_to_ignore_for_army).amount
     state = state_builder(
         minerals=bot.minerals,
         vespene=bot.vespene,
@@ -141,8 +142,7 @@ def translate_state(bot: 'MyBot') -> State:
         occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
         current_time=math.floor(bot.time),
         end_time = math.floor(bot.time)+bot.time_limit,
-        # TODO: This assumes the enemy is terran
-        enemy_combat_units=bot.enemy_units.filter(lambda u: u.type_id != UnitTypeId.SCV).amount,
+        enemy_combat_units=enemy_combat_units,
         max_bases = 17,
         has_house = bot.tech_requirement_progress(UnitTypeId.BARRACKS) >= 1,
         incoming_bases = math.floor(bot.already_pending(UnitTypeId.COMMANDCENTER)),

@@ -111,6 +111,17 @@ class InformationManager:
             UnitTypeId.BARRACKS: math.ceil(self.bot.game_data.units[UnitTypeId.BARRACKS.value].cost.time / STEPS_PER_SECOND),
             UnitTypeId.MARINE: math.ceil(self.bot.game_data.units[UnitTypeId.MARINE.value].cost.time / STEPS_PER_SECOND),
         }
+        self.units_to_ignore_for_army = {
+            # Terran
+            UnitTypeId.SCV,
+            UnitTypeId.MULE,
+            # Zerg
+            UnitTypeId.DRONE,
+            UnitTypeId.OVERLORD,
+            UnitTypeId.LARVA,
+            # Protoss
+            UnitTypeId.PROBE
+        }
 
     async def remove_unit_by_tag(self, tag: int) -> None:
         if tag in self.worker_data:
