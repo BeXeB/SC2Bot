@@ -19,10 +19,9 @@ class SupplyBuilder:
 
     async def build_supply(self):
         placement_type = self.bot.information_manager.building_type_to_placement_type[UnitTypeId.SUPPLYDEPOT]
-        build_location = self.bot.map_analyzer.find_placement(placement_type, None)
-        can_place = await self.bot.can_place_single(UnitTypeId.SUPPLYDEPOT, build_location)
-        if not can_place:
-            print(f"Got invalid Supply location: {build_location}")
+        build_location = self.bot.map_analyzer.find_placement(placement_type, UnitTypeId.SUPPLYDEPOT)
+        if not build_location:
+            print("No location found for Supply depot")
             return
         worker = self.bot.worker_manager.select_worker(build_location, WorkerRole.BUILD)
         if not worker:

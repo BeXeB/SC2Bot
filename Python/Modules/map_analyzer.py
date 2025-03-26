@@ -2,6 +2,8 @@ import math
 import typing
 from typing import List, Optional, Set, Tuple
 
+from sc2.ids.unit_typeid import UnitTypeId
+
 from Python.Modules.information_manager import PlacementType
 from sc2.units import Units
 
@@ -44,11 +46,16 @@ class MapAnalyzer:
             for j in range(end_y - start_y):
                 self.grid.__setitem__((start_x + i, start_y + j), value)
 
-    def __check_buildable(self, corner: Tuple[int, int], size: Tuple[int, int]) -> bool:
+    def __check_buildable(self, corner: Tuple[int, int], size: Tuple[int, int], building_type: UnitTypeId) -> bool:
         for x in range(corner[0], corner[0] + size[0]):
             for y in range(corner[1], corner[1] + size[1]):
                 if not self.grid.is_set((x,y)):
                     return False
+        placement_type = self.bot.information_manager.building_type_to_placement_type[building_type]
+        build_pos = self.__placement_position_from_type_and_grid_corner(corner, placement_type)
+        can_build = self.bot.can_place_single(building_type, build_pos)
+        if not can_build:
+            return False
         return True
 
     def setup_grid(self) -> None:
@@ -80,7 +87,7 @@ class MapAnalyzer:
             y = math.floor(g[1] - 1)
             self.__set_grid(x, y, x + 3, y + 3)
 
-    def find_placement(self, placement_type: PlacementType, near: Optional[Point2]) -> Optional[Point2]:
+    def find_placement(self, placement_type: PlacementType, building_type: UnitTypeId, near: Optional[Point2] = None) -> Optional[Point2]:
         size: Tuple[int, int] = self.bot.information_manager.placement_type_to_size[placement_type]
         start: Point2 = self.bot.start_location
         corner: Optional[Tuple[int, int]] = None
@@ -89,10 +96,6 @@ class MapAnalyzer:
 
         if near:
             start = near
-
-        # TODO: Start the search from start location
-        # Ideas: Spiral, box search around bases, box search with check for build area for the base (if the box contains an other base it shouldnt build there)
-        # maybe do spiral from each base if we built a lot of stuff
 
         x: int = math.floor(start.x)
         y: int = math.floor(start.y)
@@ -108,7 +111,7 @@ class MapAnalyzer:
                 y += directions[dir_idx][1]
                 if 0 <= x < self.grid.width and 0 <= y < self.grid.height and (x, y) not in visited:
                     visited.add((x, y))
-                    if self.__check_buildable((x,y), size):
+                    if self.__check_buildable((x,y), size, building_type):
                         corner = (x, y)
                         break
 

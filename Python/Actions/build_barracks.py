@@ -17,10 +17,9 @@ class BarracksBuilder:
 
     async def build_barracks(self) -> None:
         placement_type = self.bot.information_manager.building_type_to_placement_type[UnitTypeId.BARRACKS]
-        build_location = self.bot.map_analyzer.find_placement(placement_type, None)
-        can_place = await self.bot.can_place_single(UnitTypeId.BARRACKS, build_location)
-        while not can_place:
-            print(f"Got invalid Barracks location: {build_location}")
+        build_location = self.bot.map_analyzer.find_placement(placement_type, UnitTypeId.BARRACKS)
+        if not build_location:
+            print("No location found for Barracks")
             return
         worker = self.bot.worker_manager.select_worker(build_location, WorkerRole.BUILD)
         if not worker:
