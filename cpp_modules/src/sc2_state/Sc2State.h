@@ -131,6 +131,7 @@ namespace Sc2 {
     public:
         int id = 0;
         [[nodiscard]] int getMinerals() const { return _minerals; }
+        void setMinerals(int minerals) { _minerals = minerals; }
         [[nodiscard]] int getVespene() const { return _vespene; }
         [[nodiscard]] int getIncomingPopulation() const { return _incomingWorkers + _incomingMarines; }
         [[nodiscard]] int getIncomingWorkers() const { return _incomingWorkers; }

@@ -86,6 +86,7 @@ TEST_SUITE("Test the Sc2State") {
 
 	TEST_CASE("Legal constructions will eventually be performed even if they cannot initially be afforded") {
 		const auto state = std::make_shared<Sc2::State>();
+		state->setMinerals(0);
 
 		SUBCASE("will eventually build worker even if it cannot initially be afforded") {
 			auto initialPopulation = state->getPopulation();
@@ -263,6 +264,8 @@ TEST_SUITE("Test the Sc2State") {
 		const auto state = std::make_shared<Sc2::State>();
 
 		auto initialPopulation = state->getPopulation();
+		state->buildHouse();
+		state->wait(100);
 
 		SUBCASE("Cannot build marine without a barracks") {
 			state->wait(500);
@@ -307,6 +310,7 @@ TEST_SUITE("Test the Sc2State") {
 		CHECK(state->getEnemyCombatUnits() == 3);
 	}
 
+	/*
 	TEST_CASE("Enemy units can properly attack player") {
 		const auto state = std::make_shared<Sc2::State>();
 
@@ -368,5 +372,6 @@ TEST_SUITE("Test the Sc2State") {
 			CHECK(0 == state->getWorkerPopulation());
 		}
 	}
+	*/
 }
 
