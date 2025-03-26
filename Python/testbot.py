@@ -1,6 +1,8 @@
 import math
 import queue
 from enum import Enum
+from itertools import product
+from typing import Tuple
 from time import sleep
 
 from Python.Actions.scoutmanager import ScoutManager
@@ -11,6 +13,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 
+from Python.Modules.map_analyzer import MapAnalyzer
 from sc2_mcts import *
 from Python.Actions.build_barracks import BarracksBuilder
 from Python.Actions.build_marine import MarineBuilder
@@ -23,7 +26,8 @@ from Python.Modules.result_saver import save_result
 from Python.Modules.worker_manager import WorkerManager
 from Python.Modules.army_manager import ArmyManager
 from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, InformationManager, \
-    SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData
+    SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData, PlacementType
+
 
 class ActionSelection(Enum):
     BestAction = 0
@@ -47,6 +51,7 @@ class MyBot(BotAI):
     barracks_builder: BarracksBuilder
     marine_builder: MarineBuilder
     army_manager: ArmyManager
+    map_analyzer: MapAnalyzer
     scout_manager: ScoutManager
     new_base_location = None
     base_worker = None
@@ -88,13 +93,15 @@ class MyBot(BotAI):
         self.barracks_builder = BarracksBuilder(self)
         self.marine_builder = MarineBuilder(self)
         self.army_manager = ArmyManager(self)
+        self.map_analyzer = MapAnalyzer(self)
         self.scout_manager = ScoutManager(self)
-
         self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
             #await self.client.debug_show_map()
+            self.map_analyzer.setup_grid()
+            self.map_analyzer.print()
             for worker in self.workers:
                 worker(AbilityId.STOP_STOP)
             for townhall in self.townhalls:
@@ -139,23 +146,21 @@ class MyBot(BotAI):
                         self.get_multi_best_action_min()
 
     async def draw_debug(self):
-        blocs = self.barracks_builder.build_locations
-        for bloc in blocs:
-            height = self.get_terrain_z_height(bloc) + 0.1
-            self.client.debug_sphere_out(Point3((bloc.x, bloc.y, height)), 1.5, (0, 0, 255))
-            self.client.debug_text_3d("B", Point3((bloc.x, bloc.y, height)), (255, 255, 255))
+        def draw_box(loc: Point2, start_loc: Tuple[int, int], end_loc: Tuple[int, int], color:Tuple[int, int, int]):
+            height = self.get_terrain_z_height(loc) + 0.1
+            self.client.debug_box_out(Point3((start_loc[0], start_loc[1], height)), Point3((end_loc[0], end_loc[1], height)), color=color)
 
-        slocs = self.supply_builder.possible_supply_positions
-        for sloc in slocs:
-            height = self.get_terrain_z_height(sloc) + 0.1
-            self.client.debug_sphere_out(Point3((sloc.x, sloc.y, height)), 1, (0, 0, 255))
-            self.client.debug_text_3d("S", Point3((sloc.x, sloc.y, height)), (255, 255, 255))
+        grid = self.map_analyzer.grid
+        for x, y in product(range(grid.width), range(grid.height)):
+                if grid[(x, y)]:
+                    self.client.debug_text_3d(f"{x},{y}", Point3((x, y+0.5, self.get_terrain_z_height(Point2((x,y)))+0.1)), (255, 255, 255))
 
         thlocs = self.information_manager.expansion_locations
         for thloc in thlocs:
-            height = self.get_terrain_z_height(thloc) + 0.1
             color = (255, 0, 0) if self.information_manager.expansion_locations[thloc] else (0, 255, 0)
-            self.client.debug_sphere_out(Point3((thloc.x, thloc.y, height)), 2.5, color)
+            start_loc = (math.floor(thloc.x)-2, math.floor(thloc.y)-2)
+            end_loc = (start_loc[0]+5, start_loc[1]+5)
+            draw_box(thloc, start_loc, end_loc, color)
 
     async def build_barracks(self) -> None:
         if not self.can_afford(UnitTypeId.BARRACKS):
