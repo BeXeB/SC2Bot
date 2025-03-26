@@ -5,7 +5,6 @@ from itertools import product
 from typing import Tuple
 from time import sleep
 
-from Python.Actions.scoutmanager import ScoutManager
 from sc2.data import Result
 from sc2.position import Point3, Point2
 from sc2.bot_ai import BotAI
@@ -26,7 +25,8 @@ from Python.Modules.result_saver import save_result
 from Python.Modules.worker_manager import WorkerManager
 from Python.Modules.army_manager import ArmyManager
 from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, InformationManager, \
-    SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData, PlacementType
+    SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData
+from Python.Modules.scoutmanager import ScoutManager
 from Python.Actions.build_structure_helper import StructureBuilderHelper
 from Python.Actions.build_unit_helper import UnitBuilderHelper
 
