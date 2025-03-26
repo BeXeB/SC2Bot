@@ -17,7 +17,7 @@ class BarracksBuilder:
 
     async def build_barracks(self) -> None:
         placement_type = self.bot.information_manager.building_type_to_placement_type[UnitTypeId.BARRACKS]
-        build_location = self.bot.map_analyzer.find_placement(placement_type, UnitTypeId.BARRACKS)
+        build_location = await self.bot.map_analyzer.find_placement(placement_type, UnitTypeId.BARRACKS)
         if not build_location:
             print("No location found for Barracks")
             return

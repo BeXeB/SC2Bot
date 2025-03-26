@@ -19,7 +19,7 @@ class SupplyBuilder:
 
     async def build_supply(self):
         placement_type = self.bot.information_manager.building_type_to_placement_type[UnitTypeId.SUPPLYDEPOT]
-        build_location = self.bot.map_analyzer.find_placement(placement_type, UnitTypeId.SUPPLYDEPOT)
+        build_location = await self.bot.map_analyzer.find_placement(placement_type, UnitTypeId.SUPPLYDEPOT)
         if not build_location:
             print("No location found for Supply depot")
             return

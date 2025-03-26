@@ -80,7 +80,7 @@ class WorkerData:
 class PlacementType(Enum):
     PRODUCTION = 0
     SUPPLY = 1
-    TECH = 3
+    TECH = 2
 
 class InformationManager:
     worker_data: Dict[int, WorkerData]

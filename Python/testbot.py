@@ -1,6 +1,7 @@
 import math
 import queue
 from enum import Enum
+from itertools import product
 from typing import Tuple
 from time import sleep
 
@@ -149,8 +150,7 @@ class MyBot(BotAI):
             self.client.debug_box_out(Point3((start_loc[0], start_loc[1], height)), Point3((end_loc[0], end_loc[1], height)), color=color)
 
         grid = self.map_analyzer.grid
-        for x in range(grid.width):
-            for y in range(grid.height):
+        for x, y in product(range(grid.width), range(grid.height)):
                 if grid[(x, y)]:
                     self.client.debug_text_3d(f"{x},{y}", Point3((x, y+0.5, self.get_terrain_z_height(Point2((x,y)))+0.1)), (255, 255, 255))
 

@@ -1,5 +1,6 @@
 import math
 import typing
+from itertools import product
 from typing import List, Optional, Set, Tuple
 
 from sc2.ids.unit_typeid import UnitTypeId
@@ -33,6 +34,10 @@ class MapAnalyzer:
             case PlacementType.TECH:
                 return Point2((corner[0] + 1.5, corner[1] + 1.5))
 
+    # Sets a section of the grid to the given value
+    # start_x, start_y: One corner of the area to be set
+    # end_x, end_y: The other corner of the area to be set
+    # value: The value to set the grid to, 0 for Non-Buildable, 1 for Buildable
     def __set_grid(self, start_x: int, start_y: int, end_x: int, end_y: int, value: int = 0) -> None:
         if end_x < start_x:
             temp = start_x
@@ -42,18 +47,16 @@ class MapAnalyzer:
             temp = start_y
             start_y = end_y
             end_y = temp
-        for i in range(end_x - start_x):
-            for j in range(end_y - start_y):
-                self.grid.__setitem__((start_x + i, start_y + j), value)
+        for i, j in product(range(end_x - start_x), range(end_y - start_y)):
+            self.grid.__setitem__((start_x + i, start_y + j), value)
 
-    def __check_buildable(self, corner: Tuple[int, int], size: Tuple[int, int], building_type: UnitTypeId) -> bool:
-        for x in range(corner[0], corner[0] + size[0]):
-            for y in range(corner[1], corner[1] + size[1]):
-                if not self.grid.is_set((x,y)):
-                    return False
+    async def __check_buildable(self, corner: Tuple[int, int], size: Tuple[int, int], building_type: UnitTypeId) -> bool:
+        for x, y in product(range(corner[0], corner[0] + size[0]),range(corner[1], corner[1] + size[1])):
+            if not self.grid.is_set((x,y)):
+                return False
         placement_type = self.bot.information_manager.building_type_to_placement_type[building_type]
         build_pos = self.__placement_position_from_type_and_grid_corner(corner, placement_type)
-        can_build = self.bot.can_place_single(building_type, build_pos)
+        can_build = await self.bot.can_place_single(building_type, build_pos)
         if not can_build:
             return False
         return True
@@ -87,7 +90,7 @@ class MapAnalyzer:
             y = math.floor(g[1] - 1)
             self.__set_grid(x, y, x + 3, y + 3)
 
-    def find_placement(self, placement_type: PlacementType, building_type: UnitTypeId, near: Optional[Point2] = None) -> Optional[Point2]:
+    async def find_placement(self, placement_type: PlacementType, building_type: UnitTypeId, near: Optional[Point2] = None) -> Optional[Point2]:
         size: Tuple[int, int] = self.bot.information_manager.placement_type_to_size[placement_type]
         start: Point2 = self.bot.start_location
         corner: Optional[Tuple[int, int]] = None
@@ -111,7 +114,7 @@ class MapAnalyzer:
                 y += directions[dir_idx][1]
                 if 0 <= x < self.grid.width and 0 <= y < self.grid.height and (x, y) not in visited:
                     visited.add((x, y))
-                    if self.__check_buildable((x,y), size, building_type):
+                    if await self.__check_buildable((x,y), size, building_type):
                         corner = (x, y)
                         break
 
