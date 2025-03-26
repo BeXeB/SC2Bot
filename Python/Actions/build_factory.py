@@ -8,10 +8,10 @@ import Python.Actions.build_structure_helper as structure_helper
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
 
-class SupplyBuilder:
+class FactoryBuilder:
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
         self.structure_builder = structure_helper.StructureBuilderHelper(bot)
 
-    async def build_supply(self) -> None:
-        await self.structure_builder.build_structure(UnitTypeId.SUPPLYDEPOT)
+    async def build_factory(self) -> None:
+        await self.structure_builder.build_structure(UnitTypeId.FACTORY)
