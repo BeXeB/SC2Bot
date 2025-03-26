@@ -14,6 +14,11 @@ enum class Action {
     buildVespeneCollector,
     buildMarine,
     buildBarracks,
+    buildFactory,
+    buildTank,
+    buildFactoryTechLab,
+    buildStarPort,
+    buildViking,
     attackPlayer,
     addEnemyUnit,
 };
@@ -41,6 +46,21 @@ inline std::string actionToString(Action action) {
             break;
         case Action::buildBarracks:
             actionString = std::string("buildBarracks");
+            break;
+        case Action::buildFactory:
+            actionString = std::string("buildFactory");
+            break;
+        case Action::buildFactoryTechLab:
+            actionString = std::string("buildFactoryTechLab");
+            break;
+        case Action::buildStarPort:
+            actionString = std::string("buildStarPort");
+            break;
+        case Action::buildViking:
+            actionString = std::string("buildViking");
+            break;
+        case Action::buildTank:
+            actionString = std::string("buildTank");
             break;
         case Action::attackPlayer:
             actionString = std::string("attackPlayer");
@@ -75,6 +95,21 @@ inline std::ostream &operator<<(std::ostream &os, const Action &action) {
             break;
         case Action::buildBarracks:
             os << std::string("buildBarracks");
+            break;
+        case Action::buildFactory:
+            os << std::string("buildFactory");
+            break;
+        case Action::buildFactoryTechLab:
+            os << std::string("buildFactoryTechLab");
+            break;
+        case Action::buildStarPort:
+            os << std::string("buildStarPort");
+            break;
+        case Action::buildViking:
+            os << std::string("buildViking");
+            break;
+        case Action::buildTank:
+            os << std::string("buildTank");
             break;
         case Action::attackPlayer:
             os << std::string("attackPlayer");

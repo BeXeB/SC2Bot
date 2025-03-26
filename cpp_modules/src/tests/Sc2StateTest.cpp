@@ -300,6 +300,154 @@ TEST_SUITE("Test the Sc2State") {
 		}
 	}
 
+	TEST_CASE("Test state can build Factory, FactoryTechLabs and Tanks") {
+		const auto state = std::make_shared<Sc2::State>();
+
+		auto initialPopulation = state->getPopulation();
+		state->buildHouse();
+		state->wait(100);
+		state->buildVespeneCollector();
+		state->wait(100);
+
+		SUBCASE("Cannot build Factory without Barracks") {
+			state->buildFactory();
+			state->wait(100);
+			CHECK(state->getFactoryAmount() == 0);
+		}
+
+		state->buildBarracks();
+		state->wait(100);
+
+		SUBCASE("Cannot build Tank without Factory") {
+			state->buildTank();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation);
+		}
+
+		SUBCASE("Cannot build FactoryTechLab without Factory") {
+			state->buildFactoryTechLab();
+			state->wait(100);
+			CHECK(state->getFactoryTechLabAmount() == 0);
+		}
+
+		SUBCASE("Can build Factory") {
+			state->buildFactory();
+			state->wait(100);
+			CHECK(state->getFactoryAmount() == 1);
+		}
+
+		state->buildFactory();
+		state->wait(100);
+
+		SUBCASE("Cannot build Tank without FactoryTechLab") {
+			state->buildTank();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation);
+		}
+
+		SUBCASE("Can build FactoryTechLab") {
+			state->buildFactoryTechLab();
+			state->wait(100);
+			CHECK(state->getFactoryTechLabAmount() == 1);
+		}
+
+		state->buildFactoryTechLab();
+		state->wait(100);
+
+		SUBCASE("Can build Tank") {
+			state->buildTank();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation + TANK_SUPPLY);
+		}
+
+		while (state->getPopulationLimit() - state->getPopulation() > TANK_SUPPLY) {
+			state->buildWorker();
+			state->wait(100);
+		}
+
+		initialPopulation = state->getPopulation();
+
+		SUBCASE("Can build Tank when there is just enough supply") {
+			state->buildTank();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation + TANK_SUPPLY);
+		}
+
+		state->buildWorker();
+		state->wait(100);
+		initialPopulation = state->getPopulation();
+
+		SUBCASE("Cannot build Tank if there is not enough supply") {
+			state->buildTank();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation);
+		}
+	}
+
+	TEST_CASE("Test state can build StarPort and Viking") {
+		const auto state = std::make_shared<Sc2::State>();
+
+		auto initialPopulation = state->getPopulation();
+		state->buildHouse();
+		state->wait(100);
+		state->buildVespeneCollector();
+		state->wait(100);
+		state->buildBarracks();
+		state->wait(100);
+
+		SUBCASE("Cannot build StarPort without Factory") {
+			state->buildStarPort();
+			state->wait(100);
+			CHECK(state->getStarPortAmount() == 0);
+		}
+
+		SUBCASE("Cannot build Viking without StarPort") {
+			state->buildViking();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation);
+		}
+
+		state->buildFactory();
+		state->wait(100);
+
+		SUBCASE("Can build StarPort") {
+			state->buildStarPort();
+			state->wait(100);
+			CHECK(state->getStarPortAmount() == 1);
+		}
+
+		state->buildStarPort();
+		state->wait(100);
+
+		SUBCASE("Can build Viking") {
+			state->buildViking();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation + VIKING_SUPPLY);
+		}
+
+		while (state->getPopulationLimit() - state->getPopulation() > VIKING_SUPPLY) {
+			state->buildWorker();
+			state->wait(100);
+		}
+
+		initialPopulation = state->getPopulation();
+
+		SUBCASE("Can build Viking if there is just enough supply") {
+			state->buildViking();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation + VIKING_SUPPLY);
+		}
+
+		state->buildWorker();
+		state->wait(100);
+		initialPopulation = state->getPopulation();
+
+		SUBCASE("Cannot build Viking if there is not enough supply") {
+			state->buildViking();
+			state->wait(100);
+			CHECK(state->getPopulation() == initialPopulation);
+		}
+	}
 
 	TEST_CASE("Test that enemy units are correctly added") {
 		const auto state = std::make_shared<Sc2::State>();

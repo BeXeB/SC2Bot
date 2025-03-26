@@ -17,13 +17,20 @@ namespace Sc2 {
         int _workerPopulation = 12;
         int _MAX_SCOUT_POPULATION = 1;
         int _marinePopulation = 0;
+        int _tankPopulation = 0;
+        int _vikingPopulation = 0;
         int _incomingWorkers = 0;
         int _incomingMarines = 0;
+        int _incomingTanks = 0;
+        int _incomingVikings = 0;
         int _incomingVespeneCollectors = 0;
         const int MAX_POPULATION_LIMIT = 200;
         const int MAX_BASES = 17;
         int _populationLimit = 15;
         int _barracksAmount = 0;
+        int _factoryAmount = 0;
+        int _factoryTechLabAmount = 0;
+        int _starPortAmount = 0;
         std::vector<Base> _bases = std::vector{Base()};
         std::list<Construction> _constructions{};
         std::vector<int> _occupiedWorkerTimers{};
@@ -40,6 +47,9 @@ namespace Sc2 {
         bool _onRollout = false;
         bool _wasAttacked = false;
         bool _incomingHouse = false;
+        bool _incomingBarracks = false;
+        int _incomingFactory = 0;
+        int _incomingFactoryTechLab = 0;
         int _incomingBases = 0;
 
         struct ActionCost {
@@ -59,6 +69,11 @@ namespace Sc2 {
         ActionCost buildVespeneCollectorCost = ActionCost(75, 0, 21);
         ActionCost buildMarineCost = ActionCost(50, 0, 18);
         ActionCost buildBarracksCost = ActionCost(150, 0, 46);
+        ActionCost buildFactoryCost = ActionCost(150, 100, 43);
+        ActionCost buildTechLabCost = ActionCost(50, 25, 18);
+        ActionCost buildStarPortCost = ActionCost(150,100,36);
+        ActionCost buildTankCost = ActionCost(150, 125, 32);
+        ActionCost buildVikingCost = ActionCost(150,75,30);
 
         void advanceConstructions();
         void advanceResources();
@@ -93,14 +108,40 @@ namespace Sc2 {
             _incomingMarines -= 1;
         }
 
+        void addTank() {
+            _tankPopulation += 1;
+            _incomingTanks -= 1;
+        }
+
+        void addViking() {
+            _vikingPopulation += 1;
+            _incomingVikings -= 1;
+        }
+
         void addBarracks() {
             _barracksAmount += 1;
+            _incomingBarracks = false;
+        }
+
+        void addFactory() {
+            _factoryAmount += 1;
+            _incomingFactory -= 1;
+        }
+
+        void addFactoryTechLab() {
+            _factoryTechLabAmount += 1;
+            _incomingFactoryTechLab -= 1;
+        }
+
+        void addStarPort() {
+            _starPortAmount +=1;
         }
 
         void addHouse() {
             _populationLimit += 8;
             _populationLimit = _populationLimit >= MAX_POPULATION_LIMIT ? MAX_POPULATION_LIMIT : _populationLimit;
             _hasHouse = true;
+            _incomingHouse = false;
         }
 
         /*
@@ -133,11 +174,11 @@ namespace Sc2 {
         [[nodiscard]] int getMinerals() const { return _minerals; }
         void setMinerals(int minerals) { _minerals = minerals; }
         [[nodiscard]] int getVespene() const { return _vespene; }
-        [[nodiscard]] int getIncomingPopulation() const { return _incomingWorkers + _incomingMarines; }
+        [[nodiscard]] int getIncomingPopulation() const { return _incomingWorkers + _incomingMarines + _incomingTanks * TANK_SUPPLY + _incomingVikings * VIKING_SUPPLY; }
         [[nodiscard]] int getIncomingWorkers() const { return _incomingWorkers; }
         [[nodiscard]] int getIncomingMarines() const { return _incomingMarines; }
         [[nodiscard]] int getPopulationLimit() const { return _populationLimit; }
-        [[nodiscard]] int getPopulation() const { return _workerPopulation + _marinePopulation; }
+        [[nodiscard]] int getPopulation() const { return _workerPopulation + _marinePopulation + _tankPopulation * TANK_SUPPLY + _vikingPopulation * VIKING_SUPPLY; }
         int getWorkerPopulation() const { return _workerPopulation; }
         int getMarinePopulation() const { return _marinePopulation; }
         int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
@@ -145,6 +186,9 @@ namespace Sc2 {
         std::list<Construction> getConstructions() const { return _constructions; }
         std::vector<Base> getBases() const { return _bases; }
         [[nodiscard]] int getBarracksAmount() const { return _barracksAmount; }
+        [[nodiscard]] int getFactoryAmount() const { return _factoryAmount; }
+        [[nodiscard]] int getFactoryTechLabAmount() const { return _factoryTechLabAmount; }
+        [[nodiscard]] int getStarPortAmount() const { return _starPortAmount; }
 
         ActionCost getBuildWorkerCost() const { return buildWorkerCost; }
         ActionCost getBuildBaseCost() const { return buildBaseCost; }
@@ -156,8 +200,11 @@ namespace Sc2 {
         bool hasUnoccupiedGeyser() const;
         bool canAffordConstruction(const ActionCost &actionCost) const;
         bool populationLimitReached() const;
+        bool withinPopulationLimit(int populationIncrease) const;
         bool hasFreeBase() const;
         bool hasFreeBarracks() const;
+        bool hasFreeFactoryTechLab() const;
+        bool hasFreeStarPort() const;
 
         int mineralGainedPerTimestep() const;
         int vespeneGainedPerTimestep() const;
@@ -177,7 +224,12 @@ namespace Sc2 {
         void buildBase();
         void buildVespeneCollector();
         void buildBarracks();
+        void buildFactory();
+        void buildFactoryTechLab();
+        void buildStarPort();
         void buildMarine();
+        void buildTank();
+        void buildViking();
         void addEnemyUnit() { _enemyCombatUnits += 1; }
 
         void attackPlayer() {

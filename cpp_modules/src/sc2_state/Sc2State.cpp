@@ -184,12 +184,26 @@ bool Sc2::State::populationLimitReached() const {
     return getIncomingPopulation() + getPopulation() >= _populationLimit;
 }
 
+bool Sc2::State::withinPopulationLimit(int populationIncrease) const
+{
+    return getIncomingPopulation() + getPopulation() + populationIncrease <= _populationLimit;
+}
+
 bool Sc2::State::hasFreeBase() const {
     return _bases.size() > _incomingWorkers;
 }
 
 bool Sc2::State::hasFreeBarracks() const {
     return _barracksAmount > _incomingMarines;
+}
+
+bool Sc2::State::hasFreeFactoryTechLab() const {
+    return _factoryTechLabAmount > _incomingTanks;
+}
+
+bool Sc2::State::hasFreeStarPort() const
+{
+    return _starPortAmount > _incomingVikings;
 }
 
 bool Sc2::State::hasUnoccupiedGeyser() const {
@@ -229,6 +243,26 @@ std::vector<Action> Sc2::State::getLegalActions() const {
 
     if (hasWorkers && (_hasHouse || _incomingHouse)) {
         actions.emplace_back(Action::buildBarracks);
+    }
+
+    if (hasWorkers && (_barracksAmount > 0 || _incomingBarracks)) {
+        actions.emplace_back(Action::buildFactory);
+    }
+
+    if (hasWorkers && (_factoryAmount > 0 || _incomingFactory > 0)) {
+        actions.emplace_back(Action::buildStarPort);
+    }
+
+    if (_factoryAmount + _incomingFactory > _factoryTechLabAmount + _incomingFactoryTechLab) {
+        actions.emplace_back(Action::buildFactoryTechLab);
+    }
+
+    if (_factoryTechLabAmount > 0 && withinPopulationLimit(TANK_SUPPLY)) {
+        actions.emplace_back(Action::buildTank);
+    }
+
+    if (_starPortAmount > 0 && withinPopulationLimit(VIKING_SUPPLY)) {
+        actions.emplace_back(Action::buildViking);
     }
 
     if (actions.empty()) {
@@ -277,10 +311,107 @@ void Sc2::State::buildBarracks() {
 
     _minerals -= buildBarracksCost.minerals;
     _vespene -= buildBarracksCost.vespene;
+    _incomingBarracks = true;
 
     _occupiedWorkerTimers.emplace_back(buildBarracksCost.buildTime);
     _constructions.emplace_back(buildBarracksCost.buildTime, shared_from_this(), &State::addBarracks);
 }
+
+void Sc2::State::buildFactory()
+{
+    while (!_barracksAmount > 0) {
+        if (!_incomingBarracks) {
+            return;
+        }
+        advanceTime();
+    }
+
+    while (!canAffordConstruction(buildFactoryCost))
+    {
+        const auto initialMineral = _minerals;
+        const auto initialVespene = _vespene;
+        advanceTime();
+        if (initialMineral == _minerals || initialVespene == _vespene) {
+            return;
+        }
+    }
+
+    while (!hasUnoccupiedWorker())
+    {
+        advanceTime();
+        if (_workerPopulation + _incomingWorkers <= 0) {
+            return;
+        }
+    }
+
+    _minerals -= buildFactoryCost.minerals;
+    _vespene -= buildFactoryCost.vespene;
+    _incomingFactory += 1;
+
+    _occupiedWorkerTimers.emplace_back(buildFactoryCost.buildTime);
+    _constructions.emplace_back(buildFactoryCost.buildTime, shared_from_this(), &State::addFactory);
+}
+
+void Sc2::State::buildFactoryTechLab()
+{
+    while (!_factoryAmount > 0) {
+        if (_incomingFactory <= 0) {
+            return;
+        }
+        advanceTime();
+    }
+
+    while (!canAffordConstruction(buildTechLabCost))
+    {
+        const auto initialMineral = _minerals;
+        const auto initialVespene = _vespene;
+        advanceTime();
+        if (initialMineral == _minerals || initialVespene == _vespene) {
+            return;
+        }
+    }
+
+    _minerals -= buildTechLabCost.minerals;
+    _vespene -= buildTechLabCost.vespene;
+    _incomingFactoryTechLab += 1;
+
+    _constructions.emplace_back(buildTechLabCost.buildTime, shared_from_this(), &State::addFactoryTechLab);
+}
+
+void Sc2::State::buildStarPort()
+{
+    while (!_factoryAmount > 0) {
+        if (_incomingFactory <= 0) {
+            return;
+        }
+        advanceTime();
+    }
+
+    while (!canAffordConstruction(buildStarPortCost))
+    {
+        const auto initialMineral = _minerals;
+        const auto initialVespene = _vespene;
+        advanceTime();
+        if (initialMineral == _minerals || initialVespene == _vespene) {
+            return;
+        }
+    }
+
+    while (!hasUnoccupiedWorker())
+    {
+        advanceTime();
+        if (_workerPopulation + _incomingWorkers <= 0) {
+            return;
+        }
+    }
+
+    _minerals -= buildStarPortCost.minerals;
+    _vespene -= buildStarPortCost.vespene;
+
+    _occupiedWorkerTimers.emplace_back(buildStarPortCost.vespene);
+    _constructions.emplace_back(buildFactoryCost.buildTime, shared_from_this(), &State::addStarPort);
+}
+
 
 void Sc2::State::buildMarine() {
     if (_barracksAmount < 1) {
@@ -305,7 +436,73 @@ void Sc2::State::buildMarine() {
         _vespene -= buildMarineCost.vespene;
         _incomingMarines += 1;
 
-        auto c = Construction(this->buildMarineCost.buildTime, shared_from_this(), &State::addMarine);
+        auto c = Construction(buildMarineCost.buildTime, shared_from_this(), &State::addMarine);
+        _constructions.emplace_back(c);
+    }
+}
+
+void Sc2::State::buildTank()
+{
+    if (_factoryAmount < 1)
+    {
+        return;
+    }
+
+    while (!hasFreeFactoryTechLab())
+    {
+        advanceTime();
+        if (_factoryTechLabAmount < 1) return;
+    }
+
+    while (!canAffordConstruction(buildTankCost)) {
+        const auto initialMineral = _minerals;
+        const auto initialVespene = _vespene;
+        advanceTime();
+        if (initialMineral == _minerals || initialVespene == _vespene) {
+            return;
+        }
+    }
+
+    if (withinPopulationLimit(TANK_SUPPLY))
+    {
+        _minerals -= buildTankCost.minerals;
+        _vespene -= buildTankCost.vespene;
+        _incomingTanks += 1;
+
+        auto c = Construction(buildTankCost.buildTime, shared_from_this(), &State::addTank);
+        _constructions.emplace_back(c);
+    }
+}
+
+void Sc2::State::buildViking()
+{
+    if (_starPortAmount < 1)
+    {
+        return;
+    }
+
+    while (!canAffordConstruction(buildVikingCost)) {
+        const auto initialMineral = _minerals;
+        const auto initialVespene = _vespene;
+        advanceTime();
+        if (initialMineral == _minerals || initialVespene == _vespene) {
+            return;
+        }
+    }
+
+    while (!hasFreeStarPort())
+    {
+        advanceTime();
+        if (_starPortAmount < 1) return;
+    }
+
+    if (withinPopulationLimit(VIKING_SUPPLY))
+    {
+        _minerals -= buildVikingCost.minerals;
+        _vespene -= buildVikingCost.vespene;
+        _incomingVikings += 1;
+
+        auto c = Construction(buildVikingCost.buildTime, shared_from_this(), &State::addViking);
         _constructions.emplace_back(c);
     }
 }
