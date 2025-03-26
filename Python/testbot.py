@@ -27,6 +27,8 @@ from Python.Modules.worker_manager import WorkerManager
 from Python.Modules.army_manager import ArmyManager
 from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, InformationManager, \
     SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData, PlacementType
+from Python.Actions.build_structure_helper import StructureBuilderHelper
+from Python.Actions.build_unit_helper import UnitBuilderHelper
 
 
 class ActionSelection(Enum):
@@ -53,6 +55,8 @@ class MyBot(BotAI):
     army_manager: ArmyManager
     map_analyzer: MapAnalyzer
     scout_manager: ScoutManager
+    unit_builder_helper: UnitBuilderHelper
+    structure_builder_helper: StructureBuilderHelper
     new_base_location = None
     base_worker = None
     busy_workers: dict[int, float] = {}
@@ -95,6 +99,8 @@ class MyBot(BotAI):
         self.army_manager = ArmyManager(self)
         self.map_analyzer = MapAnalyzer(self)
         self.scout_manager = ScoutManager(self)
+        self.unit_builder_helper = UnitBuilderHelper(self)
+        self.structure_builder_helper = StructureBuilderHelper(self)
         self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
