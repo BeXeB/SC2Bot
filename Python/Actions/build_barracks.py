@@ -13,6 +13,5 @@ class BarracksBuilder:
         self.bot = bot
         self.structure_builder = structure_helper.StructureBuilderHelper(bot)
 
-
     async def build_barracks(self) -> None:
         await self.structure_builder.build_structure(UnitTypeId.BARRACKS)

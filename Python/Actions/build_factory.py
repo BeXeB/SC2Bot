@@ -14,4 +14,7 @@ class FactoryBuilder:
         self.structure_builder = structure_helper.StructureBuilderHelper(bot)
 
     async def build_factory(self) -> None:
+        if not self.bot.structures.filter(lambda struc: struc.type_id == UnitTypeId.BARRACKS):
+            print("Cannot build factory, as there are no barracks")
+            return
         await self.structure_builder.build_structure(UnitTypeId.FACTORY)

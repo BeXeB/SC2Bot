@@ -14,4 +14,7 @@ class StarportBuilder:
         self.structure_builder = structure_helper.StructureBuilderHelper(bot)
 
     async def build_starport(self) -> None:
+        if not self.bot.structures.filter(lambda struc: struc.type_id == UnitTypeId.FACTORY):
+            print("Cannot build starport, as there are no factories")
+            return
         await self.structure_builder.build_structure(UnitTypeId.STARPORT)
