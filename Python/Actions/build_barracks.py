@@ -15,3 +15,6 @@ class BarracksBuilder:
 
     async def build_barracks(self) -> None:
         await self.structure_builder.build_structure(UnitTypeId.BARRACKS)
+
+    def build_tech_lab(self):
+        self.structure_builder.build_tech_lab(UnitTypeId.BARRACKS)

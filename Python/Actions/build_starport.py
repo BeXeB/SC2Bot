@@ -18,3 +18,6 @@ class StarportBuilder:
             print("Cannot build starport, as there are no factories")
             return
         await self.structure_builder.build_structure(UnitTypeId.STARPORT)
+
+    def build_tech_lab(self):
+        self.structure_builder.build_tech_lab(UnitTypeId.STARPORT)

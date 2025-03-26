@@ -18,3 +18,6 @@ class FactoryBuilder:
             print("Cannot build factory, as there are no barracks")
             return
         await self.structure_builder.build_structure(UnitTypeId.FACTORY)
+
+    def build_tech_lab(self):
+        self.structure_builder.build_tech_lab(UnitTypeId.FACTORY)
