@@ -107,7 +107,7 @@ class MyBot(BotAI):
             for townhall in self.townhalls:
                 townhall(AbilityId.RALLY_WORKERS, self.start_location)
 
-        await self.draw_debug()
+        # await self.draw_debug()
 
         self.update_busy_workers()
         self.manage_workers()
