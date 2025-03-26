@@ -119,7 +119,8 @@ TEST_SUITE("Test MCTS") {
 
 			mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
 			                     incomingMarines, populationLimit, bases, barracksAmount,
-			                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits, true);
+			                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits,
+			                     false, 0, false);
 
 			auto rootState = mcts.getRootState();
 
@@ -167,9 +168,10 @@ TEST_SUITE("Test MCTS") {
 		constructions.emplace_back(state->getBuildWorkerCost().buildTime - 1, Action::buildWorker);
 
 
-		mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers, incomingMarines,
-		                     populationLimit, bases, barracksAmount,
-		                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits, true);
+		mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
+								 incomingMarines, populationLimit, bases, barracksAmount,
+								 constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits,
+								 false, 0, false);
 
 		CHECK(mcts.getRootState()->getConstructions().size() == state->getConstructions().size());
 		CHECK(mcts.getRootState()->getConstructions().size() == 1);
