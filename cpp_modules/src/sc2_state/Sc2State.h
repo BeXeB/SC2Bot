@@ -9,8 +9,14 @@
 #include "Base.h"
 #include "Construction.h"
 #include "ActionEnum.h"
+#include "UnitPower.h"
 
 namespace Sc2 {
+	struct Enemy {
+	 	int GroundPower = 0;
+		int AirPower = 0;
+	};
+
 	struct StateBuilderParams {
 		const int minerals = 0;
 		const int vespene = 0;
@@ -40,6 +46,7 @@ namespace Sc2 {
 		const int incomingFactoryTechLab = 0;
 		const int incomingBases = 0;
 		const int maxBases = 0;
+		Enemy enemy;
 	};
 
 	class State : public std::enable_shared_from_this<State> {
@@ -70,6 +77,7 @@ namespace Sc2 {
 		std::shared_ptr<std::map<int, std::tuple<double, double> > > _combatBiases;
 
 		int _enemyCombatUnits = 0;
+		Enemy _enemy;
 
 		const int _endTime;
 		int _currentTime = 0;
@@ -224,10 +232,11 @@ namespace Sc2 {
 
 		[[nodiscard]] int getWorkerPopulation() const { return _workerPopulation; }
 		[[nodiscard]] int getMarinePopulation() const { return _marinePopulation; }
-		[[nodiscard]] int getTankPopulation () const { return _tankPopulation; }
-		[[nodiscard]] int getVikingPopulation () const { return _vikingPopulation; }
+		[[nodiscard]] int getTankPopulation() const { return _tankPopulation; }
+		[[nodiscard]] int getVikingPopulation() const { return _vikingPopulation; }
 		[[nodiscard]] int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
 		[[nodiscard]] int getEnemyCombatUnits() const { return _enemyCombatUnits; }
+		[[nodiscard]] Enemy getEnemy() const { return _enemy; }
 		[[nodiscard]] std::list<Construction> getConstructions() const { return _constructions; }
 		[[nodiscard]] std::vector<Base> getBases() const { return _bases; }
 		[[nodiscard]] int getBarracksAmount() const { return _barracksAmount; }
@@ -283,6 +292,8 @@ namespace Sc2 {
 		void buildTank();
 		void buildViking();
 		void addEnemyUnit() { _enemyCombatUnits += 1; }
+		void addEnemyGroundPower() { _enemy.GroundPower += 1; }
+		void addEnemyAirPower() { _enemy.AirPower += 1; }
 
 		void attackPlayer() {
 			_wasAttacked = true;
@@ -341,10 +352,55 @@ namespace Sc2 {
 		std::vector<Action> getLegalActions() const;
 
 
-		double getValue() const {
+		double getValueMarines() const {
 			return softmax(std::vector{
 				               static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemyCombatUnits) / 4
 			               }, 0);
+		}
+
+		double getValueArmyPowerScaled() const {
+			//this assumes the vikings can attack both air and ground at the same time
+			auto airPower = calculateAirPower();
+			auto groundPower = calculateGroundPower();
+			auto groundSoftMax = softmax(std::vector{
+				                             static_cast<double>(groundPower), static_cast<double>(_enemy.GroundPower)
+			                             }, 0);
+			auto airSoftMax = softmax(std::vector{
+				                          static_cast<double>(airPower), static_cast<double>(_enemy.AirPower)
+			                          }, 0);
+			auto average = (airSoftMax + groundSoftMax) / 2;
+			auto difference = std::abs(airSoftMax - groundSoftMax);
+			return average * (1 - difference);
+		}
+
+		double getValueArmyPowerAverage() const {
+			//this assumes the vikings can attack both air and ground at the same time
+			auto airPower = calculateAirPower();
+			auto groundPower = calculateGroundPower();
+			auto groundSoftMax = softmax(std::vector{
+				                             static_cast<double>(groundPower), static_cast<double>(_enemy.GroundPower)
+			                             }, 0);
+			auto airSoftMax = softmax(std::vector{
+				                          static_cast<double>(airPower), static_cast<double>(_enemy.AirPower)
+			                          }, 0);
+			auto average = (airSoftMax + groundSoftMax) / 2;
+			return average;
+		}
+
+		int calculateGroundPower() const {
+			return _marinePopulation * unitGroundPower.at(UnitType::Marine) +
+			       _tankPopulation * unitGroundPower.at(UnitType::Tank) +
+			       _vikingPopulation * unitGroundPower.at(UnitType::Viking);
+		}
+
+		int calculateAirPower() const {
+			return _marinePopulation * unitAirPower.at(UnitType::Marine) +
+			       _tankPopulation * unitAirPower.at(UnitType::Tank) +
+			       _vikingPopulation * unitAirPower.at(UnitType::Viking);
+		}
+
+		double getValue() const {
+			return getValueArmyPowerAverage();
 		}
 
 		static double softmax(std::vector<double> vector, const int index) {
@@ -373,19 +429,27 @@ namespace Sc2 {
 			// Over the span of 60 seconds we assume that the enemy:
 			// Specifies how many enemy units will be built
 			constexpr double buildUnitAction = 8;
+			// Specifies how much ground power the enemy gets
+			constexpr double groundPowerIncrease = 8;
+			// Specifies how much air power the enemy gets
+			constexpr double airPowerIncrease = 8;
 			// Specifies how many times the enemy will attack
 			constexpr double attackAction = 0.4;
 			// Specifies how many times the enemy will do nothing
-			constexpr double noneAction = 60 - buildUnitAction - attackAction;
+			constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease;
 
-			const auto actionWeights = {noneAction, buildUnitAction, attackAction};
+			const auto actionWeights = {noneAction, buildUnitAction, attackAction, groundPowerIncrease, airPowerIncrease};
 			std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
-			// 0: None, 1: Build unit, 2: Attack
+			// 0: None, 1: Build unit, 2: Attack, 3: GroundPowerIncrease, 4: AirPowerIncrease
 			switch (dist(_rng)) {
 				case 1:
 					return Action::addEnemyUnit;
 				case 2:
 					return Action::attackPlayer;
+				case 3:
+					return Action::addEnemyGroundPower;
+				case 4:
+					return Action::addEnemyAirPower;
 				default:
 					return Action::none;
 			}

@@ -80,6 +80,16 @@ void Sc2::State::advanceEnemyAction() {
                 attackPlayer();
             }
             break;
+        case Action::addEnemyGroundPower:
+            if (_currentTime < 90) {
+                break;
+            }
+            addEnemyGroundPower();
+        case Action::addEnemyAirPower:
+            if (_currentTime < 90) {
+                break;
+            }
+            addEnemyAirPower();
         case Action::none:
             return;
         default:
@@ -245,7 +255,7 @@ std::vector<Action> Sc2::State::getLegalActions() const {
         actions.emplace_back(Action::buildBarracks);
     }
 
-    if (hasWorkers && (_barracksAmount > 0 || _incomingBarracks)) {
+    if (hasWorkers && (_barracksAmount > 0 || _incomingBarracks) && vespeneGainedPerTimestep() > 0) {
         actions.emplace_back(Action::buildFactory);
     }
 
