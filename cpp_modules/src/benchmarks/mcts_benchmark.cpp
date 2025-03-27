@@ -173,7 +173,10 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 	std::cout << "Benchmark " << params.benchmarkIndex << " State value: " << stateValue <<
 			std::endl <<
 			"Marines: " << state->getMarinePopulation() << std::endl <<
-			"enemiesUnits: " << state->getEnemyCombatUnits() << std::endl
+			"Tanks: " << state->getTankPopulation() << std::endl <<
+			"Vikings: " << state->getVikingPopulation() << std::endl <<
+			"Enemy Ground Power: " << state->getEnemy().GroundPower << std::endl <<
+			"Enemy Air Power: " << state->getEnemy().AirPower << std::endl
 			<< std::endl
 			<< "------------------------------------------------------------------" << std::endl << std::endl;
 

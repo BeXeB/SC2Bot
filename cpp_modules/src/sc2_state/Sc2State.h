@@ -32,7 +32,7 @@ namespace Sc2 {
 		std::vector<Base> &bases;
 		const int barracksAmount = 0;
 		const int factoryAmount = 0;
-		const int factoryTechLabAmount = 0;
+		// const int factoryTechLabAmount = 0;
 		const int starPortAmount = 0;
 		std::list<Construction> &constructions;
 		std::vector<int> &occupiedWorkerTimers;
@@ -43,7 +43,7 @@ namespace Sc2 {
 		const bool incomingHouse = false;
 		const bool incomingBarracks = false;
 		const int incomingFactory = 0;
-		const int incomingFactoryTechLab = 0;
+		// const int incomingFactoryTechLab = 0;
 		const int incomingBases = 0;
 		const int maxBases = 0;
 		Enemy enemy;
@@ -67,7 +67,7 @@ namespace Sc2 {
 		int _populationLimit = 15;
 		int _barracksAmount = 0;
 		int _factoryAmount = 0;
-		int _factoryTechLabAmount = 0;
+		// int _factoryTechLabAmount = 0;
 		int _starPortAmount = 0;
 		std::vector<Base> _bases = std::vector{Base()};
 		std::list<Construction> _constructions{};
@@ -88,7 +88,7 @@ namespace Sc2 {
 		bool _incomingHouse = false;
 		bool _incomingBarracks = false;
 		int _incomingFactory = 0;
-		int _incomingFactoryTechLab = 0;
+		// int _incomingFactoryTechLab = 0;
 		int _incomingBases = 0;
 
 		struct ActionCost {
@@ -108,8 +108,8 @@ namespace Sc2 {
 		ActionCost buildVespeneCollectorCost = ActionCost(75, 0, 21);
 		ActionCost buildMarineCost = ActionCost(50, 0, 18);
 		ActionCost buildBarracksCost = ActionCost(150, 0, 46);
-		ActionCost buildFactoryCost = ActionCost(150, 100, 43);
-		ActionCost buildTechLabCost = ActionCost(50, 25, 18);
+		ActionCost buildFactoryCost = ActionCost(200, 125, 61);
+		// ActionCost buildTechLabCost = ActionCost(50, 25, 18);
 		ActionCost buildStarPortCost = ActionCost(150, 100, 36);
 		ActionCost buildTankCost = ActionCost(150, 125, 32);
 		ActionCost buildVikingCost = ActionCost(150, 75, 30);
@@ -167,10 +167,10 @@ namespace Sc2 {
 			_incomingFactory -= 1;
 		}
 
-		void addFactoryTechLab() {
-			_factoryTechLabAmount += 1;
-			_incomingFactoryTechLab -= 1;
-		}
+		// void addFactoryTechLab() {
+		// 	_factoryTechLabAmount += 1;
+		// 	_incomingFactoryTechLab -= 1;
+		// }
 
 		void addStarPort() {
 			_starPortAmount += 1;
@@ -241,13 +241,13 @@ namespace Sc2 {
 		[[nodiscard]] std::vector<Base> getBases() const { return _bases; }
 		[[nodiscard]] int getBarracksAmount() const { return _barracksAmount; }
 		[[nodiscard]] int getFactoryAmount() const { return _factoryAmount; }
-		[[nodiscard]] int getFactoryTechLabAmount() const { return _factoryTechLabAmount; }
+		// [[nodiscard]] int getFactoryTechLabAmount() const { return _factoryTechLabAmount; }
 		[[nodiscard]] int getStarPortAmount() const { return _starPortAmount; }
 		[[nodiscard]] bool getHasHouse() const { return _hasHouse; }
 		[[nodiscard]] bool getIncomingHouse() const { return _incomingHouse; }
 		[[nodiscard]] bool getIncomingBarracks() const { return _incomingBarracks; }
 		[[nodiscard]] int getIncomingFactory() const { return _incomingFactory; }
-		[[nodiscard]] int getIncomingFactoryTechLab() const { return _incomingFactoryTechLab; }
+		// [[nodiscard]] int getIncomingFactoryTechLab() const { return _incomingFactoryTechLab; }
 		[[nodiscard]] int getIncomingBases() const { return _incomingBases; }
 		[[nodiscard]] int getMaxBases() const { return MAX_BASES; }
 
@@ -264,7 +264,7 @@ namespace Sc2 {
 		bool withinPopulationLimit(int populationIncrease) const;
 		bool hasFreeBase() const;
 		bool hasFreeBarracks() const;
-		bool hasFreeFactoryTechLab() const;
+		bool hasFreeFactory() const;
 		bool hasFreeStarPort() const;
 
 		int mineralGainedPerTimestep() const;
@@ -286,7 +286,7 @@ namespace Sc2 {
 		void buildVespeneCollector();
 		void buildBarracks();
 		void buildFactory();
-		void buildFactoryTechLab();
+		// void buildFactoryTechLab();
 		void buildStarPort();
 		void buildMarine();
 		void buildTank();
@@ -302,7 +302,7 @@ namespace Sc2 {
 		void wait();
 		void wait(int amount);
 
-		int getVespeneCollectorsAmount();
+		int getVespeneCollectorsAmount() const;
 		int getVespeneGeysersAmount();
 
 		void performAction(const Action action) {
@@ -337,9 +337,9 @@ namespace Sc2 {
 				case Action::buildStarPort:
 					buildStarPort();
 					break;
-				case Action::buildFactoryTechLab:
-					buildFactoryTechLab();
-					break;
+				// case Action::buildFactoryTechLab:
+				// 	buildFactoryTechLab();
+				// 	break;
 				case Action::none:
 				case Action::attackPlayer:
 				case Action::addEnemyUnit:
@@ -363,10 +363,10 @@ namespace Sc2 {
 			auto airPower = calculateAirPower();
 			auto groundPower = calculateGroundPower();
 			auto groundSoftMax = softmax(std::vector{
-				                             static_cast<double>(groundPower), static_cast<double>(_enemy.GroundPower)
+				                             static_cast<double>(groundPower)/4, static_cast<double>(_enemy.GroundPower)/4
 			                             }, 0);
 			auto airSoftMax = softmax(std::vector{
-				                          static_cast<double>(airPower), static_cast<double>(_enemy.AirPower)
+				                          static_cast<double>(airPower)/4, static_cast<double>(_enemy.AirPower)/4
 			                          }, 0);
 			auto average = (airSoftMax + groundSoftMax) / 2;
 			auto difference = std::abs(airSoftMax - groundSoftMax);
@@ -378,10 +378,10 @@ namespace Sc2 {
 			auto airPower = calculateAirPower();
 			auto groundPower = calculateGroundPower();
 			auto groundSoftMax = softmax(std::vector{
-				                             static_cast<double>(groundPower), static_cast<double>(_enemy.GroundPower)
+				                             static_cast<double>(groundPower)/4, static_cast<double>(_enemy.GroundPower)/4
 			                             }, 0);
 			auto airSoftMax = softmax(std::vector{
-				                          static_cast<double>(airPower), static_cast<double>(_enemy.AirPower)
+				                          static_cast<double>(airPower)/4, static_cast<double>(_enemy.AirPower)/4
 			                          }, 0);
 			auto average = (airSoftMax + groundSoftMax) / 2;
 			return average;
@@ -400,7 +400,7 @@ namespace Sc2 {
 		}
 
 		double getValue() const {
-			return getValueArmyPowerAverage();
+			return getValueArmyPowerScaled();
 		}
 
 		static double softmax(std::vector<double> vector, const int index) {
@@ -432,7 +432,7 @@ namespace Sc2 {
 			// Specifies how much ground power the enemy gets
 			constexpr double groundPowerIncrease = 8;
 			// Specifies how much air power the enemy gets
-			constexpr double airPowerIncrease = 8;
+			constexpr double airPowerIncrease = 0;
 			// Specifies how many times the enemy will attack
 			constexpr double attackAction = 0.4;
 			// Specifies how many times the enemy will do nothing
@@ -500,7 +500,7 @@ namespace Sc2 {
 		                     _barracksAmount(params.barracksAmount),
 		                     _factoryAmount(params.factoryAmount),
 		                     _starPortAmount(params.starPortAmount),
-		                     _factoryTechLabAmount(params.factoryTechLabAmount),
+		                     // _factoryTechLabAmount(params.factoryTechLabAmount),
 		                     _bases(std::move(params.bases)),
 		                     _constructions(std::list<Construction>()),
 		                     _occupiedWorkerTimers(
@@ -512,7 +512,7 @@ namespace Sc2 {
 		                     _incomingHouse(params.incomingHouse),
 		                     _incomingBarracks(params.incomingBarracks),
 		                     _incomingFactory(params.incomingFactory),
-		                     _incomingFactoryTechLab(params.incomingFactoryTechLab),
+		                     // _incomingFactoryTechLab(params.incomingFactoryTechLab),
 		                     _incomingBases(params.incomingBases) {
 			_rng = std::mt19937(seed);
 			_enemyActions = enemyActions;
@@ -535,7 +535,7 @@ namespace Sc2 {
 			_incomingVespeneCollectors = state._incomingVespeneCollectors;
 			_barracksAmount = state._barracksAmount;
 			_factoryAmount = state._factoryAmount;
-			_factoryTechLabAmount = state._factoryTechLabAmount;
+			// _factoryTechLabAmount = state._factoryTechLabAmount;
 			_starPortAmount = state._starPortAmount;
 
 			buildWorkerCost = state.buildWorkerCost;
@@ -545,7 +545,7 @@ namespace Sc2 {
 			buildMarineCost = state.buildMarineCost;
 			buildBarracksCost = state.buildBarracksCost;
 			buildFactoryCost = state.buildFactoryCost;
-			buildTechLabCost = state.buildTechLabCost;
+			// buildTechLabCost = state.buildTechLabCost;
 			buildStarPortCost = state.buildStarPortCost;
 			buildTankCost = state.buildTankCost;
 			buildVikingCost = state.buildVikingCost;
@@ -565,7 +565,7 @@ namespace Sc2 {
 			_incomingHouse = state._incomingHouse;
 			_incomingBarracks = state._incomingBarracks;
 			_incomingFactory = state._incomingFactory;
-			_incomingFactoryTechLab = state._incomingFactoryTechLab;
+			// _incomingFactoryTechLab = state._incomingFactoryTechLab;
 			_incomingBases = state._incomingBases;
 		};
 

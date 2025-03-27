@@ -16,7 +16,7 @@ enum class Action {
     buildBarracks,
     buildFactory,
     buildTank,
-    buildFactoryTechLab,
+    // buildFactoryTechLab,
     buildStarPort,
     buildViking,
     attackPlayer,
@@ -52,9 +52,9 @@ inline std::string actionToString(Action action) {
         case Action::buildFactory:
             actionString = std::string("buildFactory");
             break;
-        case Action::buildFactoryTechLab:
-            actionString = std::string("buildFactoryTechLab");
-            break;
+        // case Action::buildFactoryTechLab:
+        //     actionString = std::string("buildFactoryTechLab");
+        //     break;
         case Action::buildStarPort:
             actionString = std::string("buildStarPort");
             break;
@@ -103,9 +103,9 @@ inline std::ostream &operator<<(std::ostream &os, const Action &action) {
         case Action::buildFactory:
             os << std::string("buildFactory");
             break;
-        case Action::buildFactoryTechLab:
-            os << std::string("buildFactoryTechLab");
-            break;
+        // case Action::buildFactoryTechLab:
+        //     os << std::string("buildFactoryTechLab");
+        //     break;
         case Action::buildStarPort:
             os << std::string("buildStarPort");
             break;

@@ -84,9 +84,9 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 			case Action::buildTank:
 				_actionWeights[i] = 5.0;
 				break;
-			case Action::buildFactoryTechLab:
-				_actionWeights[i] = 2.0;
-				break;
+			// case Action::buildFactoryTechLab:
+			// 	_actionWeights[i] = 2.0;
+			// 	break;
 			case Action::buildViking:
 				_actionWeights[i] = 5.0;
 				break;
