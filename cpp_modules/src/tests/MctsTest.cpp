@@ -108,19 +108,59 @@ TEST_SUITE("Test MCTS") {
 			auto vespene = updatedState->getVespene();
 			auto workerPopulation = updatedState->getWorkerPopulation();
 			auto marinePopulation = updatedState->getMarinePopulation();
+			auto tankPopulation = updatedState->getTankPopulation();
+			auto vikingPopulation = updatedState->getVikingPopulation();
 			auto incomingWorkers = updatedState->getIncomingWorkers();
 			auto incomingMarines = updatedState->getIncomingMarines();
+			auto incomingTanks = updatedState->getIncomingTanks();
+			auto incomingVikings = updatedState->getIncomingVikings();
 			auto populationLimit = updatedState->getPopulationLimit();
 			auto occupiedWorkerTimers = updatedState->getOccupiedWorkerTimers();
 			auto bases = updatedState->getBases();
 			auto barracksAmount = updatedState->getBarracksAmount();
+			auto factoryAmount = updatedState->getFactoryAmount();
+			auto factoryTechLabAmount = updatedState->getFactoryTechLabAmount();
+			auto starPortAmount = updatedState->getStarPortAmount();
 			auto constructions = updatedState->getConstructions();
 			auto enemyCombatUnits = updatedState->getEnemyCombatUnits();
+			auto hasHouse = updatedState->getHasHouse();
+			auto incomingHouse = updatedState->getIncomingHouse();
+			auto incomingBarracks = updatedState->getIncomingBarracks();
+			auto incomingFactory = updatedState->getIncomingFactory();
+			auto incomingFactoryTechLab = updatedState->getIncomingFactoryTechLab();
+			auto incomingBases = updatedState->getIncomingBases();
+			auto maxBases = updatedState->getMaxBases();
 
-			mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
-			                     incomingMarines, populationLimit, bases, barracksAmount,
-			                     constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits,
-			                     false, 0, false);
+			mcts.updateRootState({
+				.minerals = minerals,
+				.vespene = vespene,
+				.workerPopulation = workerPopulation,
+				.marinePopulation = marinePopulation,
+				.tankPopulation = tankPopulation,
+				.vikingPopulation = vikingPopulation,
+				.incomingWorkers = incomingWorkers,
+				.incomingMarines = incomingMarines,
+				.incomingTanks = incomingTanks,
+				.incomingVikings = incomingVikings,
+				.populationLimit = populationLimit,
+				.bases = bases,
+				.barracksAmount = barracksAmount,
+				.factoryAmount = factoryAmount,
+				.factoryTechLabAmount = factoryTechLabAmount,
+				.starPortAmount = starPortAmount,
+				.constructions = constructions,
+				.occupiedWorkerTimers = occupiedWorkerTimers,
+				.currentTime = 0,
+				.endTime = 1000,
+				.enemyCombatUnits = enemyCombatUnits,
+				.hasHouse = hasHouse,
+				.incomingHouse = incomingHouse,
+				.incomingBarracks = incomingBarracks,
+				.incomingFactory = incomingFactory,
+				.incomingFactoryTechLab = incomingFactoryTechLab,
+				.incomingBases = incomingBases,
+				.maxBases = maxBases
+			});
 
 			auto rootState = mcts.getRootState();
 
@@ -153,25 +193,64 @@ TEST_SUITE("Test MCTS") {
 
 		auto minerals = state->getMinerals();
 		auto vespene = state->getVespene();
-		// auto incomingPopulation = state->getIncomingPopulation();
-		auto incomingWorkers = state->getIncomingWorkers();
-		auto incomingMarines = state->getIncomingMarines();
 		auto workerPopulation = state->getWorkerPopulation();
 		auto marinePopulation = state->getMarinePopulation();
+		auto tankPopulation = state->getTankPopulation();
+		auto vikingPopulation = state->getVikingPopulation();
+		auto incomingWorkers = state->getIncomingWorkers();
+		auto incomingMarines = state->getIncomingMarines();
+		auto incomingTanks = state->getIncomingTanks();
+		auto incomingVikings = state->getIncomingVikings();
 		auto populationLimit = state->getPopulationLimit();
 		auto occupiedWorkerTimers = state->getOccupiedWorkerTimers();
 		auto bases = state->getBases();
 		auto barracksAmount = state->getBarracksAmount();
+		auto factoryAmount = state->getFactoryAmount();
+		auto factoryTechLabAmount = state->getFactoryTechLabAmount();
+		auto starPortAmount = state->getStarPortAmount();
 		auto enemyCombatUnits = state->getEnemyCombatUnits();
+		auto hasHouse = state->getHasHouse();
+		auto incomingHouse = state->getIncomingHouse();
+		auto incomingBarracks = state->getIncomingBarracks();
+		auto incomingFactory = state->getIncomingFactory();
+		auto incomingFactoryTechLab = state->getIncomingFactoryTechLab();
+		auto incomingBases = state->getIncomingBases();
+		auto maxBases = state->getMaxBases();
 
 		auto constructions = std::list<Sc2::Construction>();
 		constructions.emplace_back(state->getBuildWorkerCost().buildTime - 1, Action::buildWorker);
 
 
-		mcts.updateRootState(minerals, vespene, workerPopulation, marinePopulation, incomingWorkers,
-								 incomingMarines, populationLimit, bases, barracksAmount,
-								 constructions, occupiedWorkerTimers, 0, 1000, enemyCombatUnits,
-								 false, 0, false);
+		mcts.updateRootState({
+				.minerals = minerals,
+				.vespene = vespene,
+				.workerPopulation = workerPopulation,
+				.marinePopulation = marinePopulation,
+				.tankPopulation = tankPopulation,
+				.vikingPopulation = vikingPopulation,
+				.incomingWorkers = incomingWorkers,
+				.incomingMarines = incomingMarines,
+				.incomingTanks = incomingTanks,
+				.incomingVikings = incomingVikings,
+				.populationLimit = populationLimit,
+				.bases = bases,
+				.barracksAmount = barracksAmount,
+				.factoryAmount = factoryAmount,
+				.factoryTechLabAmount = factoryTechLabAmount,
+				.starPortAmount = starPortAmount,
+				.constructions = constructions,
+				.occupiedWorkerTimers = occupiedWorkerTimers,
+				.currentTime = 0,
+				.endTime = 1000,
+				.enemyCombatUnits = enemyCombatUnits,
+				.hasHouse = hasHouse,
+				.incomingHouse = incomingHouse,
+				.incomingBarracks = incomingBarracks,
+				.incomingFactory = incomingFactory,
+				.incomingFactoryTechLab = incomingFactoryTechLab,
+				.incomingBases = incomingBases,
+				.maxBases = maxBases
+			});
 
 		CHECK(mcts.getRootState()->getConstructions().size() == state->getConstructions().size());
 		CHECK(mcts.getRootState()->getConstructions().size() == 1);

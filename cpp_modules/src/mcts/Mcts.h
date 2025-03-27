@@ -107,29 +107,9 @@ namespace Sc2::Mcts {
 		Action getBestAction();
 		void updateRootState(const std::shared_ptr<State> &state);
 
-		void updateRootState(const int minerals,
-		                     const int vespene,
-		                     const int workerPopulation,
-		                     const int marinePopulation,
-		                     const int incomingWorkers,
-		                     const int incomingMarines,
-		                     const int populationLimit,
-		                     const std::vector<Base> &bases,
-		                     const int barracksAmount,
-		                     std::list<Construction> &constructions,
-		                     const std::vector<int> &occupiedWorkerTimers,
-		                     const int currentTime,
-		                     const int endTime,
-		                     const int enemyCombatUnits,
-		                     const bool incomingHouse,
-		                     const int incomingBases,
-		                     const bool hasHouse) {
+		void updateRootState(const StateBuilderParams &params) {
 			std::uniform_int_distribution<unsigned int> dist;
-			const auto state = State::InternalStateBuilder(minerals, vespene, workerPopulation, marinePopulation,
-			                                               incomingWorkers, incomingMarines, populationLimit,
-			                                               bases, barracksAmount, constructions, occupiedWorkerTimers,
-			                                               currentTime, endTime, enemyCombatUnits, dist(_rng), hasHouse,
-			                                               _enemyActions, _combatBiases, incomingHouse, incomingBases, 12);
+			const auto state = State::InternalStateBuilder(params,dist(_rng) , _enemyActions, _combatBiases);
 
 			updateRootState(state);
 		}

@@ -147,7 +147,9 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 		if (params.shouldPrintActions)
 			std::cout << "--- Index: " << actionsTaken << " ---" << std::endl <<
 					"Action: " << action << std::endl
-					<< "Current time of state: " << state->getCurrentTime() << std::endl;
+					<< "Current time of state: " << state->getCurrentTime() << std::endl
+					<< "Minerals: " << state->getMinerals() << std::endl
+					<< "Vespene: " << state->getVespene() << std::endl;
 
 		if (action == Action::none) {
 			state->wait();
@@ -411,7 +413,7 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = sqrt(2),
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-
+		.shouldPrintActions = true,
 	});
 	results.push_back(result);
 

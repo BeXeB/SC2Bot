@@ -78,6 +78,21 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 			case Action::buildMarine:
 				_actionWeights[i] = 15.0;
 				break;
+			case Action::buildFactory:
+				_actionWeights[i] = 2.0;
+				break;
+			case Action::buildTank:
+				_actionWeights[i] = 5.0;
+				break;
+			case Action::buildFactoryTechLab:
+				_actionWeights[i] = 2.0;
+				break;
+			case Action::buildViking:
+				_actionWeights[i] = 5.0;
+				break;
+			case Action::buildStarPort:
+				_actionWeights[i] = 2.0;
+				break;
 			default:
 				throw std::runtime_error("Cannot choose " + actionToString(actions[i]) + " as an action.");;
 		}

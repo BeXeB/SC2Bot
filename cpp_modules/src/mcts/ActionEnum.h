@@ -68,6 +68,8 @@ inline std::string actionToString(Action action) {
         case Action::addEnemyUnit:
             actionString = std::string("addEnemyUnit");
             break;
+        default:
+            throw std::runtime_error("Could not convert action to string");
     }
 
     return actionString;
