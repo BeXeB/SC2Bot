@@ -400,7 +400,7 @@ namespace Sc2 {
 		}
 
 		double getValue() const {
-			return getValueArmyPowerScaled();
+			return getValueArmyPowerAverage();
 		}
 
 		static double softmax(std::vector<double> vector, const int index) {
@@ -430,11 +430,11 @@ namespace Sc2 {
 			// Specifies how many enemy units will be built
 			constexpr double buildUnitAction = 8;
 			// Specifies how much ground power the enemy gets
-			constexpr double groundPowerIncrease = 8;
+			constexpr double groundPowerIncrease = 6;
 			// Specifies how much air power the enemy gets
-			constexpr double airPowerIncrease = 0;
+			constexpr double airPowerIncrease = 4;
 			// Specifies how many times the enemy will attack
-			constexpr double attackAction = 0.4;
+			constexpr double attackAction = 0.3;
 			// Specifies how many times the enemy will do nothing
 			constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease;
 

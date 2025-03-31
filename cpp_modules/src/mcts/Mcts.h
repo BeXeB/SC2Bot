@@ -128,7 +128,7 @@ namespace Sc2::Mcts {
 			// Specifies how many enemy units will be built
 			const double buildUnitAction = 7;
 			// Specifies how many times the enemy will attack
-			const double attackAction = 0.4;
+			const double attackAction = 0.2;
 			// Specifies how many times the enemy will do nothing
 			const double noneAction = 60 - buildUnitAction - attackAction;
 

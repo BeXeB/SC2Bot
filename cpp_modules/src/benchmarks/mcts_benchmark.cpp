@@ -613,7 +613,7 @@ std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed, const int en
 	// allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 18;
-	results = BenchmarkSuite(seed, 5000, endTime, index);
+	results = BenchmarkSuite(seed, 10000, endTime, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	return allResults;
