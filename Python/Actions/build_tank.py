@@ -12,4 +12,4 @@ class SiegeTankBuilder:
         self.bot = bot
 
     async def build_tank(self) -> None:
-        await self.bot.unit_builder_helper.build_unit(UnitTypeId.FACTORY, UnitTypeId.SIEGETANK)
+        await self.bot.unit_builder_helper.build_techlab_unit(UnitTypeId.FACTORY, UnitTypeId.SIEGETANK)

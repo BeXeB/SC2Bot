@@ -12,4 +12,4 @@ class VikingFighterBuilder:
         self.bot = bot
 
     async def build_viking(self) -> None:
-        await self.bot.unit_builder_helper.build_unit(UnitTypeId.STARPORT, UnitTypeId.VIKINGFIGHTER)
+        await self.bot.unit_builder_helper.build_techlab_unit(UnitTypeId.STARPORT, UnitTypeId.VIKINGFIGHTER)
