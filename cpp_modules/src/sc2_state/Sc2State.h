@@ -14,10 +14,19 @@
 
 namespace Sc2 {
 	struct Enemy {
-	 	int GroundPower = 0;
-		int AirPower = 0;
-		double GroundProduction = 1;
-		double AirProduction = 0;
+		int groundPower = 0;
+		int airPower = 0;
+		double groundProduction = 1;
+		double airProduction = 0;
+
+		Enemy(int groundPower, int airPower, double groundProduction, double airProduction) {
+			this->groundPower = groundPower;
+			this->airPower = airPower;
+			this->groundProduction = groundProduction;
+			this->airProduction = airProduction;
+		}
+
+		Enemy() = default;
 	};
 
 	struct StateBuilderParams {
@@ -295,10 +304,11 @@ namespace Sc2 {
 		void buildTank();
 		void buildViking();
 		void addEnemyUnit() { _enemyCombatUnits += 1; }
-		void addEnemyGroundPower() { _enemy.GroundPower += std::floor(_enemy.GroundProduction); }
-		void addEnemyAirPower() { _enemy.AirPower += std::floor(_enemy.AirProduction); }
-		void addEnemyGroundProduction() { _enemy.GroundProduction += 0.1; }
-		void addEnemyAirProduction() { _enemy.AirProduction += 0.1; }
+		void addEnemyGroundPower() { _enemy.groundPower += std::floor(_enemy.groundProduction); }
+		void addEnemyAirPower() { _enemy.airPower += std::floor(_enemy.airProduction); }
+		void addEnemyGroundProduction() { _enemy.groundProduction += 0.1; }
+		void addEnemyAirProduction() { _enemy.airProduction += 0.1; }
+
 		void attackPlayer() {
 			auto temp = getValue();
 			if (temp < .4) {
@@ -370,10 +380,11 @@ namespace Sc2 {
 			auto airPower = calculateAirPower();
 			auto groundPower = calculateGroundPower();
 			auto groundSoftMax = softmax(std::vector{
-				                             static_cast<double>(groundPower)/4, static_cast<double>(_enemy.GroundPower)/4
+				                             static_cast<double>(groundPower) / 4,
+				                             static_cast<double>(_enemy.groundPower) / 4
 			                             }, 0);
 			auto airSoftMax = softmax(std::vector{
-				                          static_cast<double>(airPower)/4, static_cast<double>(_enemy.AirPower)/4
+				                          static_cast<double>(airPower) / 4, static_cast<double>(_enemy.airPower) / 4
 			                          }, 0);
 			auto average = (airSoftMax + groundSoftMax) / 2;
 			auto difference = std::abs(airSoftMax - groundSoftMax);
@@ -385,10 +396,11 @@ namespace Sc2 {
 			auto airPower = calculateAirPower();
 			auto groundPower = calculateGroundPower();
 			auto groundSoftMax = softmax(std::vector{
-				                             static_cast<double>(groundPower)/4, static_cast<double>(_enemy.GroundPower)/4
+				                             static_cast<double>(groundPower) / 4,
+				                             static_cast<double>(_enemy.groundPower) / 4
 			                             }, 0);
 			auto airSoftMax = softmax(std::vector{
-				                          static_cast<double>(airPower)/4, static_cast<double>(_enemy.AirPower)/4
+				                          static_cast<double>(airPower) / 4, static_cast<double>(_enemy.airPower) / 4
 			                          }, 0);
 			auto average = (airSoftMax + groundSoftMax) / 2;
 			return average;
@@ -398,11 +410,12 @@ namespace Sc2 {
 			auto airPower = calculateAirPower();
 			auto groundPower = calculateGroundPower();
 			auto groundSoftMax = softmax(std::vector{
-											 static_cast<double>(groundPower)/4, static_cast<double>(_enemy.GroundPower)/4
-										 }, 0);
+				                             static_cast<double>(groundPower) / 4,
+				                             static_cast<double>(_enemy.groundPower) / 4
+			                             }, 0);
 			auto airSoftMax = softmax(std::vector{
-										  static_cast<double>(airPower)/4, static_cast<double>(_enemy.AirPower)/4
-									  }, 0);
+				                          static_cast<double>(airPower) / 4, static_cast<double>(_enemy.airPower) / 4
+			                          }, 0);
 			return std::min(groundSoftMax, airSoftMax);
 		}
 
@@ -459,9 +472,13 @@ namespace Sc2 {
 			// Specifies how many times the enemy will attack
 			constexpr double attackAction = 0.3;
 			// Specifies how many times the enemy will do nothing
-			constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease - groundProductionIncrease - airProductionIncrease;
+			constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease -
+			                              groundProductionIncrease - airProductionIncrease;
 
-			const auto actionWeights = {noneAction, buildUnitAction, attackAction, groundPowerIncrease, airPowerIncrease, groundProductionIncrease, airProductionIncrease};
+			const auto actionWeights = {
+				noneAction, buildUnitAction, attackAction, groundPowerIncrease, airPowerIncrease,
+				groundProductionIncrease, airProductionIncrease
+			};
 			std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
 			// 0: None, 1: Build unit, 2: Attack, 3: GroundPowerIncrease, 4: AirPowerIncrease, 5: Ground Production, 6: Air Production
 			switch (dist(_rng)) {
@@ -485,8 +502,68 @@ namespace Sc2 {
 
 		static std::shared_ptr<State> DeepCopy(const State &state, bool onRollout = false);
 
-		static std::shared_ptr<State> StateBuilder(const StateBuilderParams &params) {
+		static std::shared_ptr<State> StateBuilder(const int minerals,
+		                                           const int vespene,
+		                                           const int workerPopulation,
+		                                           const int marinePopulation,
+		                                           const int tankPopulation,
+		                                           const int vikingPopulation,
+		                                           const int incomingWorkers,
+		                                           const int incomingMarines,
+		                                           const int incomingTanks,
+		                                           const int incomingVikings,
+		                                           const int populationLimit,
+		                                           std::vector<Base> &bases,
+		                                           const int barracksAmount,
+		                                           const int factoryAmount,
+		                                           // const int factoryTechLabAmount ,
+		                                           const int starPortAmount,
+		                                           std::list<Construction> &constructions,
+		                                           std::vector<int> &occupiedWorkerTimers,
+		                                           const int currentTime,
+		                                           const int endTime,
+		                                           const int enemyCombatUnits,
+		                                           const bool hasHouse,
+		                                           const bool incomingHouse,
+		                                           const bool incomingBarracks,
+		                                           const int incomingFactory,
+		                                           // const int incomingFactoryTechLab ,
+		                                           const int incomingBases,
+		                                           const int maxBases,
+		                                           const Enemy &enemy
+		) {
 			const unsigned int seed = std::random_device{}();
+			StateBuilderParams params = {
+				minerals,
+				vespene,
+				workerPopulation,
+				marinePopulation,
+				tankPopulation,
+				vikingPopulation,
+				incomingWorkers,
+				incomingMarines,
+				incomingTanks,
+				incomingVikings,
+				populationLimit,
+				bases,
+				barracksAmount,
+				factoryAmount,
+				//  factoryTechLabAmount ,
+				starPortAmount,
+				constructions,
+				occupiedWorkerTimers,
+				currentTime,
+				endTime,
+				enemyCombatUnits,
+				hasHouse,
+				incomingHouse,
+				incomingBarracks,
+				incomingFactory,
+				//  incomingFactoryTechLab ,
+				incomingBases,
+				maxBases,
+				enemy
+			};
 			return InternalStateBuilder(params, seed, nullptr, nullptr);
 		}
 

@@ -10,17 +10,29 @@ namespace pymodule {
 	PYBIND11_MODULE(sc2_mcts, module) { 
 		module.doc() = "sc2_mcts";
 
+		py::class_<Sc2::Enemy, std::shared_ptr<Sc2::Enemy>>(module, "Enemy")
+			.def(py::init<const int, const int, const double, const double>(),
+				py::arg("ground_power"),
+				py::arg("air_power"),
+				py::arg("ground_production"),
+				py::arg("air_production"));
 
 		module.def("state_builder", &Sc2::State::StateBuilder, "A function that builds a State",
 						 py::arg("minerals"),
 						 py::arg("vespene"),
 						 py::arg("worker_population"),
 						 py::arg("marine_population"),
+						 py::arg("tank_population"),
+						 py::arg("viking_population"),
 						 py::arg("incoming_workers"),
 						 py::arg("incoming_marines"),
+						 py::arg("incoming_tanks"),
+						 py::arg("incoming_viking"),
 						 py::arg("population_limit"),
 						 py::arg("bases"),
 						 py::arg("barracks_amount"),
+						 py::arg("factory_amount"),
+						 py::arg("starport_amount"),
 						 py::arg("constructions"),
 						 py::arg("occupied_worker_timers"),
 						 py::arg("current_time"),
@@ -28,8 +40,11 @@ namespace pymodule {
 						 py::arg("enemy_combat_units"),
 						 py::arg("has_house"),
 						 py::arg("incoming_house"),
+						 py::arg("incoming_barracks"),
+						 py::arg("incoming_factory"),
 						 py::arg("incoming_bases"),
-						 py::arg("max_bases"));
+						 py::arg("max_bases"),
+						 py::arg("enemy"));
 
 		py::class_<Sc2::State, std::shared_ptr<Sc2::State> >(module, "State") 
 				.def(py::init<>())
@@ -74,8 +89,16 @@ namespace pymodule {
 		.value("build_house", Action::buildHouse)
 		.value("build_marine", Action::buildMarine)
 		.value("build_barracks", Action::buildBarracks)
+		.value("build_tank", Action::buildTank)
+		.value("build_factory", Action::buildFactory)
+		.value("build_viking", Action::buildViking)
+		.value("build_starport", Action::buildStarPort)
 		.value("attack_player", Action::attackPlayer)
-		.value("add_enemy_unit", Action::addEnemyUnit);
+		.value("add_enemy_unit", Action::addEnemyUnit)
+		.value("add_enemy_ground_power", Action::addEnemyGroundPower)
+		.value("add_enemy_air_power", Action::addEnemyAirPower)
+		.value("add_enemy_ground_production",Action::addEnemyGroundProduction)
+		.value("add_enemy_air_production", Action::addEnemyAirProduction);
 
 		py::enum_<ValueHeuristic>(module, "ValueHeuristic")
 		.value("UCT", ValueHeuristic::UCT)

@@ -152,10 +152,10 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 					<< "Vespene: " << state->getVespene() << std::endl
 					<< "Our Units (M/T/V): " << state->getMarinePopulation() << "/" << state->getTankPopulation() << "/"
 					<< state->getVikingPopulation() << std::endl
-					<< "Enemy Ground (Pwr/Prod): " << state->getEnemy().GroundPower << "/" << state->getEnemy().
-					GroundProduction << std::endl
-					<< "Enemy Air (Pwr/Prod): " << state->getEnemy().AirPower << "/" << state->getEnemy().
-					AirProduction << std::endl;
+					<< "Enemy Ground (Pwr/Prod): " << state->getEnemy().groundPower << "/" << state->getEnemy().
+					groundProduction << std::endl
+					<< "Enemy Air (Pwr/Prod): " << state->getEnemy().airPower << "/" << state->getEnemy().
+					airProduction << std::endl;
 
 		if (action == Action::none) {
 			state->wait();
@@ -181,8 +181,8 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 			"Marines: " << state->getMarinePopulation() << std::endl <<
 			"Tanks: " << state->getTankPopulation() << std::endl <<
 			"Vikings: " << state->getVikingPopulation() << std::endl <<
-			"Enemy Ground Power: " << state->getEnemy().GroundPower << std::endl <<
-			"Enemy Air Power: " << state->getEnemy().AirPower << std::endl
+			"Enemy Ground Power: " << state->getEnemy().groundPower << std::endl <<
+			"Enemy Air Power: " << state->getEnemy().airPower << std::endl
 			<< std::endl
 			<< "------------------------------------------------------------------" << std::endl << std::endl;
 
