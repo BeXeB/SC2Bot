@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <iostream>
 #include <list>
 #include <map>
@@ -15,8 +16,8 @@ namespace Sc2 {
 	struct Enemy {
 	 	int GroundPower = 0;
 		int AirPower = 0;
-		int GroundProduction = 0;
-		int AirProduction = 0;
+		double GroundProduction = 1;
+		double AirProduction = 0;
 	};
 
 	struct StateBuilderParams {
@@ -294,16 +295,15 @@ namespace Sc2 {
 		void buildTank();
 		void buildViking();
 		void addEnemyUnit() { _enemyCombatUnits += 1; }
-		void addEnemyGroundPower() { _enemy.GroundPower += _enemy.GroundProduction; }
-		void addEnemyAirPower() { _enemy.AirPower += _enemy.AirProduction; }
-		void addEnemyGroundProduction() { _enemy.GroundProduction += 1; }
-		void addEnemyAirProduction() { _enemy.AirProduction += 1; }
+		void addEnemyGroundPower() { _enemy.GroundPower += std::floor(_enemy.GroundProduction); }
+		void addEnemyAirPower() { _enemy.AirPower += std::floor(_enemy.AirProduction); }
+		void addEnemyGroundProduction() { _enemy.GroundProduction += 0.1; }
+		void addEnemyAirProduction() { _enemy.AirProduction += 0.1; }
 		void attackPlayer() {
 			auto temp = getValue();
-			if (temp > .5) {
-				return;
+			if (temp < .4) {
+				_wasAttacked = true;
 			}
-			_wasAttacked = true;
 		}
 
 		void wait();
@@ -394,6 +394,18 @@ namespace Sc2 {
 			return average;
 		}
 
+		double getValueMinArmyPower() const {
+			auto airPower = calculateAirPower();
+			auto groundPower = calculateGroundPower();
+			auto groundSoftMax = softmax(std::vector{
+											 static_cast<double>(groundPower)/4, static_cast<double>(_enemy.GroundPower)/4
+										 }, 0);
+			auto airSoftMax = softmax(std::vector{
+										  static_cast<double>(airPower)/4, static_cast<double>(_enemy.AirPower)/4
+									  }, 0);
+			return std::min(groundSoftMax, airSoftMax);
+		}
+
 		int calculateGroundPower() const {
 			return _marinePopulation * unitGroundPower.at(UnitType::Marine) +
 			       _tankPopulation * unitGroundPower.at(UnitType::Tank) +
@@ -441,9 +453,9 @@ namespace Sc2 {
 			// Specifies how much air power the enemy gets per production
 			constexpr double airPowerIncrease = 2;
 			// Specifies how much ground production the enemy builds
-			constexpr double groundProductionIncrease = 1;
+			constexpr double groundProductionIncrease = 10;
 			// Specifies how much air production the enemy builds
-			constexpr double airProductionIncrease = 1;
+			constexpr double airProductionIncrease = 10;
 			// Specifies how many times the enemy will attack
 			constexpr double attackAction = 0.3;
 			// Specifies how many times the enemy will do nothing
