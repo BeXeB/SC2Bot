@@ -20,7 +20,7 @@ class StructureBuilderHelper:
         self.bot.busy_workers.update({worker.tag: self.bot.information_manager.build_times[structure_type]})
         worker.build(structure_type, build_location)
 
-    def build_tech_lab(self, structure_type: UnitTypeId) -> None:
+    async def build_tech_lab(self, structure_type: UnitTypeId, techlab_type: UnitTypeId) -> None:
         valid_structures = self.bot.structures.filter(lambda struc: struc.type_id == structure_type and not struc.has_techlab)
         if valid_structures:
-            valid_structures.first.build(UnitTypeId.TECHLAB)
+            valid_structures.first.build(techlab_type)

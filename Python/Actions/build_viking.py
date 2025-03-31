@@ -11,5 +11,5 @@ class VikingFighterBuilder:
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
 
-    def build_viking(self) -> None:
-        self.bot.unit_builder_helper.build_unit(UnitTypeId.STARPORT, UnitTypeId.VIKING)
+    async def build_viking(self) -> None:
+        await self.bot.unit_builder_helper.build_unit(UnitTypeId.STARPORT, UnitTypeId.VIKING)

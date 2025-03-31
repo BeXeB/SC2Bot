@@ -11,5 +11,5 @@ class SiegeTankBuilder:
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
 
-    def build_tank(self) -> None:
-        self.bot.unit_builder_helper.build_unit(UnitTypeId.FACTORY, UnitTypeId.SIEGETANK)
+    async def build_tank(self) -> None:
+        await self.bot.unit_builder_helper.build_unit(UnitTypeId.FACTORY, UnitTypeId.SIEGETANK)

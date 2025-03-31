@@ -15,4 +15,4 @@ class BarracksBuilder:
         await self.bot.structure_builder_helper.build_structure(UnitTypeId.BARRACKS)
 
     def build_tech_lab(self) -> None:
-        self.bot.structure_builder_helper.build_tech_lab(UnitTypeId.BARRACKS)
+        self.bot.structure_builder_helper.build_tech_lab(UnitTypeId.BARRACKS, UnitTypeId.BARRACKSTECHLAB)

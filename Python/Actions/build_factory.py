@@ -12,10 +12,7 @@ class FactoryBuilder:
         self.bot = bot
 
     async def build_factory(self) -> None:
-        if not self.bot.structures.filter(lambda struc: struc.type_id == UnitTypeId.BARRACKS):
-            print("Cannot build factory, as there are no barracks")
-            return
         await self.bot.structure_builder_helper.build_structure(UnitTypeId.FACTORY)
 
-    def build_tech_lab(self) -> None:
-        self.bot.structure_builder_helper.build_tech_lab(UnitTypeId.FACTORY)
+    async def build_tech_lab(self) -> None:
+        await self.bot.structure_builder_helper.build_tech_lab(UnitTypeId.FACTORY, UnitTypeId.FACTORYTECHLAB)
