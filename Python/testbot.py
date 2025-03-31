@@ -29,6 +29,10 @@ from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuil
 from Python.Modules.scoutmanager import ScoutManager
 from Python.Actions.build_structure_helper import StructureBuilderHelper
 from Python.Actions.build_unit_helper import UnitBuilderHelper
+from Python.Actions.build_factory import FactoryBuilder
+from Python.Actions.build_tank import SiegeTankBuilder
+from Python.Actions.build_starport import StarportBuilder
+from Python.Actions.build_viking import VikingFighterBuilder
 
 
 class ActionSelection(Enum):
@@ -57,6 +61,10 @@ class MyBot(BotAI):
     scout_manager: ScoutManager
     unit_builder_helper: UnitBuilderHelper
     structure_builder_helper: StructureBuilderHelper
+    factory_builder: FactoryBuilder
+    siege_builder: SiegeTankBuilder
+    starport_builder: StarportBuilder
+    viking_builder: VikingFighterBuilder
     new_base_location = None
     base_worker = None
     busy_workers: dict[int, float] = {}
@@ -101,6 +109,10 @@ class MyBot(BotAI):
         self.scout_manager = ScoutManager(self)
         self.unit_builder_helper = UnitBuilderHelper(self)
         self.structure_builder_helper = StructureBuilderHelper(self)
+        self.factory_builder = FactoryBuilder(self)
+        self.starport_builder = StarportBuilder(self)
+        self.viking_builder = VikingFighterBuilder(self)
+        self.siege_builder = SiegeTankBuilder(self)
         self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
