@@ -149,7 +149,13 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 					"Action: " << action << std::endl
 					<< "Current time of state: " << state->getCurrentTime() << std::endl
 					<< "Minerals: " << state->getMinerals() << std::endl
-					<< "Vespene: " << state->getVespene() << std::endl;
+					<< "Vespene: " << state->getVespene() << std::endl
+					<< "Our Units (M/T/V): " << state->getMarinePopulation() << "/" << state->getTankPopulation() << "/"
+					<< state->getVikingPopulation() << std::endl
+					<< "Enemy Ground (Pwr/Prod): " << state->getEnemy().GroundPower << "/" << state->getEnemy().
+					GroundProduction << std::endl
+					<< "Enemy Air (Pwr/Prod): " << state->getEnemy().AirPower << "/" << state->getEnemy().
+					AirProduction << std::endl;
 
 		if (action == Action::none) {
 			state->wait();
@@ -170,7 +176,7 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 	result.numberOfWorkers = state->getPopulation();
 	result.numberOfBases = static_cast<int>(state->getBases().size());
 	result.numberOfVespeneCollectors = state->getVespeneCollectorsAmount();
-	std::cout << "Benchmark " << params.benchmarkIndex << " State value: " << stateValue <<
+	std::cout << std::endl << "Benchmark " << params.benchmarkIndex << " State value: " << stateValue <<
 			std::endl <<
 			"Marines: " << state->getMarinePopulation() << std::endl <<
 			"Tanks: " << state->getTankPopulation() << std::endl <<

@@ -22,7 +22,9 @@ enum class Action {
     attackPlayer,
     addEnemyUnit,
     addEnemyGroundPower,
-    addEnemyAirPower
+    addEnemyAirPower,
+    addEnemyGroundProduction,
+    addEnemyAirProduction
 };
 
 inline std::string actionToString(Action action) {

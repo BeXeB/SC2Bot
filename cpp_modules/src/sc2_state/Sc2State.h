@@ -15,6 +15,8 @@ namespace Sc2 {
 	struct Enemy {
 	 	int GroundPower = 0;
 		int AirPower = 0;
+		int GroundProduction = 0;
+		int AirProduction = 0;
 	};
 
 	struct StateBuilderParams {
@@ -292,10 +294,15 @@ namespace Sc2 {
 		void buildTank();
 		void buildViking();
 		void addEnemyUnit() { _enemyCombatUnits += 1; }
-		void addEnemyGroundPower() { _enemy.GroundPower += 1; }
-		void addEnemyAirPower() { _enemy.AirPower += 1; }
-
+		void addEnemyGroundPower() { _enemy.GroundPower += _enemy.GroundProduction; }
+		void addEnemyAirPower() { _enemy.AirPower += _enemy.AirProduction; }
+		void addEnemyGroundProduction() { _enemy.GroundProduction += 1; }
+		void addEnemyAirProduction() { _enemy.AirProduction += 1; }
 		void attackPlayer() {
+			auto temp = getValue();
+			if (temp > .5) {
+				return;
+			}
 			_wasAttacked = true;
 		}
 
@@ -429,18 +436,22 @@ namespace Sc2 {
 			// Over the span of 60 seconds we assume that the enemy:
 			// Specifies how many enemy units will be built
 			constexpr double buildUnitAction = 8;
-			// Specifies how much ground power the enemy gets
-			constexpr double groundPowerIncrease = 6;
-			// Specifies how much air power the enemy gets
-			constexpr double airPowerIncrease = 4;
+			// Specifies how much ground power the enemy gets per production
+			constexpr double groundPowerIncrease = 2;
+			// Specifies how much air power the enemy gets per production
+			constexpr double airPowerIncrease = 2;
+			// Specifies how much ground production the enemy builds
+			constexpr double groundProductionIncrease = 1;
+			// Specifies how much air production the enemy builds
+			constexpr double airProductionIncrease = 1;
 			// Specifies how many times the enemy will attack
 			constexpr double attackAction = 0.3;
 			// Specifies how many times the enemy will do nothing
-			constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease;
+			constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease - groundProductionIncrease - airProductionIncrease;
 
-			const auto actionWeights = {noneAction, buildUnitAction, attackAction, groundPowerIncrease, airPowerIncrease};
+			const auto actionWeights = {noneAction, buildUnitAction, attackAction, groundPowerIncrease, airPowerIncrease, groundProductionIncrease, airProductionIncrease};
 			std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
-			// 0: None, 1: Build unit, 2: Attack, 3: GroundPowerIncrease, 4: AirPowerIncrease
+			// 0: None, 1: Build unit, 2: Attack, 3: GroundPowerIncrease, 4: AirPowerIncrease, 5: Ground Production, 6: Air Production
 			switch (dist(_rng)) {
 				case 1:
 					return Action::addEnemyUnit;
@@ -450,6 +461,10 @@ namespace Sc2 {
 					return Action::addEnemyGroundPower;
 				case 4:
 					return Action::addEnemyAirPower;
+				case 5:
+					return Action::addEnemyGroundProduction;
+				case 6:
+					return Action::addEnemyAirProduction;
 				default:
 					return Action::none;
 			}

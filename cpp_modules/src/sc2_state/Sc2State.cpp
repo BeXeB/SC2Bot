@@ -87,10 +87,22 @@ void Sc2::State::advanceEnemyAction() {
             addEnemyGroundPower();
             break;
         case Action::addEnemyAirPower:
-            if (_currentTime < 90) {
+            if (_currentTime < 120) {
                 break;
             }
             addEnemyAirPower();
+            break;
+        case Action::addEnemyGroundProduction:
+            if (_currentTime < 90) {
+                break;
+            }
+            addEnemyGroundProduction();
+            break;
+        case Action::addEnemyAirProduction:
+            if (_currentTime < 120) {
+                break;
+            }
+            addEnemyAirProduction();
             break;
         case Action::none:
             return;
