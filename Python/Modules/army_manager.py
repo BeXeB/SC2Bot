@@ -26,10 +26,10 @@ class ArmyManager:
         for building in self.bot.structures:
             if any (self.bot.enemy_units.closer_than(10, building)):
                 position = building.position
-                combat_units = self.__units_to_exclude()
+                combat_units = self.__units_to_include()
                 for unit in combat_units:
                     unit.attack(position)
                 break
 
-    def __units_to_exclude(self) -> Units:
+    def __units_to_include(self) -> Units:
         return self.bot.units.exclude_type(self.unit_exclusion_list)
