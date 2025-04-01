@@ -235,6 +235,7 @@ class MyBot(BotAI):
                 return
             if not self.structures(UnitTypeId.FACTORY).ready.filter(lambda sr: sr.has_techlab == False):
                 return
+            # TODO: If a worker is blocking the techlab location we never place it :(
             await self.factory_builder.build_tech_lab()
             self.waiting_for_techlab = False
             self.set_next_action()
