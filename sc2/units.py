@@ -42,7 +42,7 @@ class Units(list):
         return (item for item in super().__iter__())
 
     # TODO Deprecate in favor of Units.__call__
-    def select(self, units: Iterable[Unit]):
+    def select(self, units: Iterable[Uwnit]):
         """Creates a new mutable Units object from Units or list object.
 
         :param units:

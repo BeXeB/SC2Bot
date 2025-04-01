@@ -27,7 +27,7 @@ namespace pymodule {
 						 py::arg("incoming_workers"),
 						 py::arg("incoming_marines"),
 						 py::arg("incoming_tanks"),
-						 py::arg("incoming_viking"),
+						 py::arg("incoming_vikings"),
 						 py::arg("population_limit"),
 						 py::arg("bases"),
 						 py::arg("barracks_amount"),

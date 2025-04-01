@@ -142,7 +142,9 @@ class InformationManager:
             UnitTypeId.BARRACKS: math.ceil(self.bot.game_data.units[UnitTypeId.BARRACKS.value].cost.time / STEPS_PER_SECOND),
             UnitTypeId.MARINE: math.ceil(self.bot.game_data.units[UnitTypeId.MARINE.value].cost.time / STEPS_PER_SECOND),
             UnitTypeId.FACTORY: math.ceil(self.bot.game_data.units[UnitTypeId.FACTORY.value].cost.time / STEPS_PER_SECOND),
-            UnitTypeId.STARPORT: math.ceil(self.bot.game_data.units[UnitTypeId.STARPORT.value].cost.time / STEPS_PER_SECOND)
+            UnitTypeId.STARPORT: math.ceil(self.bot.game_data.units[UnitTypeId.STARPORT.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.SIEGETANK: math.ceil(self.bot.game_data.units[UnitTypeId.SIEGETANK.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.VIKING: math.ceil(self.bot.game_data.units[UnitTypeId.VIKING.value].cost.time / STEPS_PER_SECOND),
         }
         self.units_to_ignore_for_army = {
             # Terran
