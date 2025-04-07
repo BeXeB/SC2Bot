@@ -1,4 +1,4 @@
-﻿import math
+import math
 import typing
 from enum import Enum
 from typing import Optional, Dict, Set, List, Tuple
@@ -181,6 +181,8 @@ class InformationManager:
         # if the worker was building a base, make the location available
         worker: Unit = self.bot._units_previous_map[tag]
         for order in worker.orders:
+            if isinstance(order.target, int):
+                continue
             p: Point2 = Point2.from_proto(order.target)
             ability: AbilityId = order.ability.id
             if ability == AbilityId.TERRANBUILD_COMMANDCENTER:

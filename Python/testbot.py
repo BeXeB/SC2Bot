@@ -101,7 +101,7 @@ class MyBot(BotAI):
         if iteration == 0:
             #await self.client.debug_show_map()
             self.map_analyzer.setup_grid()
-            self.map_analyzer.print()
+            # self.map_analyzer.print()
             for worker in self.workers:
                 worker(AbilityId.STOP_STOP)
             for townhall in self.townhalls:
