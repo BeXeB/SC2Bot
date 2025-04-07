@@ -5,7 +5,6 @@ from itertools import product
 from typing import Tuple
 from time import sleep
 
-from Python.Actions.scoutmanager import ScoutManager
 from sc2.data import Result
 from sc2.position import Point3, Point2
 from sc2.bot_ai import BotAI
@@ -26,7 +25,14 @@ from Python.Modules.result_saver import save_result
 from Python.Modules.worker_manager import WorkerManager
 from Python.Modules.army_manager import ArmyManager
 from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, InformationManager, \
-    SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData, PlacementType
+    SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData
+from Python.Modules.scoutmanager import ScoutManager
+from Python.Actions.build_structure_helper import StructureBuilderHelper
+from Python.Actions.build_unit_helper import UnitBuilderHelper
+from Python.Actions.build_factory import FactoryBuilder
+from Python.Actions.build_tank import SiegeTankBuilder
+from Python.Actions.build_starport import StarportBuilder
+from Python.Actions.build_viking import VikingFighterBuilder
 
 
 class ActionSelection(Enum):
@@ -53,6 +59,12 @@ class MyBot(BotAI):
     army_manager: ArmyManager
     map_analyzer: MapAnalyzer
     scout_manager: ScoutManager
+    unit_builder_helper: UnitBuilderHelper
+    structure_builder_helper: StructureBuilderHelper
+    factory_builder: FactoryBuilder
+    siege_builder: SiegeTankBuilder
+    starport_builder: StarportBuilder
+    viking_builder: VikingFighterBuilder
     new_base_location = None
     base_worker = None
     busy_workers: dict[int, float] = {}
@@ -95,6 +107,12 @@ class MyBot(BotAI):
         self.army_manager = ArmyManager(self)
         self.map_analyzer = MapAnalyzer(self)
         self.scout_manager = ScoutManager(self)
+        self.unit_builder_helper = UnitBuilderHelper(self)
+        self.structure_builder_helper = StructureBuilderHelper(self)
+        self.factory_builder = FactoryBuilder(self)
+        self.starport_builder = StarportBuilder(self)
+        self.viking_builder = VikingFighterBuilder(self)
+        self.siege_builder = SiegeTankBuilder(self)
         self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:

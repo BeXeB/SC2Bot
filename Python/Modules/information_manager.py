@@ -57,6 +57,22 @@ class SupplyDepotData:
         self.position = position
         self.tag = tag
 
+class FactoryData:
+    position: Point2
+    tag: int
+
+    def __init__(self, position: Point2, tag: int) -> None:
+        self.position = position
+        self.tag = tag
+
+class StarPortData:
+    position: Point2
+    tag: int
+
+    def __init__(self, position: Point2, tag: int) -> None:
+        self.position = position
+        self.tag = tag
+
 class MarineData:
     tag: int
 
@@ -89,6 +105,8 @@ class InformationManager:
     barracks_data: Dict[int, BarracksData]
     supply_depot_data: Dict[int, SupplyDepotData]
     marine_data: Dict[int, MarineData]
+    factory_data = Dict[int, FactoryData]
+    starport_data = Dict[int, StarPortData]
     build_times: Dict[UnitTypeId, int]
     expansion_locations: Dict[Point2, bool]
     completed_bases: Set[int] = set()
@@ -108,6 +126,10 @@ class InformationManager:
             for geyser in self.bot.gas_buildings}
         self.barracks_data = {barracks.tag: BarracksData(barracks.position, barracks.tag)
             for barracks in self.bot.structures.filter(lambda s: s.type_id == UnitTypeId.BARRACKS)}
+        self.factory_data = {fac.tag: FactoryData(fac.position, fac.tag)
+            for fac in self.bot.structures.filter(lambda f: f.type_id == UnitTypeId.FACTORY)}
+        self.starport_data = {starport.tag: StarPortData(starport.position, starport.tag)
+            for starport in self.bot.structures.filter(lambda sp: sp.type_id == UnitTypeId.STARPORT)}
         self.supply_depot_data = {depot.tag: SupplyDepotData(depot.position, depot.tag)
             for depot in self.bot.structures.filter(lambda s: s.type_id == UnitTypeId.SUPPLYDEPOT)}
         self.marine_data = {marine.tag: MarineData(marine.tag)
@@ -119,6 +141,8 @@ class InformationManager:
             UnitTypeId.SUPPLYDEPOT: math.ceil(self.bot.game_data.units[UnitTypeId.SUPPLYDEPOT.value].cost.time / STEPS_PER_SECOND),
             UnitTypeId.BARRACKS: math.ceil(self.bot.game_data.units[UnitTypeId.BARRACKS.value].cost.time / STEPS_PER_SECOND),
             UnitTypeId.MARINE: math.ceil(self.bot.game_data.units[UnitTypeId.MARINE.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.FACTORY: math.ceil(self.bot.game_data.units[UnitTypeId.FACTORY.value].cost.time / STEPS_PER_SECOND),
+            UnitTypeId.STARPORT: math.ceil(self.bot.game_data.units[UnitTypeId.STARPORT.value].cost.time / STEPS_PER_SECOND)
         }
         self.units_to_ignore_for_army = {
             # Terran
