@@ -297,6 +297,26 @@ std::vector<Action> Sc2::State::getLegalActions() const {
     return actions;
 }
 
+std::tuple<double, double, double> Sc2::State::getWinProbabilities() {
+    const double successProb = getCombatSuccessProbability();
+    const double endProb = getEndProbability();
+
+    double winProb = successProb * endProb;
+    double lossProb = (1 - successProb) * endProb;
+    double continueProb = 1 - endProb;
+
+    return {winProb, lossProb, continueProb};
+}
+
+double Sc2::State::getCombatSuccessProbability() const {
+    return getValueMinArmyPower();
+}
+
+double Sc2::State::getEndProbability() const {
+    const double successProb = getCombatSuccessProbability();
+    return std::pow(successProb - 0.5, 2) * 4;
+}
+
 void Sc2::State::addVespeneCollector() {
     for (auto &base: _bases) {
         if (base.getUnoccupiedGeysers() > 0) {

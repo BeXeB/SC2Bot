@@ -435,6 +435,14 @@ namespace Sc2 {
 			return getValueArmyPowerAverage();
 		}
 
+		double getWinProbability();
+		double getLossProbability();
+		double getContinueProbability();
+		std::tuple<double, double, double> getWinProbabilities();
+
+		double getCombatSuccessProbability() const;
+		double getEndProbability() const;
+
 		static double softmax(std::vector<double> vector, const int index) {
 			double sum = 0;
 			for (const auto &value: vector) {

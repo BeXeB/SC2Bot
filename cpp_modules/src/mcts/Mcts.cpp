@@ -104,6 +104,11 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 	return actions[index];
 }
 
+double Mcts::calculateWinProbability(const std::vector<double> &vector, const std::vector<double> &lossProbabilities,
+	const std::vector<double> &continueProbabilities) {
+	
+}
+
 std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) {
 	if (children.empty()) {
 		return {};
@@ -151,6 +156,10 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState(), true);
+	std::vector<double> winProbabilities;
+	std::vector<double> lossProbabilities;
+	std::vector<double> continueProbabilities;
+
 	while (!state->GameOver()) {
 		auto legalActions = state->getLegalActions();
 
@@ -172,9 +181,14 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
+		const auto [winProb, lossProb, continueProb] = state->getWinProbabilities();
+		winProbabilities.emplace_back(winProb);
+		lossProbabilities.emplace_back(lossProb);
+		continueProbabilities.emplace_back(continueProb);
 	}
 
-	return state->getValue();
+	return calculateWinProbability(winProbabilities, lossProbabilities, continueProbabilities);
+	// return state->getValue();
 }
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, const double outcome) {
