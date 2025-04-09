@@ -104,9 +104,28 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 	return actions[index];
 }
 
-double Mcts::calculateWinProbability(const std::vector<double> &vector, const std::vector<double> &lossProbabilities,
-	const std::vector<double> &continueProbabilities) {
-	
+double Mcts::calculateTotalWinProbability(const std::vector<double> &winProbabilities, const std::vector<double> &continueProbabilities) {
+	const auto  arrSize = continueProbabilities.size();
+
+	if (winProbabilities.size() != arrSize) {
+		throw std::runtime_error("Cannot compute total probability of continue probabilities.");
+	}
+	double summedWinProb = 0.0;
+
+	// Each "win" probability belongs to a single state
+	// Loops over each win probability, and sums the probability of that state being reached and the bot wins
+	for (int i = 0; i < arrSize; ++i) {
+		double winProb = winProbabilities[i];
+
+		//Multiply the "win" probability with the "continue" probabilities required to get to the state
+		for (int j = 0; j < i; ++j) {
+			winProb *= continueProbabilities[j];
+		}
+
+		summedWinProb += winProb;
+	}
+
+	return summedWinProb;
 }
 
 std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) {
@@ -181,13 +200,14 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
-		const auto [winProb, lossProb, continueProb] = state->getWinProbabilities();
+
+		const auto [winProb, _, continueProb] = state->getWinProbabilities();
 		winProbabilities.emplace_back(winProb);
-		lossProbabilities.emplace_back(lossProb);
+		// lossProbabilities.emplace_back(lossProb);
 		continueProbabilities.emplace_back(continueProb);
 	}
 
-	return calculateWinProbability(winProbabilities, lossProbabilities, continueProbabilities);
+	return calculateTotalWinProbability(winProbabilities, continueProbabilities);
 	// return state->getValue();
 }
 

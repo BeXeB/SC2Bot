@@ -435,9 +435,6 @@ namespace Sc2 {
 			return getValueArmyPowerAverage();
 		}
 
-		double getWinProbability();
-		double getLossProbability();
-		double getContinueProbability();
 		std::tuple<double, double, double> getWinProbabilities();
 
 		double getCombatSuccessProbability() const;

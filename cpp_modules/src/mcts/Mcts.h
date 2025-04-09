@@ -92,7 +92,7 @@ namespace Sc2::Mcts {
 		static void expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state);
 
 		Action weightedChoice(const std::vector<Action> &actions);
-		double calculateWinProbability(const std::vector<double> & vector, const std::vector<double> & lossProbabilities, const std::vector<double> & continueProbabilities);
+		static double calculateTotalWinProbability(const std::vector<double> &winProbabilities, const std::vector<double> &continueProbabilities);
 		double rollout(const std::shared_ptr<Node> &node);
 
 		static void backPropagate(std::shared_ptr<Node> node, double outcome);
