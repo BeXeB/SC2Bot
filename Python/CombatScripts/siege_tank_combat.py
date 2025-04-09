@@ -33,12 +33,3 @@ class SiegeTankCombat:
     def __from_siege_mode(self, tank: Unit) -> None:
         if tank.type_id == UnitTypeId.SIEGETANKSIEGED:
             self.bot.do(tank(AbilityId.UNSIEGE_UNSIEGE))
-
-# When targets are within range 13 of siegetank, transform to siege mode and attack
-# If targets are too close (Range 2) transform to tank mode
-    # Make start transformation when enemies are within range 3 or 4 of sieged tank
-    # Transform back until none are near
-# It takes 3.5417 seconds to transform
-
-# Sieging ability = AbilityId.SIEGEMODE_SIEGEMODE
-# Unsieging ability = AbilityId.UNSIEGE_UNSIEGE
