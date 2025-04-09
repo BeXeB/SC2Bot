@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
 
 class VikingFighterCombat:
-    def __init__(self, bot: 'MyBot'):
+    def __init__(self, bot: 'MyBot') -> None:
         self.bot = bot
 
     def check_for_enemies_in_range(self) -> None:
