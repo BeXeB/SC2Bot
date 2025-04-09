@@ -458,8 +458,8 @@ namespace Sc2 {
 			return _currentTime >= _endTime;
 		}
 
-		bool GameOver() {
-			return endTimeReached() || _wasAttacked;
+		bool GameOver() const {
+			return endTimeReached() || getEndProbability() > 0.90;
 		}
 
 		int getCurrentTime() const { return _currentTime; }
