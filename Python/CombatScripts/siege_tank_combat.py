@@ -3,7 +3,6 @@ import typing
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
-from sc2.units import Units
 
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
@@ -13,7 +12,7 @@ class SiegeTankCombat:
         self.bot = bot
 
     def check_for_enemies_in_range(self) -> None:
-        siege_units = self.bot.units.filter(lambda u: u.type_id == UnitTypeId.SIEGETANK)
+        siege_units = self.bot.units.filter(lambda u: u.type_id == UnitTypeId.SIEGETANK or u.type_id == UnitTypeId.SIEGETANKSIEGED)
 
         for unit in siege_units:
             nearby_enemies = self.bot.enemy_units.closer_than(15, unit)
@@ -34,8 +33,6 @@ class SiegeTankCombat:
     def __from_siege_mode(self, tank: Unit) -> None:
         if tank.type_id == UnitTypeId.SIEGETANKSIEGED:
             self.bot.do(tank(AbilityId.UNSIEGE_UNSIEGE))
-
-
 
 # When targets are within range 13 of siegetank, transform to siege mode and attack
 # If targets are too close (Range 2) transform to tank mode
