@@ -262,7 +262,7 @@ class MyBot(BotAI):
             case UnitTypeId.SUPPLYDEPOT:
                 unit(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
                 self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
-            case UnitTypeId.BARRACKS:
+            case _:
                 self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
         building_worker = self.workers.closest_to(unit)
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
