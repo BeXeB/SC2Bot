@@ -46,39 +46,6 @@ class GasBuildingData(StructureData):
         super().__init__(position, tag, UnitTypeId.REFINERY)
         self.current_harvesters = 0
 
-'''# Barracks, Supply depot, Factory, Starport
-class BarracksData:
-    position: Point2
-    tag: int
-
-    def __init__(self, position: Point2, tag: int) -> None:
-        self.position = position
-        self.tag = tag
-
-class SupplyDepotData:
-    position: Point2
-    tag: int
-
-    def __init__(self, position: Point2, tag: int) -> None:
-        self.position = position
-        self.tag = tag
-
-class FactoryData:
-    position: Point2
-    tag: int
-
-    def __init__(self, position: Point2, tag: int) -> None:
-        self.position = position
-        self.tag = tag
-
-class StarPortData:
-    position: Point2
-    tag: int
-
-    def __init__(self, position: Point2, tag: int) -> None:
-        self.position = position
-        self.tag = tag'''
-
 # Marine, SiegeTank, VikingFighter
 class UnitData:
     tag: int
