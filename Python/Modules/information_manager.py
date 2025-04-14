@@ -79,11 +79,7 @@ class InformationManager:
     structures_data: Dict[int, StructureData] #Combine it all?
     townhall_data: Dict[int, TownhallData]
     gas_data: Dict[int, GasBuildingData]
-    #barracks_data: Dict[int, StructureData]
-    #supply_depot_data: Dict[int, StructureData]
     unit_data: Dict[int, UnitData]
-    #factory_data = Dict[int, StructureData]
-    #starport_data = Dict[int, StructureData]
     build_times: Dict[UnitTypeId, int]
     expansion_locations: Dict[Point2, bool]
     completed_bases: Set[int] = set()
