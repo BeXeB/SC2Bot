@@ -33,9 +33,6 @@ from Python.Actions.build_factory import FactoryBuilder
 from Python.Actions.build_tank import SiegeTankBuilder
 from Python.Actions.build_starport import StarportBuilder
 from Python.Actions.build_viking import VikingFighterBuilder
-from Python.CombatScripts.siege_tank_combat import SiegeTankCombat
-from Python.CombatScripts.viking_fighter_combat import VikingFighterCombat
-
 
 class ActionSelection(Enum):
     BestAction = 0
@@ -67,8 +64,6 @@ class MyBot(BotAI):
     siege_builder: SiegeTankBuilder
     starport_builder: StarportBuilder
     viking_builder: VikingFighterBuilder
-    siege_combat: SiegeTankCombat
-    viking_combat: VikingFighterCombat
     new_base_location = None
     base_worker = None
     busy_workers: dict[int, float] = {}
@@ -117,8 +112,6 @@ class MyBot(BotAI):
         self.starport_builder = StarportBuilder(self)
         self.viking_builder = VikingFighterBuilder(self)
         self.siege_builder = SiegeTankBuilder(self)
-        self.siege_combat = SiegeTankCombat(self)
-        self.viking_combat = VikingFighterCombat(self)
         self.mcts.start_search()
 
     async def on_step(self, iteration: int) -> None:
