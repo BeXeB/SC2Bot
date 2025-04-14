@@ -7,7 +7,8 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
-from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, WorkerData
+from Python.Modules.information_manager import (WorkerRole, WorkerData, GasBuildingData, TownhallData,
+                                                StructureData, UnitData)
 
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
