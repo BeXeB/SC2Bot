@@ -13,7 +13,7 @@ class VikingFighterCombat:
         viking_units = self.bot.units.filter(lambda u: u.type_id == UnitTypeId.VIKINGFIGHTER)
 
         for unit in viking_units:
-            nearby_enemies = self.bot.enemy_units.closer_than(9, unit)
+            nearby_enemies = self.bot.enemy_units.closer_than(9, unit).filter(lambda u: u.is_flying)
 
             if nearby_enemies.exists:
                 target = nearby_enemies.closest_to(unit)
