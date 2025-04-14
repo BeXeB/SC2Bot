@@ -14,9 +14,6 @@ std::shared_ptr<Sc2::State> Sc2::State::DeepCopy(const State &state, const bool 
         copyState->_bases.emplace_back(base);
     }
 
-    copyState->setBiases(state._combatBiases);
-    copyState->setEnemyActions(state._enemyActions);
-
     copyState->_onRollout = onRollout;
 
     return copyState;
@@ -181,7 +178,7 @@ int Sc2::State::getScoutWorkers() const {
         return 0;
     }
     const int availableWorkers = _workerPopulation - occupiedWorkers;
-    const int scoutWorkers = availableWorkers >= _MAX_SCOUT_POPULATION ? _MAX_SCOUT_POPULATION : availableWorkers;
+    const int scoutWorkers = availableWorkers >= MAX_SCOUT_POPULATION ? MAX_SCOUT_POPULATION : availableWorkers;
 
     return scoutWorkers;
 }
@@ -310,11 +307,23 @@ std::tuple<double, double, double> Sc2::State::getWinProbabilities() {
 
 double Sc2::State::getCombatSuccessProbability() const {
     return getValueMinArmyPower();
+    // return getValueArmyPowerAverage();
 }
 
 double Sc2::State::getEndProbability() const {
     const double successProb = getCombatSuccessProbability();
-    return std::pow(successProb - 0.5, 2) * 4;
+
+    switch (END_PROBABILITY_FUNCTION) {
+        case 0:
+            return std::pow(successProb - 0.5, 2) * 4;
+        case 1:
+            return std::pow(successProb - 0.5, 4) * 16;
+        case 2:
+            return std::pow(successProb - 0.5, 8) * 200;
+        default:
+            throw std::runtime_error("Unknown EndProbabilityFunction");
+    }
+
 }
 
 void Sc2::State::addVespeneCollector() {
@@ -659,11 +668,11 @@ void Sc2::State::buildHouse() {
     _constructions.emplace_back(buildHouseCost.buildTime, shared_from_this(), &State::addHouse);
 }
 
-void Sc2::State::setBiases(const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases) {
-    _combatBiases = combatBiases;
-}
-
-void Sc2::State::setEnemyActions(const std::shared_ptr<std::map<int, Action> > &enemyActions) {
-    _enemyActions = enemyActions;
-}
+// void Sc2::State::setBiases(const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases) {
+//     _combatBiases = combatBiases;
+// }
+//
+// void Sc2::State::setEnemyActions(const std::shared_ptr<std::map<int, Action> > &enemyActions) {
+//     _enemyActions = enemyActions;
+// }
 

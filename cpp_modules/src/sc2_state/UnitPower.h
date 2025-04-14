@@ -14,14 +14,14 @@ enum class UnitType {
 
 static const std::map<UnitType, int> unitGroundPower = {
 	{UnitType::Marine, 1},
-	{UnitType::Tank, 9},
+	{UnitType::Tank, 10},
 	{UnitType::Viking, 2}
 };
 
 static const std::map<UnitType, int> unitAirPower = {
 	{UnitType::Marine, 1},
 	{UnitType::Tank, 0},
-	{UnitType::Viking, 9}
+	{UnitType::Viking, 10}
 };
 
 #endif //UNITPOWER_H

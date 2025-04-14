@@ -132,7 +132,7 @@ std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shar
 	if (children.empty()) {
 		return {};
 	}
-	double maxValue = -INFINITY;
+	auto maxValue = static_cast<double>(-INFINITY);
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &child: std::ranges::views::values(children)) {
@@ -431,8 +431,6 @@ void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	_mctsRequestsPending = true;
 	_mctsMutex.lock();
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
-	_rootNode->getState()->setBiases(_combatBiases);
-	_rootNode->getState()->setEnemyActions(_enemyActions);
 	_numberOfRollouts = 0;
 	_mctsMutex.unlock();
 	_mctsRequestsPending = false;

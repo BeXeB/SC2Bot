@@ -19,7 +19,7 @@ namespace Sc2 {
 		double groundProduction = 1;
 		double airProduction = 0;
 
-		Enemy(int groundPower, int airPower, double groundProduction, double airProduction) {
+		Enemy(const int groundPower, const int airPower, const double groundProduction, const double airProduction) {
 			this->groundPower = groundPower;
 			this->airPower = airPower;
 			this->groundProduction = groundProduction;
@@ -61,11 +61,43 @@ namespace Sc2 {
 		Enemy enemy;
 	};
 
+	enum class ArmyValueFunction {
+		MinPower,
+		AveragePower,
+		ScaledPower,
+		None
+	};
+
+	inline std::ostream &operator<<(std::ostream &os, const ArmyValueFunction &armyValueFunction) {
+		switch (armyValueFunction) {
+			case ArmyValueFunction::AveragePower:
+				os << "AveragePower";
+				break;
+			case ArmyValueFunction::ScaledPower:
+				os << "ScaledPower";
+				break;
+			case ArmyValueFunction::None:
+				os << "None";
+				break;
+			case ArmyValueFunction::MinPower:
+				os << "MinPower";
+				break;
+			default:
+				os << "Unknown";
+		}
+
+		return os;
+	}
+
 	class State : public std::enable_shared_from_this<State> {
+		ArmyValueFunction _armyValueFunction;
+		int END_PROBABILITY_FUNCTION;
+
+
 		int _minerals = 50;
 		int _vespene = 0;
 		int _workerPopulation = 12;
-		int _MAX_SCOUT_POPULATION = 1;
+		const int MAX_SCOUT_POPULATION = 1;
 		int _marinePopulation = 0;
 		int _tankPopulation = 0;
 		int _vikingPopulation = 0;
@@ -85,8 +117,9 @@ namespace Sc2 {
 		std::list<Construction> _constructions{};
 		std::vector<int> _occupiedWorkerTimers{};
 		std::mt19937 _rng;
-		std::shared_ptr<std::map<int, Action> > _enemyActions;
-		std::shared_ptr<std::map<int, std::tuple<double, double> > > _combatBiases;
+		// std::shared_ptr<std::map<int, Action> > _enemyActions;
+		// std::shared_ptr<std::map<int, std::tuple<double, double> > > _combatBiases;
+
 
 		int _enemyCombatUnits = 0;
 		Enemy _enemy;
@@ -209,18 +242,19 @@ namespace Sc2 {
 			}
 		};
 
-		void simulateBattle() {
-			const double initialUnits = _marinePopulation;
-			const double initialEnemies = _enemyCombatUnits;
-			const auto bias = (*_combatBiases)[_currentTime];
-			const auto updatedUnits = std::floor(initialUnits - (initialEnemies * std::get<0>(bias)));
-			_marinePopulation = updatedUnits > 0 ? updatedUnits : 0;
-
-			const auto updatedEnemies = std::floor(initialEnemies - (initialUnits * std::get<1>(bias)));
-			_enemyCombatUnits = updatedEnemies > 0 ? updatedEnemies : 0;
-		}
+		// void simulateBattle() {
+		// 	const double initialUnits = _marinePopulation;
+		// 	const double initialEnemies = _enemyCombatUnits;
+		// 	const auto bias = (*_combatBiases)[_currentTime];
+		// 	const auto updatedUnits = std::floor(initialUnits - (initialEnemies * std::get<0>(bias)));
+		// 	_marinePopulation = updatedUnits > 0 ? updatedUnits : 0;
+		//
+		// 	const auto updatedEnemies = std::floor(initialEnemies - (initialUnits * std::get<1>(bias)));
+		// 	_enemyCombatUnits = updatedEnemies > 0 ? updatedEnemies : 0;
+		// }
 
 	public:
+
 		int id = 0;
 		[[nodiscard]] int getMinerals() const { return _minerals; }
 		void setMinerals(int minerals) { _minerals = minerals; }
@@ -288,11 +322,6 @@ namespace Sc2 {
 
 		void buildWorker();
 		void buildHouse();
-
-		void setBiases(const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases);
-
-		void setEnemyActions(const std::shared_ptr<std::map<int, Action> > &enemyActions);
-
 
 		void buildBase();
 		void buildVespeneCollector();
@@ -432,7 +461,7 @@ namespace Sc2 {
 		}
 
 		double getValue() const {
-			return getValueArmyPowerAverage();
+			return getValueMinArmyPower();
 		}
 
 		std::tuple<double, double, double> getWinProbabilities();
@@ -467,13 +496,13 @@ namespace Sc2 {
 			// Specifies how many enemy units will be built
 			constexpr double buildUnitAction = 8;
 			// Specifies how much ground power the enemy gets per production
-			constexpr double groundPowerIncrease = 2;
+			constexpr double groundPowerIncrease = 5;
 			// Specifies how much air power the enemy gets per production
-			constexpr double airPowerIncrease = 2;
+			constexpr double airPowerIncrease = 5;
 			// Specifies how much ground production the enemy builds
-			constexpr double groundProductionIncrease = 10;
+			constexpr double groundProductionIncrease = 3;
 			// Specifies how much air production the enemy builds
-			constexpr double airProductionIncrease = 10;
+			constexpr double airProductionIncrease = 3;
 			// Specifies how many times the enemy will attack
 			constexpr double attackAction = 0.3;
 			// Specifies how many times the enemy will do nothing
@@ -504,7 +533,13 @@ namespace Sc2 {
 			}
 		}
 
+		void setEndProbabilityFunction(const int endProbabilityFunction) {
+			END_PROBABILITY_FUNCTION = endProbabilityFunction;
+		}
 
+		void setArmyValueFunction(const ArmyValueFunction army_value_function) {
+			_armyValueFunction = army_value_function;
+		};
 		static std::shared_ptr<State> DeepCopy(const State &state, bool onRollout = false);
 
 		static std::shared_ptr<State> StateBuilder(const int minerals,
@@ -569,7 +604,7 @@ namespace Sc2 {
 				maxBases,
 				enemy
 			};
-			return InternalStateBuilder(params, seed, nullptr, nullptr);
+			return InternalStateBuilder(params,-1, ArmyValueFunction::None, seed);
 		}
 
 		/*
@@ -577,11 +612,10 @@ namespace Sc2 {
 		 * These cannot be set via the python script.
 		 */
 		static std::shared_ptr<State> InternalStateBuilder(StateBuilderParams params,
-		                                                   unsigned int seed,
-		                                                   const std::shared_ptr<std::map<int, Action> > &enemyActions,
-		                                                   const std::shared_ptr<std::map<int, std::tuple<double,
-			                                                   double> > > &combatBiases) {
-			auto state = std::make_shared<State>(params, seed, enemyActions, combatBiases);
+												  		   const unsigned int endProbabilityFunction,
+														   const ArmyValueFunction armyValueFunction,
+		                                                   unsigned int seed) {
+			auto state = std::make_shared<State>(params,endProbabilityFunction, armyValueFunction ,seed);
 
 			for (auto &construction: params.constructions) {
 				construction.setState(state);
@@ -591,10 +625,10 @@ namespace Sc2 {
 			return state;
 		};
 
-		State(const StateBuilderParams &params, const unsigned int seed,
-		      const std::shared_ptr<std::map<int, Action> > &enemyActions,
-		      const std::shared_ptr<std::map<int, std::tuple<double, double> > > &
-		      combatBiases): _minerals(params.minerals),
+		State(const StateBuilderParams &params, const int endProbabilityFunction, const ArmyValueFunction armyValueFunction,const unsigned int seed):
+							 _armyValueFunction(armyValueFunction),
+		                     END_PROBABILITY_FUNCTION(endProbabilityFunction),
+		                     _minerals(params.minerals),
 		                     _vespene(params.vespene),
 		                     _workerPopulation(params.workerPopulation),
 		                     _marinePopulation(params.marinePopulation),
@@ -607,9 +641,9 @@ namespace Sc2 {
 		                     MAX_BASES(params.maxBases),
 		                     _populationLimit(params.populationLimit),
 		                     _barracksAmount(params.barracksAmount),
+		                     // _factoryTechLabAmount(params.factoryTechLabAmount),
 		                     _factoryAmount(params.factoryAmount),
 		                     _starPortAmount(params.starPortAmount),
-		                     // _factoryTechLabAmount(params.factoryTechLabAmount),
 		                     _bases(std::move(params.bases)),
 		                     _constructions(std::list<Construction>()),
 		                     _occupiedWorkerTimers(
@@ -620,16 +654,18 @@ namespace Sc2 {
 		                     _hasHouse(params.hasHouse),
 		                     _incomingHouse(params.incomingHouse),
 		                     _incomingBarracks(params.incomingBarracks),
-		                     _incomingFactory(params.incomingFactory),
-		                     // _incomingFactoryTechLab(params.incomingFactoryTechLab),
-		                     _incomingBases(params.incomingBases) {
+							 _incomingFactory(params.incomingFactory),
+							 _incomingBases(params.incomingBases){
 			_rng = std::mt19937(seed);
-			_enemyActions = enemyActions;
-			_combatBiases = combatBiases;
 		};
 
-		State(const State &state) : enable_shared_from_this(state), MAX_BASES(state.MAX_BASES),
-		                            _endTime(state._endTime), _currentTime(state._currentTime) {
+		State(const State &state) :
+				enable_shared_from_this(state),
+				_armyValueFunction(state._armyValueFunction),
+				END_PROBABILITY_FUNCTION(state.END_PROBABILITY_FUNCTION),
+				MAX_BASES(state.MAX_BASES),
+			    _endTime(state._endTime),
+				_currentTime(state._currentTime) {
 			_minerals = state._minerals;
 			_vespene = state._vespene;
 			_workerPopulation = state._workerPopulation;
@@ -667,9 +703,6 @@ namespace Sc2 {
 
 			_rng = state._rng;
 
-			_combatBiases = state._combatBiases;
-			_enemyActions = state._enemyActions;
-
 			_hasHouse = state._hasHouse;
 			_incomingHouse = state._incomingHouse;
 			_incomingBarracks = state._incomingBarracks;
@@ -678,16 +711,14 @@ namespace Sc2 {
 			_incomingBases = state._incomingBases;
 		};
 
-		explicit State(const int endTime, const unsigned int seed,
-		               const std::shared_ptr<std::map<int, Action> > &enemyActions,
-		               const std::shared_ptr<std::map<int, std::tuple<double, double> > > &combatBiases): _endTime(
-			endTime) {
+		explicit State(const int endTime, const int endProbabilityFunction, const ArmyValueFunction armyValueFunction ,const unsigned int seed):
+					_armyValueFunction(armyValueFunction),
+					END_PROBABILITY_FUNCTION(endProbabilityFunction),
+					_endTime(endTime) {
 			_rng = std::mt19937(seed);
-			_combatBiases = combatBiases;
-			_enemyActions = enemyActions;
 		}
 
-		State(): _rng(std::mt19937(std::random_device{}())), _endTime(1000) {
+		State(): _armyValueFunction(ArmyValueFunction::MinPower), END_PROBABILITY_FUNCTION(2), _rng(std::mt19937(std::random_device{}())), _endTime(1000) {
 		}
 
 		std::string toString() const {

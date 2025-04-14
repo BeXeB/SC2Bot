@@ -106,6 +106,12 @@ namespace pymodule {
 		.value("UCB1Normal", ValueHeuristic::UCB1Normal)
 		.value("EpsilonGreedy", ValueHeuristic::EpsilonGreedy);
 
+		py::enum_<Sc2::ArmyValueFunction>(module, "ArmyValueFunction")
+		.value("none", Sc2::ArmyValueFunction::None)
+		.value("min_power", Sc2::ArmyValueFunction::MinPower)
+		.value("average_power", Sc2::ArmyValueFunction::AveragePower)
+		.value("scaled_power", Sc2::ArmyValueFunction::ScaledPower);
+
 		py::enum_<RolloutHeuristic>(module, "RolloutHeuristic")
 		.value("random", RolloutHeuristic::Random)
 		.value("weighted_choice", RolloutHeuristic::WeightedChoice);
@@ -122,13 +128,15 @@ namespace pymodule {
 		.def("get_state", &Sc2::Mcts::Node::getState);
 
 		py::class_<Sc2::Mcts::Mcts>(module, "Mcts") 
-		.def(py::init<const std::shared_ptr<Sc2::State>, const unsigned int, const int, const double, const ValueHeuristic, RolloutHeuristic>(),
+		.def(py::init<const std::shared_ptr<Sc2::State>, const unsigned int, const int, const double, const ValueHeuristic, RolloutHeuristic, const int, const Sc2::ArmyValueFunction>(),
 			py::arg("state"),
 			py::arg("seed"),
 			py::arg("rollout_end_time"),
 			py::arg("exploration"),
 			py::arg("value_heuristic"),
-			py::arg("rollout_heuristic"))
+			py::arg("rollout_heuristic"),
+			py::arg("end_probability_function"),
+			py::arg("army_value_function"))
 		.def("update_root_state", static_cast<void (Sc2::Mcts::Mcts::*)(
 			const std::shared_ptr<Sc2::State>& state
 			)>(&Sc2::Mcts::Mcts::updateRootState),
