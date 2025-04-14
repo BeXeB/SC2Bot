@@ -34,7 +34,6 @@ from Python.Actions.build_tank import SiegeTankBuilder
 from Python.Actions.build_starport import StarportBuilder
 from Python.Actions.build_viking import VikingFighterBuilder
 
-
 class ActionSelection(Enum):
     BestAction = 0
     BestActionMin = 1
