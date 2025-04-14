@@ -4,7 +4,6 @@ from enum import Enum
 from typing import Optional, Dict, Set, List, Tuple
 
 from sc2.unit import Unit
-from sc2.units import Units
 
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
@@ -99,7 +98,6 @@ class InformationManager:
         self.structure_list = self.bot.structures.filter(lambda s: s.type_id in self.structures_to_init)
         self.structures_data = {structure.tag: StructureData(structure.position, structure.tag, structure.type_id)
                     for structure in self.structure_list}
-        #self.structures_data = self.initialize_all_data(self.structures_to_init)
         self.unit_data = {}
 
         self.townhall_data = {townhall.tag: TownhallData(townhall.position, townhall.tag)
@@ -239,13 +237,3 @@ class InformationManager:
         if worker_role is None:
             return self.worker_data
         return {key: value for key, value in self.worker_data.items() if value.role == worker_role}
-
-    '''def initialize_data(self, structure_list: Units) -> Dict[int, StructureData]:
-        return {structure.tag: StructureData(structure.position, structure.tag, structure.type_id)
-                    for structure in self.bot.structures.filter(lambda s: s.type_id == structure_type)}
-
-    def initialize_all_data(self, structure_list) -> Dict[int, StructureData]:
-        output_list = {}
-        for structure in structure_list:
-            output_list.update(self.initialize_data(structure))
-        return output_list'''

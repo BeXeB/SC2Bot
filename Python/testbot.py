@@ -115,6 +115,7 @@ class MyBot(BotAI):
         self.siege_builder = SiegeTankBuilder(self)
         self.mcts.start_search()
 
+
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
             #await self.client.debug_show_map()
