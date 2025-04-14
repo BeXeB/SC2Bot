@@ -22,7 +22,7 @@ class SiegeTankCombat:
                 self.bot.do(unit.attack(target))
             if self.bot.enemy_units.closer_than(4, unit).exists:
                 self.__from_siege_mode(unit)
-            if self.bot.enemy_units.closer_than(15, unit).exists:
+            elif self.bot.enemy_units.closer_than(15, unit).exists:
                 self.__to_siege_mode(unit)
 
 
