@@ -256,7 +256,7 @@ class MyBot(BotAI):
     async def on_building_construction_complete(self, unit: Unit) -> None:
         match unit.type_id:
             case UnitTypeId.COMMANDCENTER:
-                self.information_manager.townhall_data.update({unit.tag: TownhallData(unit.position, unit.tag)})#townhall_data.update({unit.tag: TownhallData(unit.position, unit.tag)})
+                self.information_manager.townhall_data.update({unit.tag: TownhallData(unit.position, unit.tag)})
             case UnitTypeId.REFINERY:
                 self.information_manager.gas_data.update({unit.tag: GasBuildingData(unit.position, unit.tag)})
             case UnitTypeId.SUPPLYDEPOT:
