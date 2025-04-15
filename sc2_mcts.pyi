@@ -3,7 +3,7 @@ from enum import Enum
 
 class Mcts:
 
-    def __init__(self, state: State, seed: int, rollout_end_time: int, exploration: float, value_heuristic: ValueHeuristic, rollout_heuristic: RolloutHeuristic) -> Mcts: ...
+    def __init__(self, state: State, seed: int, rollout_end_time: int, exploration: float, value_heuristic: ValueHeuristic, rollout_heuristic: RolloutHeuristic, end_probability_function: int, army_value_function: ArmyValueFunction) -> Mcts: ...
     def update_root_state(self, state: State) -> None : ...
     def get_root_state(self) -> State: ...
     def get_root_node(self) -> Node: ...
@@ -104,5 +104,11 @@ class RolloutHeuristic(Enum):
     random = 0
     weighted_choice = 1
 
+class ArmyValueFunction(Enum):
+    none = 0
+    min_power = 1
+    average_power = 2
+    scaled_power = 3
+    marine_power = 4
 
 

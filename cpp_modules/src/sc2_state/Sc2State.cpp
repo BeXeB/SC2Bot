@@ -306,8 +306,20 @@ std::tuple<double, double, double> Sc2::State::getWinProbabilities() {
 }
 
 double Sc2::State::getCombatSuccessProbability() const {
-    return getValueMinArmyPower();
-    // return getValueArmyPowerAverage();
+    switch (_armyValueFunction) {
+        case ArmyValueFunction::AveragePower:
+            return getValueArmyPowerAverage();
+        case ArmyValueFunction::MinPower:
+            return getValueMinArmyPower();
+        case ArmyValueFunction::ScaledPower:
+            return getValueArmyPowerScaled();
+        case ArmyValueFunction::MarinePower:
+            return getValueMarines();
+        case ArmyValueFunction::None:
+            throw std::invalid_argument("ArmyValueFunction::None");
+        default:
+            throw std::invalid_argument("Unknown ArmyValueFunction");
+    }
 }
 
 double Sc2::State::getEndProbability() const {
@@ -321,7 +333,7 @@ double Sc2::State::getEndProbability() const {
         case 2:
             return std::pow(successProb - 0.5, 8) * 200;
         default:
-            throw std::runtime_error("Unknown EndProbabilityFunction");
+            throw std::runtime_error("Unknown EndProbabilityFunction: " + std::to_string(END_PROBABILITY_FUNCTION));
     }
 
 }

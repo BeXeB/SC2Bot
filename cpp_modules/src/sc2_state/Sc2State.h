@@ -65,6 +65,7 @@ namespace Sc2 {
 		MinPower,
 		AveragePower,
 		ScaledPower,
+		MarinePower,
 		None
 	};
 

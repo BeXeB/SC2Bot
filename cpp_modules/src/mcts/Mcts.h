@@ -59,7 +59,7 @@ namespace Sc2::Mcts {
 
 	public:
 		ArmyValueFunction _armyValueFunction = ArmyValueFunction::MinPower;
-		unsigned int END_PROBABILITY_FUNCTION = 0;
+		int END_PROBABILITY_FUNCTION = 0;
 		[[nodiscard]] std::shared_ptr<Node> getRootNode() {
 			_mctsMutex.lock();
 			auto node = _rootNode;

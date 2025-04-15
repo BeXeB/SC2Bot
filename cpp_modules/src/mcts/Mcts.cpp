@@ -432,6 +432,8 @@ void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	_mctsMutex.lock();
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
 	_numberOfRollouts = 0;
+	_rootNode->getState()->setArmyValueFunction(_armyValueFunction);
+	_rootNode->getState()->setEndProbabilityFunction(END_PROBABILITY_FUNCTION);
 	_mctsMutex.unlock();
 	_mctsRequestsPending = false;
 }

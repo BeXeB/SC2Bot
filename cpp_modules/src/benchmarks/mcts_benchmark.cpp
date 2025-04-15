@@ -623,7 +623,7 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 
 int main() {
 	unsigned int seed = 3942438310;
-	constexpr int numberOfRuns = 10;
+	constexpr int numberOfRuns = 0;
 	constexpr int runTime = 480;
 	std::mt19937_64 rng(seed);
 	std::uniform_int_distribution<unsigned int> dist;
@@ -635,24 +635,26 @@ int main() {
 		benchmarkRuns.push_back(benchmarkRun);
 	}
 
-
-	const auto res = calculateAverageBenchmarks(benchmarkRuns);
-
-	printBenchmarks(res);
-	writeBenchmarksToFile(res);
+	//
+	// const auto res = calculateAverageBenchmarks(benchmarkRuns);
+	//
+	// printBenchmarks(res);
+	// writeBenchmarksToFile(res);
 
 
 	// unsigned int seed = 236865667;
 	//
-	// benchmarkOnTime({
-	// 	.benchmarkIndex = 1,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = 5000,
-	// 	.endTime = 480,
-	// 	.exploration = 0.4,
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	// 	.shouldPrintActions = true,
-	//
-	// });
+	benchmarkOnTime({
+		.benchmarkIndex = 1,
+		.seed = seed,
+		.numberOfRollouts = 10000,
+		.endTime = 480,
+		.exploration = 0.4,
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+		.endProbabilityFunction = 1,
+		.armyValueFunction = Sc2::ArmyValueFunction::AveragePower,
+		.shouldPrintActions = true,
+
+	});
 }
