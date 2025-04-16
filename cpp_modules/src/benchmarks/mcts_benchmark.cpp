@@ -514,53 +514,47 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed, const int endTime) {
 	std::vector<BenchmarkResult> allResults;
 	int index = 0;
-	std::vector<BenchmarkResult> results = {}; //BenchmarkSuite(seed, 500, endTime, index);
-	// allResults.insert(allResults.end(), results.begin(), results.end());
-	//
-	// index += 18;
-	// results = BenchmarkSuite(seed, 1000, endTime, index);
-	// allResults.insert(allResults.end(), results.begin(), results.end());
-	//
-	// index += 18;
-	// results = BenchmarkSuite(seed, 2000, endTime, index);
-	// allResults.insert(allResults.end(), results.begin(), results.end());
+	std::vector<BenchmarkResult> results = {};
+
+	results = BenchmarkSuite(seed, 5000, endTime, Sc2::ArmyValueFunction::MarinePower,0, index);
+	allResults.insert(allResults.end(), results.begin(), results.end());
+
+	index += 8;
+	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::MarinePower,0, index);
+	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	// index += 8;
-	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::MinPower,0, index);
-	allResults.insert(allResults.end(), results.begin(), results.end());
-
-	index += 8;
-	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::MinPower,1, index);
-	allResults.insert(allResults.end(), results.begin(), results.end());
-
-	index += 8;
-	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::MinPower,2, index);
-	allResults.insert(allResults.end(), results.begin(), results.end());
-
-
-	index += 8;
-	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::AveragePower,0, index);
-	allResults.insert(allResults.end(), results.begin(), results.end());
-
-	index += 8;
-	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::AveragePower,1, index);
-	allResults.insert(allResults.end(), results.begin(), results.end());
-
-	index += 8;
-	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::AveragePower,2, index);
-	allResults.insert(allResults.end(), results.begin(), results.end());
-
-	index += 8;
-	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::ScaledPower,0, index);
-	allResults.insert(allResults.end(), results.begin(), results.end());
-
-	index += 8;
-	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::ScaledPower,1, index);
-	allResults.insert(allResults.end(), results.begin(), results.end());
-
-	index += 8;
-	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::ScaledPower,2, index);
-	allResults.insert(allResults.end(), results.begin(), results.end());
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::MinPower,1, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::MinPower,2, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::AveragePower,0, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::AveragePower,1, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::AveragePower,2, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::ScaledPower,0, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::ScaledPower,1, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::ScaledPower,2, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
 
 	return allResults;
 }
@@ -623,7 +617,7 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 
 int main() {
 	unsigned int seed = 3942438310;
-	constexpr int numberOfRuns = 0;
+	constexpr int numberOfRuns = 10;
 	constexpr int runTime = 480;
 	std::mt19937_64 rng(seed);
 	std::uniform_int_distribution<unsigned int> dist;
@@ -635,26 +629,26 @@ int main() {
 		benchmarkRuns.push_back(benchmarkRun);
 	}
 
-	//
-	// const auto res = calculateAverageBenchmarks(benchmarkRuns);
-	//
-	// printBenchmarks(res);
-	// writeBenchmarksToFile(res);
+
+	const auto res = calculateAverageBenchmarks(benchmarkRuns);
+
+	printBenchmarks(res);
+	writeBenchmarksToFile(res);
 
 
 	// unsigned int seed = 236865667;
 	//
-	benchmarkOnTime({
-		.benchmarkIndex = 1,
-		.seed = seed,
-		.numberOfRollouts = 10000,
-		.endTime = 480,
-		.exploration = 0.4,
-		.valueHeuristic = ValueHeuristic::UCT,
-		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-		.endProbabilityFunction = 1,
-		.armyValueFunction = Sc2::ArmyValueFunction::AveragePower,
-		.shouldPrintActions = true,
-
-	});
+	// benchmarkOnTime({
+	// 	.benchmarkIndex = 1,
+	// 	.seed = seed,
+	// 	.numberOfRollouts = 10000,
+	// 	.endTime = 480,
+	// 	.exploration = 0.4,
+	// 	.valueHeuristic = ValueHeuristic::UCT,
+	// 	.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	// 	.endProbabilityFunction = 1,
+	// 	.armyValueFunction = Sc2::ArmyValueFunction::AveragePower,
+	// 	.shouldPrintActions = true,
+	//
+	// });
 }
