@@ -24,8 +24,8 @@ from Python.Modules.state_translator import translate_state
 from Python.Modules.result_saver import save_result
 from Python.Modules.worker_manager import WorkerManager
 from Python.Modules.army_manager import ArmyManager
-from Python.Modules.information_manager import WorkerRole, TownhallData, GasBuildingData, InformationManager, \
-    SupplyDepotData, BarracksData, STEPS_PER_SECOND, WorkerData, MarineData
+from Python.Modules.information_manager import WorkerRole, InformationManager, \
+    STEPS_PER_SECOND, WorkerData, TownhallData, GasBuildingData, StructureData, UnitData
 from Python.Modules.scoutmanager import ScoutManager
 from Python.Actions.build_structure_helper import StructureBuilderHelper
 from Python.Actions.build_unit_helper import UnitBuilderHelper
@@ -33,7 +33,6 @@ from Python.Actions.build_factory import FactoryBuilder
 from Python.Actions.build_tank import SiegeTankBuilder
 from Python.Actions.build_starport import StarportBuilder
 from Python.Actions.build_viking import VikingFighterBuilder
-
 
 class ActionSelection(Enum):
     BestAction = 0
@@ -116,11 +115,12 @@ class MyBot(BotAI):
         self.siege_builder = SiegeTankBuilder(self)
         self.mcts.start_search()
 
+
     async def on_step(self, iteration: int) -> None:
         if iteration == 0:
             #await self.client.debug_show_map()
             self.map_analyzer.setup_grid()
-            self.map_analyzer.print()
+            # self.map_analyzer.print()
             for worker in self.workers:
                 worker(AbilityId.STOP_STOP)
             for townhall in self.townhalls:
@@ -320,9 +320,9 @@ class MyBot(BotAI):
                 self.information_manager.gas_data.update({unit.tag: GasBuildingData(unit.position, unit.tag)})
             case UnitTypeId.SUPPLYDEPOT:
                 unit(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
-                self.information_manager.supply_depot_data.update({unit.tag: SupplyDepotData(unit.position, unit.tag)})
-            case UnitTypeId.BARRACKS:
-                self.information_manager.barracks_data.update({unit.tag: BarracksData(unit.position, unit.tag)})
+                self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
+            case _:
+                self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
         building_worker = self.workers.closest_to(unit)
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
 
@@ -333,8 +333,8 @@ class MyBot(BotAI):
                     return
                 unit(AbilityId.STOP_STOP)
                 self.information_manager.worker_data.update({unit.tag: WorkerData(WorkerRole.IDLE, unit.tag)})
-            case UnitTypeId.MARINE:
-                self.information_manager.marine_data.update({unit.tag: MarineData(unit.tag)})
+            case _:
+                self.information_manager.unit_data.update({unit.tag: UnitData(unit.tag, unit.type_id)})
 
     async def on_end(self, game_result: Result):
         self.mcts.stop_search()

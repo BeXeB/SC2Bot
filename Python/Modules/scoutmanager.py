@@ -57,6 +57,9 @@ class ScoutManager:
         self.cluster_points.sort(reverse=True, key=self.__sorting_helper)
 
     def __sorting_helper(self, element) -> float:
+        if self.scout is None:
+            self.bot.client.chat_send("Scout is None", True)
+            return 0
         return self.scout.distance_to(element)
 
 # TODO
