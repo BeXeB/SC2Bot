@@ -1,4 +1,4 @@
-﻿import math
+import math
 import typing
 from enum import Enum
 from typing import Optional, Dict, Set, List, Tuple
@@ -21,63 +21,39 @@ class WorkerRole(Enum):
     BUILD = 3
     SCOUT = 4
 
-class TownhallData:
+class StructureData:
+    position: Point2
+    tag: int
+    structure_type: UnitTypeId
+
+    def __init__(self, position: Point2, tag: int, structure_type: UnitTypeId):
+        self.position = position
+        self.tag = tag
+        self.structure_type = structure_type
+
+# Townhall, GasBuilding
+class TownhallData(StructureData):
     current_harvesters: int
-    position: Point2
-    tag: int
 
     def __init__(self, position: Point2, tag: int) -> None:
+        super().__init__(position, tag, UnitTypeId.COMMANDCENTER)
         self.current_harvesters = 0
-        self.position = position
-        self.tag = tag
 
-class GasBuildingData:
+class GasBuildingData(StructureData):
     current_harvesters: int
-    position: Point2
-    tag: int
 
     def __init__(self, position: Point2, tag: int) -> None:
+        super().__init__(position, tag, UnitTypeId.REFINERY)
         self.current_harvesters = 0
-        self.position = position
-        self.tag = tag
 
-class BarracksData:
-    position: Point2
+# Marine, SiegeTank, VikingFighter
+class UnitData:
     tag: int
+    unit_type: UnitTypeId
 
-    def __init__(self, position: Point2, tag: int) -> None:
-        self.position = position
+    def __init__(self, tag: int, unit_type: UnitTypeId) -> None:
         self.tag = tag
-
-class SupplyDepotData:
-    position: Point2
-    tag: int
-
-    def __init__(self, position: Point2, tag: int) -> None:
-        self.position = position
-        self.tag = tag
-
-class FactoryData:
-    position: Point2
-    tag: int
-
-    def __init__(self, position: Point2, tag: int) -> None:
-        self.position = position
-        self.tag = tag
-
-class StarPortData:
-    position: Point2
-    tag: int
-
-    def __init__(self, position: Point2, tag: int) -> None:
-        self.position = position
-        self.tag = tag
-
-class MarineData:
-    tag: int
-
-    def __init__(self, tag: int) -> None:
-        self.tag = tag
+        self.unit_type = unit_type
 
 class WorkerData:
     assigned_to_tag: Optional[int]
@@ -100,13 +76,10 @@ class PlacementType(Enum):
 
 class InformationManager:
     worker_data: Dict[int, WorkerData]
+    structures_data: Dict[int, StructureData] #Combine it all?
     townhall_data: Dict[int, TownhallData]
     gas_data: Dict[int, GasBuildingData]
-    barracks_data: Dict[int, BarracksData]
-    supply_depot_data: Dict[int, SupplyDepotData]
-    marine_data: Dict[int, MarineData]
-    factory_data = Dict[int, FactoryData]
-    starport_data = Dict[int, StarPortData]
+    unit_data: Dict[int, UnitData]
     build_times: Dict[UnitTypeId, int]
     expansion_locations: Dict[Point2, bool]
     completed_bases: Set[int] = set()
@@ -120,20 +93,18 @@ class InformationManager:
             for el in self.bot.expansion_locations_list}
         self.worker_data = {worker.tag: WorkerData(WorkerRole.IDLE, worker.tag)
             for worker in self.bot.workers}
+
+        self.structures_to_init = {UnitTypeId.BARRACKS, UnitTypeId.FACTORY, UnitTypeId.STARPORT, UnitTypeId.SUPPLYDEPOT}
+        self.structure_list = self.bot.structures.filter(lambda s: s.type_id in self.structures_to_init)
+        self.structures_data = {structure.tag: StructureData(structure.position, structure.tag, structure.type_id)
+                    for structure in self.structure_list}
+        self.unit_data = {}
+
         self.townhall_data = {townhall.tag: TownhallData(townhall.position, townhall.tag)
             for townhall in self.bot.townhalls}
         self.gas_data = {geyser.tag: GasBuildingData(geyser.position, geyser.tag)
             for geyser in self.bot.gas_buildings}
-        self.barracks_data = {barracks.tag: BarracksData(barracks.position, barracks.tag)
-            for barracks in self.bot.structures.filter(lambda s: s.type_id == UnitTypeId.BARRACKS)}
-        self.factory_data = {fac.tag: FactoryData(fac.position, fac.tag)
-            for fac in self.bot.structures.filter(lambda f: f.type_id == UnitTypeId.FACTORY)}
-        self.starport_data = {starport.tag: StarPortData(starport.position, starport.tag)
-            for starport in self.bot.structures.filter(lambda sp: sp.type_id == UnitTypeId.STARPORT)}
-        self.supply_depot_data = {depot.tag: SupplyDepotData(depot.position, depot.tag)
-            for depot in self.bot.structures.filter(lambda s: s.type_id == UnitTypeId.SUPPLYDEPOT)}
-        self.marine_data = {marine.tag: MarineData(marine.tag)
-            for marine in self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE)}
+
         self.build_times = {
             UnitTypeId.COMMANDCENTER: math.ceil(self.bot.game_data.units[UnitTypeId.COMMANDCENTER.value].cost.time / STEPS_PER_SECOND),
             UnitTypeId.REFINERY: math.ceil(self.bot.game_data.units[UnitTypeId.REFINERY.value].cost.time / STEPS_PER_SECOND),
@@ -183,6 +154,9 @@ class InformationManager:
             AbilityId.TERRANBUILD_FUSIONCORE: UnitTypeId.FUSIONCORE
         }
 
+
+    # Refactor to handle_structure_destroyed and handle_unit_destroyed.
+    # Also refactor the structures to be generalised
     async def remove_unit_by_tag(self, tag: int) -> None:
         if tag in self.worker_data:
             self.handle_worker_destroyed(tag)
@@ -190,12 +164,11 @@ class InformationManager:
             self.handle_townhall_destroyed(tag)
         elif tag in self.gas_data:
             self.handle_gas_destroyed(tag)
-        elif tag in self.barracks_data:
-            self.handle_barracks_destroyed(tag)
-        elif tag in self.supply_depot_data:
-            self.handle_supply_depot_destroyed(tag)
-        elif tag in self.marine_data:
-            self.handle_marine_destroyed(tag)
+        elif tag in self.unit_data:
+            self.handle_unit_destroyed(tag)
+        elif tag in self.structures_data:
+            self.handle_structure_destroyed(tag)
+
 
     def handle_worker_destroyed(self, tag: int) -> None:
         self.remove_worker_from_assigned_structure(tag)
@@ -207,6 +180,8 @@ class InformationManager:
         # if the worker was building a base, make the location available
         worker: Unit = self.bot._units_previous_map[tag]
         for order in worker.orders:
+            if isinstance(order.target, int):
+                continue
             p: Point2 = Point2.from_proto(order.target)
             ability: AbilityId = order.ability.id
             if ability == AbilityId.TERRANBUILD_COMMANDCENTER:
@@ -251,22 +226,14 @@ class InformationManager:
                     self.completed_bases.remove(closest_th_tag)
         self.gas_data.pop(tag)
 
-    def handle_barracks_destroyed(self, tag: int) -> None:
-        if tag not in self.barracks_data:
-            return
-        position = self.barracks_data[tag].position
-        self.bot.map_analyzer.make_location_buildable(position, self.building_type_to_placement_type[UnitTypeId.BARRACKS])
-        self.barracks_data.pop(tag)
+    def handle_unit_destroyed(self, tag: int) -> None:
+        self.unit_data.pop(tag)
 
-    def handle_supply_depot_destroyed(self, tag: int) -> None:
-        if tag not in self.supply_depot_data:
+    def handle_structure_destroyed(self, tag: int) -> None:
+        if tag not in self.structures_data:
             return
-        position = self.supply_depot_data[tag].position
-        self.bot.map_analyzer.make_location_buildable(position, self.building_type_to_placement_type[UnitTypeId.SUPPLYDEPOT])
-        self.supply_depot_data.pop(tag)
-
-    def handle_marine_destroyed(self, tag: int) -> None:
-        self.marine_data.pop(tag)
+        position = self.structures_data[tag].position
+        self.bot.map_analyzer.make_location_buildable(position, self.building_type_to_placement_type[self.structures_data[tag].structure_type])
 
     def get_workers(self, worker_role: Optional[WorkerRole]) -> dict[int, WorkerData]:
         if worker_role is None:

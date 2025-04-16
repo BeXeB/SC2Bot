@@ -84,9 +84,6 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 			case Action::buildTank:
 				_actionWeights[i] = 5.0;
 				break;
-			// case Action::buildFactoryTechLab:
-			// 	_actionWeights[i] = 2.0;
-			// 	break;
 			case Action::buildViking:
 				_actionWeights[i] = 5.0;
 				break;
@@ -176,7 +173,7 @@ std::shared_ptr<Node> Mcts::selectNode() {
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState(), true);
 	std::vector<double> winProbabilities;
-	std::vector<double> lossProbabilities;
+	// std::vector<double> lossProbabilities;
 	std::vector<double> continueProbabilities;
 
 	while (!state->GameOver()) {
@@ -203,12 +200,10 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 
 		const auto [winProb, _, continueProb] = state->getWinProbabilities();
 		winProbabilities.emplace_back(winProb);
-		// lossProbabilities.emplace_back(lossProb);
 		continueProbabilities.emplace_back(continueProb);
 	}
 
 	return calculateTotalWinProbability(winProbabilities, continueProbabilities);
-	// return state->getValue();
 }
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, const double outcome) {

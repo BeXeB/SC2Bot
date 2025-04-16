@@ -40,9 +40,6 @@ Sc2::Construction::Construction(const int constructionTime, const Action action)
         case Action::buildStarPort:
             _constructionFunction = &State::addStarPort;
             break;
-        // case Action::buildFactoryTechLab:
-        //     _constructionFunction = &State::addFactoryTechLab;
-        //     break;
         case Action::attackPlayer:
             throw std::invalid_argument("Action::attackPlayer");
         case Action::addEnemyUnit:

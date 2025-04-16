@@ -126,34 +126,6 @@ namespace Sc2::Mcts {
 			return n;
 		}
 
-		// void initializeActionsAndBiases(const int timeSteps) {
-		// 	// Over the span of 60 seconds we assume that the enemy:
-		// 	// Specifies how many enemy units will be built
-		// 	const double buildUnitAction = 7;
-		// 	// Specifies how many times the enemy will attack
-		// 	const double attackAction = 0.2;
-		// 	// Specifies how many times the enemy will do nothing
-		// 	const double noneAction = 60 - buildUnitAction - attackAction;
-		//
-		// 	const auto actionWeights = {noneAction, buildUnitAction, attackAction};
-		// 	std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
-		// 	std::uniform_real_distribution<double> combatDist(0.0, 2.0);
-		// 	for (int i = 0; i < timeSteps; i++) {
-		// 		// 0: None, 1: Build unit, 2: Attack
-		// 		switch (dist(_rng)) {
-		// 			case 1:
-		// 				(*_enemyActions)[i] = Action::addEnemyUnit;
-		// 				break;
-		// 			case 2:
-		// 				(*_enemyActions)[i] = Action::attackPlayer;
-		// 				(*_combatBiases)[i] = std::tuple(combatDist(_rng), combatDist(_rng));
-		// 				break;
-		// 			default:
-		// 				break;
-		// 		}
-		// 	}
-		// }
-
 		[[nodiscard]] std::string toString() const {
 			std::string rolloutHeuristicStr;
 			switch (_rolloutHeuristic) {
