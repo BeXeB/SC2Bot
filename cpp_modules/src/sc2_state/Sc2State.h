@@ -83,6 +83,9 @@ namespace Sc2 {
 			case ArmyValueFunction::MinPower:
 				os << "MinPower";
 				break;
+			case ArmyValueFunction::MarinePower:
+				os << "MarinePower";
+				break;
 			default:
 				os << "Unknown";
 		}
