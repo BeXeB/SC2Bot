@@ -12,6 +12,7 @@ class VespeneBuilder:
         # Track geysers that already have an extractor or are being built
         self.processed_geysers = set()
 
+    # TODO BUG: Sometimes it doesnt build
     async def build_vespene_extractor(self, base_position):
         # Find geysers close to the base position
         geysers = self.bot.vespene_geyser.closer_than(10, base_position)

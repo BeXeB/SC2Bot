@@ -14,8 +14,16 @@ enum class Action {
     buildVespeneCollector,
     buildMarine,
     buildBarracks,
+    buildFactory,
+    buildTank,
+    buildStarPort,
+    buildViking,
     attackPlayer,
     addEnemyUnit,
+    addEnemyGroundPower,
+    addEnemyAirPower,
+    addEnemyGroundProduction,
+    addEnemyAirProduction
 };
 
 inline std::string actionToString(Action action) {
@@ -42,12 +50,26 @@ inline std::string actionToString(Action action) {
         case Action::buildBarracks:
             actionString = std::string("buildBarracks");
             break;
+        case Action::buildFactory:
+            actionString = std::string("buildFactory");
+            break;
+        case Action::buildStarPort:
+            actionString = std::string("buildStarPort");
+            break;
+        case Action::buildViking:
+            actionString = std::string("buildViking");
+            break;
+        case Action::buildTank:
+            actionString = std::string("buildTank");
+            break;
         case Action::attackPlayer:
             actionString = std::string("attackPlayer");
             break;
         case Action::addEnemyUnit:
             actionString = std::string("addEnemyUnit");
             break;
+        default:
+            throw std::runtime_error("Could not convert action to string");
     }
 
     return actionString;
@@ -76,12 +98,26 @@ inline std::ostream &operator<<(std::ostream &os, const Action &action) {
         case Action::buildBarracks:
             os << std::string("buildBarracks");
             break;
+        case Action::buildFactory:
+            os << std::string("buildFactory");
+            break;
+        case Action::buildStarPort:
+            os << std::string("buildStarPort");
+            break;
+        case Action::buildViking:
+            os << std::string("buildViking");
+            break;
+        case Action::buildTank:
+            os << std::string("buildTank");
+            break;
         case Action::attackPlayer:
             os << std::string("attackPlayer");
             break;
         case Action::addEnemyUnit:
             os << std::string("addEnemyUnit");
             break;
+        default:
+            throw std::runtime_error("Could not convert action to string");
     }
     return os;
 }

@@ -3,7 +3,7 @@ from enum import Enum
 
 class Mcts:
 
-    def __init__(self, state: State, seed: int, rollout_end_time: int, exploration: float, value_heuristic: ValueHeuristic, rollout_heuristic: RolloutHeuristic) -> Mcts: ...
+    def __init__(self, state: State, seed: int, rollout_end_time: int, exploration: float, value_heuristic: ValueHeuristic, rollout_heuristic: RolloutHeuristic, end_probability_function: int, army_value_function: ArmyValueFunction) -> Mcts: ...
     def update_root_state(self, state: State) -> None : ...
     def get_root_state(self) -> State: ...
     def get_root_node(self) -> Node: ...
@@ -15,15 +15,24 @@ class Mcts:
     def perform_action(self, action:Action) -> None: ...
     def get_number_of_rollouts(self) -> int: ...
 
+class Enemy:
+    def __init__(self, ground_power: int, air_power: int, ground_production: int, air_production: int) -> Enemy: ...
+
 def state_builder(minerals: int,
                   vespene: int,
                   worker_population: int,
                   marine_population: int,
+                  tank_population: int,
+                  viking_population: int,
                   incoming_workers: int,
                   incoming_marines: int,
+                  incoming_tanks: int,
+                  incoming_vikings: int,
                   population_limit:int,
                   bases: list[Base],
                   barracks_amount: int,
+                  factory_amount: int,
+                  starport_amount: int,
                   constructions: list[Construction],
                   occupied_worker_timers: list[int],
                   current_time: int,
@@ -31,8 +40,11 @@ def state_builder(minerals: int,
                   enemy_combat_units: int,
                   has_house: bool,
                   incoming_house:bool,
+                  incoming_barracks: bool,
+                  incoming_factory: int,
                   incoming_bases:int,
-                  max_bases: int) -> State : ...
+                  max_bases: int,
+                  enemy: Enemy) -> State : ...
 
 class State:
     def __init__(self): ...
@@ -77,6 +89,10 @@ class Action(Enum):
     build_house = 4
     build_marine = 5
     build_barracks = 6
+    build_tank = 7
+    build_factory = 8
+    build_viking = 9
+    build_starport = 10
 
 class ValueHeuristic(Enum):
      UCT = 0
@@ -88,5 +104,11 @@ class RolloutHeuristic(Enum):
     random = 0
     weighted_choice = 1
 
+class ArmyValueFunction(Enum):
+    none = 0
+    min_power = 1
+    average_power = 2
+    scaled_power = 3
+    marine_power = 4
 
 

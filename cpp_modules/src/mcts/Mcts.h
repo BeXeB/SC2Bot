@@ -58,6 +58,8 @@ namespace Sc2::Mcts {
 		void threadedSearchRollout(int numberOfRollouts);
 
 	public:
+		ArmyValueFunction _armyValueFunction = ArmyValueFunction::MinPower;
+		int END_PROBABILITY_FUNCTION = 0;
 		[[nodiscard]] std::shared_ptr<Node> getRootNode() {
 			_mctsMutex.lock();
 			auto node = _rootNode;
@@ -92,6 +94,7 @@ namespace Sc2::Mcts {
 		static void expand(const std::shared_ptr<Node> &node, const std::shared_ptr<State> &state);
 
 		Action weightedChoice(const std::vector<Action> &actions);
+		static double calculateTotalWinProbability(const std::vector<double> &winProbabilities, const std::vector<double> &continueProbabilities);
 		double rollout(const std::shared_ptr<Node> &node);
 
 		static void backPropagate(std::shared_ptr<Node> node, double outcome);
@@ -107,29 +110,9 @@ namespace Sc2::Mcts {
 		Action getBestAction();
 		void updateRootState(const std::shared_ptr<State> &state);
 
-		void updateRootState(const int minerals,
-		                     const int vespene,
-		                     const int workerPopulation,
-		                     const int marinePopulation,
-		                     const int incomingWorkers,
-		                     const int incomingMarines,
-		                     const int populationLimit,
-		                     const std::vector<Base> &bases,
-		                     const int barracksAmount,
-		                     std::list<Construction> &constructions,
-		                     const std::vector<int> &occupiedWorkerTimers,
-		                     const int currentTime,
-		                     const int endTime,
-		                     const int enemyCombatUnits,
-		                     const bool incomingHouse,
-		                     const int incomingBases,
-		                     const bool hasHouse) {
+		void updateRootState(const StateBuilderParams &params) {
 			std::uniform_int_distribution<unsigned int> dist;
-			const auto state = State::InternalStateBuilder(minerals, vespene, workerPopulation, marinePopulation,
-			                                               incomingWorkers, incomingMarines, populationLimit,
-			                                               bases, barracksAmount, constructions, occupiedWorkerTimers,
-			                                               currentTime, endTime, enemyCombatUnits, dist(_rng), hasHouse,
-			                                               _enemyActions, _combatBiases, incomingHouse, incomingBases, 12);
+			const auto state = State::InternalStateBuilder(params, 1 , Sc2::ArmyValueFunction::MinPower, dist(_rng) );
 
 			updateRootState(state);
 		}
@@ -141,34 +124,6 @@ namespace Sc2::Mcts {
 			_mctsMutex.unlock();
 			_mctsRequestsPending = false;
 			return n;
-		}
-
-		void initializeActionsAndBiases(const int timeSteps) {
-			// Over the span of 60 seconds we assume that the enemy:
-			// Specifies how many enemy units will be built
-			const double buildUnitAction = 7;
-			// Specifies how many times the enemy will attack
-			const double attackAction = 0.4;
-			// Specifies how many times the enemy will do nothing
-			const double noneAction = 60 - buildUnitAction - attackAction;
-
-			const auto actionWeights = {noneAction, buildUnitAction, attackAction};
-			std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
-			std::uniform_real_distribution<double> combatDist(0.0, 2.0);
-			for (int i = 0; i < timeSteps; i++) {
-				// 0: None, 1: Build unit, 2: Attack
-				switch (dist(_rng)) {
-					case 1:
-						(*_enemyActions)[i] = Action::addEnemyUnit;
-						break;
-					case 2:
-						(*_enemyActions)[i] = Action::attackPlayer;
-						(*_combatBiases)[i] = std::tuple(combatDist(_rng), combatDist(_rng));
-						break;
-					default:
-						break;
-				}
-			}
 		}
 
 		[[nodiscard]] std::string toString() const {
@@ -207,33 +162,31 @@ namespace Sc2::Mcts {
 
 		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed, const int rolloutEndTime,
 		              const double exploration, const ValueHeuristic valueHeuristic,
-		              const RolloutHeuristic rolloutHeuristic) : EXPLORATION(exploration),
+		              const RolloutHeuristic rolloutHeuristic, const int endProbabilityFunction, const ArmyValueFunction armyValueFunction) : EXPLORATION(exploration),
 		                                                         _rolloutEndTime(rolloutEndTime),
 		                                                         _valueHeuristic(valueHeuristic),
-		                                                         _rolloutHeuristic(rolloutHeuristic) {
+		                                                         _rolloutHeuristic(rolloutHeuristic),
+																 _armyValueFunction(armyValueFunction),
+																 END_PROBABILITY_FUNCTION(endProbabilityFunction)
+		{
 			_rng = std::mt19937(seed);
-			initializeActionsAndBiases(_rolloutEndTime);
 			const auto deepCopy = State::DeepCopy(*rootState);
-			deepCopy->setBiases(_combatBiases);
-			deepCopy->setEnemyActions(_enemyActions);
+			deepCopy->setEndProbabilityFunction(endProbabilityFunction);
+			deepCopy->setArmyValueFunction(armyValueFunction);
 			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, deepCopy));
 		}
 
 		explicit Mcts(const std::shared_ptr<State> &rootState) {
 			const auto seed = std::random_device{}();
 			_rng = std::mt19937(seed);
-			initializeActionsAndBiases(_rolloutEndTime);
 			const auto deepCopy = State::DeepCopy(*rootState);
-			deepCopy->setBiases(_combatBiases);
-			deepCopy->setEnemyActions(_enemyActions);
 			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, deepCopy));
 		}
 
 		Mcts() {
 			const auto seed = std::random_device{}();
 			_rng = std::mt19937(seed);
-			initializeActionsAndBiases(_rolloutEndTime);
-			auto rootState = std::make_shared<State>(_rolloutEndTime, seed, _enemyActions, _combatBiases);
+			auto rootState = std::make_shared<State>(_rolloutEndTime, 0, ArmyValueFunction::MinPower, seed);
 			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
 		}
 	};

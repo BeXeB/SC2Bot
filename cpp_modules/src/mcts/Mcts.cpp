@@ -78,6 +78,18 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 			case Action::buildMarine:
 				_actionWeights[i] = 15.0;
 				break;
+			case Action::buildFactory:
+				_actionWeights[i] = 2.0;
+				break;
+			case Action::buildTank:
+				_actionWeights[i] = 5.0;
+				break;
+			case Action::buildViking:
+				_actionWeights[i] = 5.0;
+				break;
+			case Action::buildStarPort:
+				_actionWeights[i] = 2.0;
+				break;
 			default:
 				throw std::runtime_error("Cannot choose " + actionToString(actions[i]) + " as an action.");;
 		}
@@ -89,11 +101,35 @@ Action Mcts::weightedChoice(const std::vector<Action> &actions) {
 	return actions[index];
 }
 
+double Mcts::calculateTotalWinProbability(const std::vector<double> &winProbabilities, const std::vector<double> &continueProbabilities) {
+	const auto  arrSize = continueProbabilities.size();
+
+	if (winProbabilities.size() != arrSize) {
+		throw std::runtime_error("Cannot compute total probability of continue probabilities.");
+	}
+	double summedWinProb = 0.0;
+
+	// Each "win" probability belongs to a single state
+	// Loops over each win probability, and sums the probability of that state being reached and the bot wins
+	for (int i = 0; i < arrSize; ++i) {
+		double winProb = winProbabilities[i];
+
+		//Multiply the "win" probability with the "continue" probabilities required to get to the state
+		for (int j = 0; j < i; ++j) {
+			winProb *= continueProbabilities[j];
+		}
+
+		summedWinProb += winProb;
+	}
+
+	return summedWinProb;
+}
+
 std::vector<std::shared_ptr<Node> > Mcts::getMaxNodes(std::map<Action, std::shared_ptr<Node> > &children) {
 	if (children.empty()) {
 		return {};
 	}
-	double maxValue = -INFINITY;
+	auto maxValue = static_cast<double>(-INFINITY);
 	std::vector<std::shared_ptr<Node> > maxNodes = {};
 
 	for (const auto &child: std::ranges::views::values(children)) {
@@ -136,6 +172,10 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState(), true);
+	std::vector<double> winProbabilities;
+	// std::vector<double> lossProbabilities;
+	std::vector<double> continueProbabilities;
+
 	while (!state->GameOver()) {
 		auto legalActions = state->getLegalActions();
 
@@ -157,9 +197,13 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
+
+		const auto [winProb, _, continueProb] = state->getWinProbabilities();
+		winProbabilities.emplace_back(winProb);
+		continueProbabilities.emplace_back(continueProb);
 	}
 
-	return state->getValue();
+	return calculateTotalWinProbability(winProbabilities, continueProbabilities);
 }
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, const double outcome) {
@@ -382,9 +426,9 @@ void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	_mctsRequestsPending = true;
 	_mctsMutex.lock();
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
-	_rootNode->getState()->setBiases(_combatBiases);
-	_rootNode->getState()->setEnemyActions(_enemyActions);
 	_numberOfRollouts = 0;
+	_rootNode->getState()->setArmyValueFunction(_armyValueFunction);
+	_rootNode->getState()->setEndProbabilityFunction(END_PROBABILITY_FUNCTION);
 	_mctsMutex.unlock();
 	_mctsRequestsPending = false;
 }

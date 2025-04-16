@@ -69,6 +69,15 @@ class WorkerManager:
                             __assign_idle_worker(worker)
                             break
 
+        def __assign_to_gas_if_needed(worker: Unit) -> None:
+            for gas in self.bot.gas_buildings.ready:
+                gas_data = self.bot.information_manager.gas_data[gas.tag]
+                if gas_data.current_harvesters >= gas.ideal_harvesters:
+                    continue
+                self.assign_worker(worker.tag, WorkerRole.GAS, gas_data.tag)
+                worker(AbilityId.SMART, gas, queue=False)
+                return
+
         for worker in self.bot.workers:
             data: WorkerData = self.bot.information_manager.worker_data[worker.tag]
 
@@ -93,6 +102,10 @@ class WorkerManager:
 
             if data.role == WorkerRole.GAS and worker.is_idle:
                 __try_assign_to_gas(worker)
+
+            if data.role == WorkerRole.MINERALS:
+                __assign_to_gas_if_needed(worker)
+
 
         # If there are too many workers mining a gas geyser, try to reallocate them
         __reallocate_workers(self.bot.gas_buildings.filter(lambda g: g.build_progress == 1), self.bot.information_manager.gas_data)

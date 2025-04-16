@@ -55,6 +55,7 @@ add_executable(MCTS_benchmark
         ${STATE_SOURCE}/Sc2State.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
+        src/sc2_state/UnitPower.h
 )
 
 target_include_directories(
