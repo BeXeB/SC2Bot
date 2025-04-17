@@ -10,6 +10,7 @@ endif()
 set(STATE_SOURCE "${PROJECT_SOURCE_DIR}/src/sc2_state")
 set(MCTS_SOURCE "${PROJECT_SOURCE_DIR}/src/mcts")
 set(MODULE_SOURCE "${PROJECT_SOURCE_DIR}/src/module")
+set(GRAPHS_SOURCE "${PROJECT_SOURCE_DIR}/src/graphs")
 set(BENCHMARK_SOURCE "${PROJECT_SOURCE_DIR}/src/benchmarks")
 set(TEST_SOURCE "${PROJECT_SOURCE_DIR}/src/tests")
 set(EXTERNALS "${PROJECT_SOURCE_DIR}/externals")
@@ -55,7 +56,6 @@ add_executable(MCTS_benchmark
         ${STATE_SOURCE}/Sc2State.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
-        src/sc2_state/UnitPower.h
 )
 
 target_include_directories(
@@ -64,6 +64,18 @@ target_include_directories(
         PRIVATE ${MCTS_SOURCE}
 )
 
+add_executable(MCTS_graphs
+        ${GRAPHS_SOURCE}/graph_data.cpp
+        ${STATE_SOURCE}/Sc2State.cpp
+        ${STATE_SOURCE}/Construction.cpp
+        ${MCTS_SOURCE}/Mcts.cpp
+)
+
+target_include_directories(
+        MCTS_graphs
+        PRIVATE ${STATE_SOURCE}
+        PRIVATE ${MCTS_SOURCE}
+)
 #add_executable(
 #        sc2State
 #        ${STATE_SOURCE}/Sc2State.cpp

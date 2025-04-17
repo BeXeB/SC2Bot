@@ -53,7 +53,6 @@ namespace Sc2::Mcts {
 
 		std::vector<std::shared_ptr<Node> > getMaxNodes(
 			std::map<Action, std::shared_ptr<Node> > &children);
-		void singleSearch();
 		void threadedSearch();
 		void threadedSearchRollout(int numberOfRollouts);
 
@@ -104,6 +103,7 @@ namespace Sc2::Mcts {
 		void searchRollout(int rollouts);
 		void stopSearchThread();
 		void startSearchThread();
+		void singleSearch();
 
 		void performAction(Action action);
 
