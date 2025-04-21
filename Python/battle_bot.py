@@ -55,7 +55,6 @@ class BattleBot(MyBot):
     async def on_step(self, iteration: int) -> None:
 
         self.army_manager.attack_enemy()
-
         await self.manage_round_data()
 
     async def on_unit_destroyed(self, unit_tag: int) -> None:
