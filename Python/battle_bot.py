@@ -4,7 +4,6 @@ from enum import Enum
 from typing import List
 
 from sc2.bot_ai import BotAI
-from sc2.game_state import ChatMessage
 from sc2.ids.unit_typeid import UnitTypeId
 
 from sc2.unit import Unit
@@ -15,9 +14,9 @@ from Python.testbot import MyBot
 
 
 class MatchupResult(Enum):
-    win = 1,
-    loss = 2,
-    tie = 3,
+    win:int = 1
+    tie:int = 0
+    loss:int = -1
 
 class Matchup():
     player_units: List[Unit]
@@ -40,8 +39,10 @@ class BattleBot(MyBot):
 
     def __init__(self):
         super().__init__()
-        self.messages: [ChatMessage] = []
+
         self.enemy_units_amount = 0
+        self.current_matchup = Matchup()
+        self.matchups = []
         self.units_amount = 0
         self.game_is_running = False
         self.last_unit_death_time = 0
@@ -53,12 +54,9 @@ class BattleBot(MyBot):
 
     async def on_step(self, iteration: int) -> None:
 
-        self.army_manager.manage_army()
-        self.army_manager.check_base_radius()
-        self.messages.extend(self.state.chat)
+        self.army_manager.attack_enemy()
 
-        self.manage_round_data()
-        print(self.time)
+        await self.manage_round_data()
 
     async def on_unit_destroyed(self, unit_tag: int) -> None:
         await self.information_manager.remove_unit_by_tag(unit_tag)
@@ -67,15 +65,9 @@ class BattleBot(MyBot):
         pass
 
     async def on_end(self, game_result: MatchupResult):
-        data = [{'vikings': 1, 'siege_tanks': 3, 'marines': 10, 'enemy_vikings': 1, 'enemy_siege_tanks': 3, 'enemy_marines': 10, 'success': 1}]
-
-        unit_types = UnitTypeId._member_names_
-
-
-        fieldnames = ["player:" + ut for ut in unit_types]
-        fieldnames.extend(["enemy:"+ ut for ut in unit_types])
+        fieldnames = ["player:" + ut for ut in UnitTypeId._member_names_]
+        fieldnames.extend(["enemy:"+ ut for ut in UnitTypeId._member_names_])
         fieldnames.append("result")
-
 
         with open('data/micro_arena.csv', 'w', newline='') as csvfile:
             data : List[dict] = []
@@ -84,7 +76,7 @@ class BattleBot(MyBot):
                 player_unit_dict = self.get_units_for("player", matchup)
                 enemy_unit_dict = self.get_units_for("enemy", matchup)
                 match_dict = player_unit_dict | enemy_unit_dict
-                match_dict.update({"result": matchup.result})
+                match_dict.update({"result": matchup.result.value})
                 data.append(match_dict)
 
 
@@ -100,10 +92,10 @@ class BattleBot(MyBot):
             res[player + ":" + name] = 0
 
         for unit in matchup.player_units:
-            res[player + ":" + unit.name] += 1
+            res[player + ":" + unit.type_id.name] += 1
         return res
 
-    def manage_round_data(self):
+    async def manage_round_data(self):
         new_units_amount = len(self.units)
         new_enemy_units_amount = len(self.enemy_units)
         if (new_units_amount != self.units_amount) or (new_enemy_units_amount != self.enemy_units_amount):
@@ -113,21 +105,23 @@ class BattleBot(MyBot):
         self.enemy_units_amount = new_enemy_units_amount
 
         if (not self.game_is_running) and (self.enemy_units_amount > 0 and self.units_amount > 0):
-            self.start_round()
+            await self.start_round()
         elif self.game_is_running and self.round_should_end():
-            self.end_round()
+            await self.end_round()
 
     def round_should_end(self):
         return (self.enemy_units_amount <= 0
                 or self.units_amount <= 0
                 or self.time - self.last_unit_death_time > 60)
 
-    def start_round(self):
+    async def start_round(self):
+        await self.chat_send("Starting round")
         self.game_is_running = True
         self.current_matchup.enemy_units = self.enemy_units
         self.current_matchup.player_units = self.units
 
-    def end_round(self):
+    async def end_round(self):
+        await self.chat_send("Ending round")
         self.game_is_running = False
         if self.units_amount == self.enemy_units_amount:
             self.current_matchup.result = MatchupResult.tie
@@ -135,7 +129,7 @@ class BattleBot(MyBot):
             self.current_matchup.result = MatchupResult.win
         elif self.enemy_units_amount > self.units_amount:
             self.current_matchup.result = MatchupResult.loss
-        self.matchups.append(copy.deepcopy(self.current_matchup))
+        self.matchups.append(copy.copy(self.current_matchup))
 
 
 class PeacefulBot(BotAI):

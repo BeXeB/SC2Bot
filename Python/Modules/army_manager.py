@@ -33,3 +33,8 @@ class ArmyManager:
 
     def __units_to_include(self) -> Units:
         return self.bot.units.exclude_type(self.unit_exclusion_list)
+
+    def attack_enemy(self):
+        for unit in self.bot.units:
+            if len(self.bot.enemy_units) > 0:
+                unit.attack(self.bot.enemy_units[0].position)
