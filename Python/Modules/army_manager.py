@@ -1,5 +1,9 @@
 ﻿import typing
 
+from sc2.unit import Unit
+
+from sc2.position import Point2
+
 from Python.CombatScripts.siege_tank_combat import SiegeTankCombat
 from Python.CombatScripts.viking_fighter_combat import VikingFighterCombat
 from sc2.ids.unit_typeid import UnitTypeId
@@ -21,11 +25,11 @@ class ArmyManager:
     def manage_army(self) -> None:
         marine_count = self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE).amount
         if marine_count > 20:
-            position = self.bot.enemy_start_locations[0] if self.bot.enemy_structures.empty else self.bot.enemy_structures.closest_to(self.bot.start_location).position
-            for marine in self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE):
-                marine.attack(position)
+            self.attack_enemy_base()
 
-    def check_base_radius(self) -> None:
+        self.defend_structures()
+
+    def defend_structures(self) -> None:
         for building in self.bot.structures:
             if any (self.bot.enemy_units.closer_than(10, building)):
                 position = building.position
@@ -40,6 +44,21 @@ class ArmyManager:
     def attack_enemy(self):
         for unit in self.bot.units:
             if len(self.bot.enemy_units) > 0:
-                unit.attack(self.bot.enemy_units[0].position)
-        self.viking_manager.check_for_enemies_in_range()
-        self.tank_manager.check_for_enemies_in_range()
+                pos = self.bot.enemy_units[0].position
+                self.attack_with_unit(unit, pos)
+
+    def attack_enemy_base(self):
+        position = self.bot.enemy_start_locations[0] \
+            if self.bot.enemy_structures.empty \
+            else self.bot.enemy_structures.closest_to(self.bot.start_location).position
+
+        for unit in self.__units_to_include():
+            self.attack_with_unit(unit, position)
+
+    def attack_with_unit(self, unit:Unit , position):
+        unit.attack(position)
+        match unit.type_id:
+            case UnitTypeId.VIKINGFIGHTER:
+                self.viking_manager.manage_unit(unit)
+            case UnitTypeId.SIEGETANK | UnitTypeId.SIEGETANKSIEGED:
+                self.tank_manager.manage_unit(unit)
