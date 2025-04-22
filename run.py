@@ -1,5 +1,7 @@
 import sys
 from typing import List
+
+from Python.battle_bot import BattleBot
 from sc2.player import Bot, Computer
 from sc2.data import Difficulty, Race
 from sc2.main import run_multiple_games, run_game, GameMatch
@@ -22,7 +24,10 @@ bot = Bot(Race.Terran, MyBot(
     minimum_search_rollouts=5000
 ))
 
+battle_bot = Bot(Race.Terran, BattleBot())
+
 if __name__ == "__main__":
+
     if "--LadderServer" in sys.argv:
         print("Starting ladder game...")
         result, opponentid = run_ladder_game(bot)
