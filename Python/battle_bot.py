@@ -69,8 +69,8 @@ class BattleBot(MyBot):
         enemy = "enemy"
         result = "result"
 
-        fieldnames = [player + ":" + ut for ut in UnitTypeId._member_names_]
-        fieldnames.extend([enemy + ":" + ut for ut in UnitTypeId._member_names_])
+        fieldnames = [player + ":" + u_type for u_type in UnitTypeId._member_names_]
+        fieldnames.extend([enemy + ":" + u_type for u_type in UnitTypeId._member_names_])
         fieldnames.append(result)
 
         data : List[dict] = []
