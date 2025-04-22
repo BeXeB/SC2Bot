@@ -167,3 +167,6 @@ cython_debug/
 # visual studio
 .vs/
 result.csv
+
+# Temporary data
+data/micro_arena.csv
