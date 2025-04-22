@@ -37,7 +37,7 @@ if __name__ == "__main__":
         opponent = Computer(Race.Terran, Difficulty.MediumHard)
         #opponent = Bot(Race.Terran, PeacefulBot())
         match = GameMatch(
-            maps.get("test2"),
+            maps.get("KingsCoveLE"),
             [opponent,bot],
             realtime=False,
             disable_fog=False,

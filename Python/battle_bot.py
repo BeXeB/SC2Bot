@@ -40,6 +40,8 @@ class BattleBot(MyBot):
     def __init__(self):
         super().__init__()
 
+
+        self.game_mode = self.GameMode.micro_arena
         self.enemy_units_amount = 0
         self.current_matchup = Matchup()
         self.matchups = []

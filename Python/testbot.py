@@ -40,13 +40,17 @@ class ActionSelection(Enum):
     MultiBestAction = 2
     MultiBestActionMin = 3
 
+
 # TODO: Fix vespene extractor location finding, somehow we run out of locations with a lot of them being available
 # TODO: Fix the worker selection, sometimes workers that are already on the way to build something are selected
 # TODO: Better build supply
 # TODO: Better build barracks
 # TODO: Save replay option
-
 class MyBot(BotAI):
+    class GameMode(Enum):
+        micro_arena = 0
+        regular = 1
+    game_mode: GameMode
     information_manager: InformationManager
     worker_manager: WorkerManager
     base_builder: BaseBuilder
@@ -88,6 +92,7 @@ class MyBot(BotAI):
             mcts_value_heuristics,
             mcts_rollout_heuristics,
         ]
+        self.game_mode = self.GameMode.regular
         self.time_limit = time_limit
         self.action_selection = action_selection
         self.fixed_search_rollouts = minimum_search_rollouts
