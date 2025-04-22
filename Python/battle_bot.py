@@ -1,11 +1,11 @@
 ﻿import copy
 import csv
+import os
 from enum import Enum
 from typing import List
 
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
-
 from sc2.unit import Unit
 
 from Python.Modules.army_manager import ArmyManager
@@ -64,33 +64,44 @@ class BattleBot(MyBot):
         pass
 
     async def on_end(self, game_result: MatchupResult):
-        fieldnames = ["player:" + ut for ut in UnitTypeId._member_names_]
-        fieldnames.extend(["enemy:"+ ut for ut in UnitTypeId._member_names_])
-        fieldnames.append("result")
+        filepath = 'data/micro_arena.csv'
+        player = "player"
+        enemy = "enemy"
+        result = "result"
 
-        with open('data/micro_arena.csv', 'w', newline='') as csvfile:
-            data : List[dict] = []
-            # fieldnames = ['vikings', 'siege_tanks', 'marines', 'enemy_vikings', 'enemy_siege_tanks', 'enemy_marines', 'success']
-            for matchup in self.matchups:
-                player_unit_dict = self.get_units_for("player", matchup)
-                enemy_unit_dict = self.get_units_for("enemy", matchup)
-                match_dict = player_unit_dict | enemy_unit_dict
-                match_dict.update({"result": matchup.result.value})
-                data.append(match_dict)
+        fieldnames = [player + ":" + ut for ut in UnitTypeId._member_names_]
+        fieldnames.extend([enemy + ":" + ut for ut in UnitTypeId._member_names_])
+        fieldnames.append(result)
+
+        data : List[dict] = []
+
+        for matchup in self.matchups:
+            player_unit_dict = self.get_units_for(player, matchup.player_units)
+            enemy_unit_dict = self.get_units_for(enemy, matchup.enemy_units)
+            match_dict = player_unit_dict | enemy_unit_dict
+            match_dict.update({result: matchup.result.value})
+            data.append(match_dict)
+
+        file_exists = os.path.exists(filepath)
+
+        if file_exists:
+            with open(filepath, 'a', newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writerows(data)
+        else:
+            with open(filepath, 'w', newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(data)
 
 
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(data)
-        pass
-
-    def get_units_for(self, player: str, matchup:Matchup) -> dict:
+    def get_units_for(self, player: str,units: List[Unit]) -> dict:
         res: dict ={}
 
         for name in UnitTypeId._member_names_:
             res[player + ":" + name] = 0
 
-        for unit in matchup.player_units:
+        for unit in units:
             res[player + ":" + unit.type_id.name] += 1
         return res
 
