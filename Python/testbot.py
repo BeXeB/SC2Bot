@@ -96,7 +96,7 @@ class MyBot(BotAI):
         self.time_limit = time_limit
         self.action_selection = action_selection
         self.fixed_search_rollouts = minimum_search_rollouts
-        self.next_action: Action = Action.none
+        self.next_action: Action = Action.build_vespene_collector
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):
@@ -136,6 +136,7 @@ class MyBot(BotAI):
         self.manage_workers()
         self.army_manager.manage_army()
         self.scout_manager.manage_scouts()
+        self.update_enemy_units_and_structures()
 
         match self.next_action:
             case Action.build_base:
@@ -271,6 +272,16 @@ class MyBot(BotAI):
         building_worker = self.workers.closest_to(unit)
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
 
+    # When a unit enters the vision of the bot, we update the information manager
+    async def on_enemy_unit_entered_vision(self, unit: Unit):
+        # We don't want to store snapshots
+        if unit.is_snapshot:
+            return
+        if unit.is_structure:
+            self.information_manager.enemy_structures.update({unit.tag: unit})
+        else:
+            self.information_manager.enemy_units.update({unit.tag: unit})
+
     async def on_unit_created(self, unit: Unit):
         match unit.type_id:
             case UnitTypeId.SCV:
@@ -343,6 +354,16 @@ class MyBot(BotAI):
     def manage_workers(self):
         self.worker_manager.distribute_workers()
         self.worker_manager.speed_mine()
+
+    # While we see the enemy units, we update the information stored in the information manager
+    def update_enemy_units_and_structures(self):
+        for unit in self.enemy_units:
+            if unit.tag in self.information_manager.enemy_units:
+                self.information_manager.enemy_units.update({unit.tag: unit})
+        for unit in self.enemy_structures:
+            if unit.tag in self.information_manager.enemy_structures:
+                self.information_manager.enemy_structures.update({unit.tag: unit})
+
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:

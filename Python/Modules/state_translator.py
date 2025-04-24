@@ -127,7 +127,11 @@ def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
 def translate_state(bot: 'MyBot') -> State:
     bases = get_bases(bot)
     constructions = get_constructions(bot)
-    enemy_combat_units = bot.enemy_units.exclude_type(bot.information_manager.units_to_ignore_for_army).amount
+    # Get the number of enemy combat units
+    enemy_combat_units = 0
+    for key, value in bot.information_manager.enemy_units.items():
+        if value.type_id not in bot.information_manager.units_to_ignore_for_army:
+            enemy_combat_units += value
     state = state_builder(
         minerals=bot.minerals,
         vespene=bot.vespene,

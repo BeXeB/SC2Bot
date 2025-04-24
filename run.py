@@ -39,7 +39,7 @@ if __name__ == "__main__":
         match = GameMatch(
             maps.get("KingsCoveLE"),
             [opponent,bot],
-            realtime=False,
+            realtime=True,
             disable_fog=False,
             random_seed=0
         )

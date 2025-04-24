@@ -86,6 +86,9 @@ class InformationManager:
     building_type_to_placement_type: Dict[UnitTypeId, PlacementType]
     placement_type_to_size: Dict[PlacementType, Tuple[int, int]]
     terranbuild_mapping: Dict[AbilityId, UnitTypeId]
+    enemy_units: Dict[int, Unit]
+    enemy_structures: Dict[int, Unit]
+    units_to_ignore_for_army: Set[UnitTypeId]
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
@@ -152,6 +155,8 @@ class InformationManager:
             AbilityId.TERRANBUILD_ENGINEERINGBAY: UnitTypeId.ENGINEERINGBAY,
             AbilityId.TERRANBUILD_FUSIONCORE: UnitTypeId.FUSIONCORE
         }
+        self.enemy_units = {}
+        self.enemy_structures = {}
 
 
     # Refactor to handle_structure_destroyed and handle_unit_destroyed.
@@ -167,7 +172,10 @@ class InformationManager:
             self.handle_unit_destroyed(tag)
         elif tag in self.structures_data:
             self.handle_structure_destroyed(tag)
-
+        elif tag in self.enemy_units:
+            self.enemy_units.pop(tag)
+        elif tag in self.enemy_structures:
+            self.enemy_structures.pop(tag)
 
     def handle_worker_destroyed(self, tag: int) -> None:
         self.remove_worker_from_assigned_structure(tag)
