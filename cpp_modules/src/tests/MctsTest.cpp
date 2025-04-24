@@ -119,7 +119,6 @@ TEST_SUITE("Test MCTS") {
 			auto bases = updatedState->getBases();
 			auto barracksAmount = updatedState->getBarracksAmount();
 			auto factoryAmount = updatedState->getFactoryAmount();
-			// auto factoryTechLabAmount = updatedState->getFactoryTechLabAmount();
 			auto starPortAmount = updatedState->getStarPortAmount();
 			auto constructions = updatedState->getConstructions();
 			auto enemyCombatUnits = updatedState->getEnemyCombatUnits();
@@ -127,7 +126,6 @@ TEST_SUITE("Test MCTS") {
 			auto incomingHouse = updatedState->getIncomingHouse();
 			auto incomingBarracks = updatedState->getIncomingBarracks();
 			auto incomingFactory = updatedState->getIncomingFactory();
-			// auto incomingFactoryTechLab = updatedState->getIncomingFactoryTechLab();
 			auto incomingBases = updatedState->getIncomingBases();
 			auto maxBases = updatedState->getMaxBases();
 
@@ -146,7 +144,6 @@ TEST_SUITE("Test MCTS") {
 				.bases = bases,
 				.barracksAmount = barracksAmount,
 				.factoryAmount = factoryAmount,
-				// .factoryTechLabAmount = factoryTechLabAmount,
 				.starPortAmount = starPortAmount,
 				.constructions = constructions,
 				.occupiedWorkerTimers = occupiedWorkerTimers,
@@ -157,7 +154,6 @@ TEST_SUITE("Test MCTS") {
 				.incomingHouse = incomingHouse,
 				.incomingBarracks = incomingBarracks,
 				.incomingFactory = incomingFactory,
-				// .incomingFactoryTechLab = incomingFactoryTechLab,
 				.incomingBases = incomingBases,
 				.maxBases = maxBases
 			});
@@ -206,14 +202,13 @@ TEST_SUITE("Test MCTS") {
 		auto bases = state->getBases();
 		auto barracksAmount = state->getBarracksAmount();
 		auto factoryAmount = state->getFactoryAmount();
-		// auto factoryTechLabAmount = state->getFactoryTechLabAmount();
 		auto starPortAmount = state->getStarPortAmount();
 		auto enemyCombatUnits = state->getEnemyCombatUnits();
 		auto hasHouse = state->getHasHouse();
 		auto incomingHouse = state->getIncomingHouse();
 		auto incomingBarracks = state->getIncomingBarracks();
 		auto incomingFactory = state->getIncomingFactory();
-		// auto incomingFactoryTechLab = state->getIncomingFactoryTechLab();
+
 		auto incomingBases = state->getIncomingBases();
 		auto maxBases = state->getMaxBases();
 
@@ -236,7 +231,6 @@ TEST_SUITE("Test MCTS") {
 				.bases = bases,
 				.barracksAmount = barracksAmount,
 				.factoryAmount = factoryAmount,
-				// .factoryTechLabAmount = factoryTechLabAmount,
 				.starPortAmount = starPortAmount,
 				.constructions = constructions,
 				.occupiedWorkerTimers = occupiedWorkerTimers,
@@ -247,7 +241,6 @@ TEST_SUITE("Test MCTS") {
 				.incomingHouse = incomingHouse,
 				.incomingBarracks = incomingBarracks,
 				.incomingFactory = incomingFactory,
-				// .incomingFactoryTechLab = incomingFactoryTechLab,
 				.incomingBases = incomingBases,
 				.maxBases = maxBases
 			});
@@ -342,22 +335,5 @@ TEST_SUITE("Test MCTS") {
 			CHECK(node->children.size() == state->getLegalActions().size());
 		}
 	}
-
-
-	// TEST_CASE("Rollout") {
-	// 	const auto rootState = std::make_shared<Sc2::State>();
-	// 	const auto mcts = new Mcts(rootState);
-	// 	mcts->search(1000);
-	// 	auto [node, state] = mcts->selectNode();
-	//
-	// 	auto stateValue = state->getValue();
-	// 	auto rolledOutValue = mcts->rollout(state);
-	//
-	// 	// CHECK(rolledOutValue > stateValue);
-	// }
-
-	// TEST_CASE("Backpropagate") {
-	//
-	// }
 }
 

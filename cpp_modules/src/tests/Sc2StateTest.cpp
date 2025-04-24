@@ -324,12 +324,6 @@ TEST_SUITE("Test the Sc2State") {
 			CHECK(state->getPopulation() == initialPopulation);
 		}
 
-		// SUBCASE("Cannot build FactoryTechLab without Factory") {
-		// 	state->buildFactoryTechLab();
-		// 	state->wait(100);
-		// 	CHECK(state->getFactoryTechLabAmount() == 0);
-		// }
-
 		SUBCASE("Can build Factory") {
 			state->buildFactory();
 			state->wait(100);
@@ -338,21 +332,6 @@ TEST_SUITE("Test the Sc2State") {
 
 		state->buildFactory();
 		state->wait(100);
-
-		// SUBCASE("Cannot build Tank without FactoryTechLab") {
-		// 	state->buildTank();
-		// 	state->wait(100);
-		// 	CHECK(state->getPopulation() == initialPopulation);
-		// }
-		//
-		// SUBCASE("Can build FactoryTechLab") {
-		// 	state->buildFactoryTechLab();
-		// 	state->wait(100);
-		// 	CHECK(state->getFactoryTechLabAmount() == 1);
-		// }
-
-		// state->buildFactoryTechLab();
-		// state->wait(100);
 
 		SUBCASE("Can build Tank") {
 			state->buildTank();
