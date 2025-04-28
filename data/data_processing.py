@@ -10,8 +10,11 @@ from torch.utils.data import Dataset
 class MicroArenaDataset(Dataset):
     def __init__(self, data:pd.DataFrame, transform=None, target_transform=None):
         self.data:pd.DataFrame = data
-        self.labels = data['result']
-        self.features = data.drop('result', axis=1)
+        self.labels:torch.Tensor = torch.tensor(data['result'].to_numpy(), dtype=torch.float32)
+
+        features_df = data.drop('result', axis=1)
+        self.features:torch.Tensor = torch.tensor(features_df.to_numpy(), dtype=torch.int)
+
         self.transform = transform
         self.target_transform = target_transform
 
@@ -20,7 +23,13 @@ class MicroArenaDataset(Dataset):
 
     def __getitem__(self, idx):
         label = self.labels[idx]
-        features = self.features[:idx]
+        # The whole row of features for index idx
+        features = self.features[idx]
+        if self.transform:
+            features = self.transform(features)
+        if self.target_transform:
+            label = self.target_transform(label)
+        return features, label
 
 
 class NeuralNetwork(nn.Module):
@@ -53,7 +62,9 @@ https://www.baeldung.com/cs/normalizing-inputs-artificial-neural-network
   - Batch normalization
 '''
 
-train_dataset, test_dataset = torch.utils.data.random_split(df, [0.8, 0.2])
+dataset = MicroArenaDataset(df)
+train_df, test_df = torch.utils.data.random_split(dataset, [0.8, 0.2])
+
 
 print("Number of rows in test data: " + str(len(test_dataset)))
 print("Number of rows in train data: " + str(len(train_dataset)))
