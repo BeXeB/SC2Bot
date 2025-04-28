@@ -76,7 +76,7 @@ class PlacementType(Enum):
 
 class InformationManager:
     worker_data: Dict[int, WorkerData]
-    structures_data: Dict[int, StructureData] #Combine it all?
+    structures_data: Dict[int, StructureData]
     townhall_data: Dict[int, TownhallData]
     gas_data: Dict[int, GasBuildingData]
     unit_data: Dict[int, UnitData]
@@ -86,9 +86,11 @@ class InformationManager:
     building_type_to_placement_type: Dict[UnitTypeId, PlacementType]
     placement_type_to_size: Dict[PlacementType, Tuple[int, int]]
     terranbuild_mapping: Dict[AbilityId, UnitTypeId]
-    enemy_units: Dict[int, Unit]
-    enemy_structures: Dict[int, Unit]
+    enemy_units: Dict[int, Tuple[Unit, int]]
+    enemy_structures: Dict[int, Tuple[Unit, int]]
     units_to_ignore_for_army: Set[UnitTypeId]
+    combat_powers: Dict[UnitTypeId, Tuple[float, float]]
+    production_powers: Dict[UnitTypeId, Tuple[float, float]]
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
@@ -159,10 +161,106 @@ class InformationManager:
         }
         self.enemy_units = {}
         self.enemy_structures = {}
+        self.combat_powers = {
+            # Terran
+            UnitTypeId.SCV: (0, 0),
+            UnitTypeId.MARINE: (1, 1),
+            UnitTypeId.MARAUDER: (1.5, 0),
+            UnitTypeId.REAPER: (1, 0),
+            UnitTypeId.GHOST: (2, 2),
+            UnitTypeId.HELLION: (2, 0),
+            UnitTypeId.HELLIONTANK: (2, 0),
+            UnitTypeId.CYCLONE: (3, 3),
+            UnitTypeId.WIDOWMINE: (3, 3),
+            UnitTypeId.SIEGETANK: (5, 0),
+            UnitTypeId.SIEGETANKSIEGED: (10, 0),
+            UnitTypeId.VIKINGFIGHTER: (0, 10),
+            UnitTypeId.VIKINGASSAULT: (2, 0),
+            UnitTypeId.BANSHEE: (5, 0),
+            UnitTypeId.MEDIVAC: (0, 0),
+            UnitTypeId.RAVEN: (0, 0),
+            UnitTypeId.BATTLECRUISER: (10, 10),
+            UnitTypeId.LIBERATOR: (10, 4),
+            # Protoss
+            UnitTypeId.PROBE: (0, 0),
+            UnitTypeId.ZEALOT: (1.5, 0),
+            UnitTypeId.STALKER: (1.5, 2),
+            UnitTypeId.SENTRY: (0.5, 0.5),
+            UnitTypeId.ADEPT: (1.5, 0),
+            UnitTypeId.HIGHTEMPLAR: (4, 4),
+            UnitTypeId.DARKTEMPLAR: (5, 0),
+            UnitTypeId.ARCHON: (5, 5),
+            UnitTypeId.IMMORTAL: (8, 0),
+            UnitTypeId.COLOSSUS: (10, 0),
+            UnitTypeId.DISRUPTOR: (5, 0),
+            UnitTypeId.PHOENIX: (0, 8),
+            UnitTypeId.VOIDRAY: (6, 6),
+            UnitTypeId.CARRIER: (10, 10),
+            UnitTypeId.ORACLE: (4, 0),
+            UnitTypeId.WARPPRISM: (0, 0),
+            UnitTypeId.MOTHERSHIP: (10, 10),
+            # Zerg
+            UnitTypeId.DRONE: (0, 0),
+            UnitTypeId.OVERLORD: (0, 0),
+            UnitTypeId.OVERSEER: (0, 0),
+            UnitTypeId.LARVA: (0, 0),
+            UnitTypeId.QUEEN: (2, 2),
+            UnitTypeId.ZERGLING: (0.5, 0),
+            UnitTypeId.BANELING: (3, 0),
+            UnitTypeId.ROACH: (3, 0),
+            UnitTypeId.RAVAGER: (4, 0),
+            UnitTypeId.HYDRALISK: (3, 7),
+            UnitTypeId.LURKERMP: (8, 0),
+            UnitTypeId.INFESTOR: (5, 5),
+            UnitTypeId.ULTRALISK: (10, 0),
+            UnitTypeId.SWARMHOSTMP: (3, 0),
+            UnitTypeId.LOCUSTMP: (3, 0),
+            UnitTypeId.BROODLORD: (10, 0),
+            UnitTypeId.BROODLING: (4, 0),
+            UnitTypeId.VIPER: (5, 5),
+            UnitTypeId.MUTALISK: (4, 4),
+            UnitTypeId.CORRUPTOR: (0, 8),
+        }
+        self.production_powers = {
+            # Terran
+            UnitTypeId.BARRACKS: (1, 1),
+            UnitTypeId.BARRACKSTECHLAB: (1.5, 0),
+            UnitTypeId.BARRACKSREACTOR: (1, 1),
+            UnitTypeId.FACTORY: (1.5, 0),
+            UnitTypeId.FACTORYTECHLAB: (3, 1),
+            UnitTypeId.FACTORYREACTOR: (1.5, 0),
+            UnitTypeId.STARPORT: (0.5, 2),
+            UnitTypeId.STARPORTTECHLAB: (1, 1),
+            UnitTypeId.STARPORTREACTOR: (0.5, 1),
+            UnitTypeId.GHOSTACADEMY: (1, 1),
+            UnitTypeId.FUSIONCORE: (2, 2),
+            # Protoss
+            UnitTypeId.GATEWAY: (1, 1),
+            UnitTypeId.WARPGATE: (1.2, 1.2),
+            UnitTypeId.CYBERNETICSCORE: (1, 1),
+            UnitTypeId.TWILIGHTCOUNCIL: (1, 1.2),
+            UnitTypeId.TEMPLARARCHIVE: (1.4, 1),
+            UnitTypeId.DARKSHRINE: (1, 0),
+            UnitTypeId.ROBOTICSFACILITY: (2, 0),
+            UnitTypeId.ROBOTICSBAY: (1, 0),
+            UnitTypeId.STARGATE: (1, 2),
+            UnitTypeId.FLEETBEACON: (1, 1.4),
+            # Zerg
+            UnitTypeId.HATCHERY: (1, 1),
+            UnitTypeId.SPAWNINGPOOL: (1, 0),
+            UnitTypeId.ROACHWARREN: (1, 0),
+            UnitTypeId.BANELINGNEST: (1, 0),
+            UnitTypeId.LAIR: (1, 1),
+            UnitTypeId.HYDRALISKDEN: (1, 2),
+            UnitTypeId.LURKERDEN: (2, 0),
+            UnitTypeId.SPIRE: (1, 1),
+            UnitTypeId.INFESTATIONPIT: (1, 1),
+            UnitTypeId.HIVE: (1, 1),
+            UnitTypeId.ULTRALISKCAVERN: (2, 0),
+            UnitTypeId.GREATERSPIRE: (1.5, 1.5),
+        }
 
 
-    # Refactor to handle_structure_destroyed and handle_unit_destroyed.
-    # Also refactor the structures to be generalised
     async def remove_unit_by_tag(self, tag: int) -> None:
         if tag in self.worker_data:
             self.handle_worker_destroyed(tag)

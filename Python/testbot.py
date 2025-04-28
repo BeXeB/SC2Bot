@@ -97,7 +97,7 @@ class MyBot(BotAI):
         self.time_limit = time_limit
         self.action_selection = action_selection
         self.fixed_search_rollouts = minimum_search_rollouts
-        self.next_action: Action = Action.build_vespene_collector
+        self.next_action: Action = Action.none
         self.future_action_queue: queue.Queue = queue.Queue(maxsize=future_action_queue_length)
 
     async def on_start(self):
@@ -420,10 +420,10 @@ class MyBot(BotAI):
     def update_enemy_units_and_structures(self):
         for unit in self.enemy_units:
             if unit.tag in self.information_manager.enemy_units:
-                self.information_manager.enemy_units.update({unit.tag: unit})
+                self.information_manager.enemy_units.update({unit.tag: (unit, math.floor(self.time))})
         for unit in self.enemy_structures:
             if unit.tag in self.information_manager.enemy_structures:
-                self.information_manager.enemy_structures.update({unit.tag: unit})
+                self.information_manager.enemy_structures.update({unit.tag: (unit, math.floor(self.time))})
 
 
 class PeacefulBot(BotAI):

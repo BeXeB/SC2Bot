@@ -11,6 +11,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 
 from sc2_mcts import *
 
+
 def get_bases(bot: 'MyBot') -> list[Base]:
     bases = []
     for townhall in bot.townhalls.ready:
@@ -25,6 +26,7 @@ def get_bases(bot: 'MyBot') -> list[Base]:
         bases.append(base)
     return bases
 
+
 def get_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     constructions.extend(get_pending_house_constructions(bot))
@@ -36,7 +38,7 @@ def get_constructions(bot: 'MyBot') -> list[Construction]:
 
     for str in bot.structures.not_ready:
         # Calculate time left based on the build progress
-        time_left = math.floor((1-str.build_progress) * bot.game_data.units[str.type_id.value].cost.time / 22.4)
+        time_left = math.floor((1 - str.build_progress) * bot.game_data.units[str.type_id.value].cost.time / 22.4)
         match str.type_id:
             case UnitTypeId.SUPPLYDEPOT:
                 action = Action.build_house
@@ -72,33 +74,39 @@ def get_marine_constructions(bot: 'MyBot') -> list[Construction]:
     for barracks in bot.structures(UnitTypeId.BARRACKS):
         if barracks.orders and barracks.orders[0].ability.id == AbilityId.BARRACKSTRAIN_MARINE:
             construction = Construction(
-                time_left=math.ceil((1 - barracks.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.MARINE]),
+                time_left=math.ceil(
+                    (1 - barracks.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.MARINE]),
                 action=Action.build_marine
             )
             constructions.append(construction)
     return constructions
+
 
 def get_tank_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     for factory in bot.structures(UnitTypeId.FACTORY):
         if factory.has_techlab and factory.orders and factory.orders[0].ability.id == AbilityId.FACTORYTRAIN_SIEGETANK:
             construction = Construction(
-                time_left=math.ceil((1 - factory.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.SIEGETANK]),
+                time_left=math.ceil(
+                    (1 - factory.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.SIEGETANK]),
                 action=Action.build_tank
             )
             constructions.append(construction)
     return constructions
+
 
 def get_viking_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     for starport in bot.structures(UnitTypeId.STARPORT):
         if starport.orders and starport.orders[0].ability.id == AbilityId.STARPORTTRAIN_VIKINGFIGHTER:
             construction = Construction(
-                time_left=math.ceil((1 - starport.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.VIKING]),
+                time_left=math.ceil(
+                    (1 - starport.orders[0].progress) * bot.information_manager.build_times[UnitTypeId.VIKING]),
                 action=Action.build_viking
             )
             constructions.append(construction)
     return constructions
+
 
 def get_worker_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
@@ -122,6 +130,7 @@ def get_pending_barracks_constructions(bot: 'MyBot') -> list[Construction]:
         constructions.append(construction)
     return constructions
 
+
 def get_pending_factory_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     for i in range(int(bot.worker_en_route_to_build(UnitTypeId.FACTORY))):
@@ -132,6 +141,7 @@ def get_pending_factory_constructions(bot: 'MyBot') -> list[Construction]:
         constructions.append(construction)
     return constructions
 
+
 def get_pending_starport_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     for i in range(int(bot.worker_en_route_to_build(UnitTypeId.STARPORT))):
@@ -141,6 +151,7 @@ def get_pending_starport_constructions(bot: 'MyBot') -> list[Construction]:
         )
         constructions.append(construction)
     return constructions
+
 
 def get_pending_vespene_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
@@ -163,6 +174,7 @@ def get_pending_base_constructions(bot: 'MyBot') -> list[Construction]:
         constructions.append(construction)
     return constructions
 
+
 def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
     constructions = []
     for i in range(int(bot.worker_en_route_to_build(UnitTypeId.SUPPLYDEPOT))):
@@ -174,14 +186,41 @@ def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
     return constructions
 
 
+def get_enemy(bot: 'MyBot') -> Enemy:
+    enemy_ground_power = 0
+    enemy_air_power = 0
+    for unit_time_tuple in bot.information_manager.enemy_units.values():
+        unit_type = unit_time_tuple[0].type_id
+        if unit_type not in bot.information_manager.combat_powers:
+            continue
+        unit_power = bot.information_manager.combat_powers[unit_type]
+        enemy_ground_power += unit_power[0]
+        enemy_air_power += unit_power[1]
+    enemy_ground_production = 0
+    enemy_air_production = 0
+    for str_time_tuple in bot.information_manager.enemy_structures.values():
+        str = str_time_tuple[0]
+        if str.type_id not in bot.information_manager.production_powers:
+            continue
+        str_power = bot.information_manager.production_powers[str.type_id]
+        enemy_ground_production += str_power[0]
+        enemy_air_production += str_power[1]
+    enemy = Enemy(math.floor(enemy_ground_power),
+                  math.floor(enemy_air_power),
+                  enemy_ground_production,
+                  enemy_air_production)
+    return enemy
+
+
 def translate_state(bot: 'MyBot') -> State:
     bases = get_bases(bot)
     constructions = get_constructions(bot)
-    enemy_combat_units = bot.enemy_units.exclude_type(bot.information_manager.units_to_ignore_for_army).amount
+    enemy_combat_units = len(bot.information_manager.enemy_units)
     marines = bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE).amount
-    tanks = bot.units.filter(lambda u: u.type_id in { UnitTypeId.SIEGETANK, UnitTypeId.SIEGETANKSIEGED}).amount
-    vikings = bot.units.filter(lambda u: u.type_id in { UnitTypeId.VIKING, UnitTypeId.VIKINGFIGHTER, UnitTypeId.VIKINGASSAULT }).amount
-    enemy = Enemy(0,0,1,0)
+    tanks = bot.units.filter(lambda u: u.type_id in {UnitTypeId.SIEGETANK, UnitTypeId.SIEGETANKSIEGED}).amount
+    vikings = bot.units.filter(
+        lambda u: u.type_id in {UnitTypeId.VIKING, UnitTypeId.VIKINGFIGHTER, UnitTypeId.VIKINGASSAULT}).amount
+    enemy = get_enemy(bot)
     state = state_builder(
         minerals=bot.minerals,
         vespene=bot.vespene,
@@ -201,14 +240,14 @@ def translate_state(bot: 'MyBot') -> State:
         constructions=constructions,
         occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
         current_time=math.floor(bot.time),
-        end_time = math.floor(bot.time)+bot.time_limit,
+        end_time=math.floor(bot.time) + bot.time_limit,
         enemy_combat_units=enemy_combat_units,
-        has_house = bot.tech_requirement_progress(UnitTypeId.BARRACKS) >= 1,
-        incoming_house = math.floor(bot.already_pending(UnitTypeId.SUPPLYDEPOT)) > 0,
+        has_house=bot.tech_requirement_progress(UnitTypeId.BARRACKS) >= 1,
+        incoming_house=math.floor(bot.already_pending(UnitTypeId.SUPPLYDEPOT)) > 0,
         incoming_barracks=math.floor(bot.already_pending(UnitTypeId.BARRACKS)) > 0,
         incoming_factory=math.floor(bot.already_pending(UnitTypeId.FACTORY)),
-        incoming_bases = math.floor(bot.already_pending(UnitTypeId.COMMANDCENTER)),
-        max_bases = 17,
+        incoming_bases=math.floor(bot.already_pending(UnitTypeId.COMMANDCENTER)),
+        max_bases=17,
         enemy=enemy
     )
     return state
