@@ -36,10 +36,10 @@ def get_constructions(bot: 'MyBot') -> list[Construction]:
     constructions.extend(get_pending_factory_constructions(bot))
     constructions.extend(get_pending_starport_constructions(bot))
 
-    for str in bot.structures.not_ready:
+    for structure in bot.structures.not_ready:
         # Calculate time left based on the build progress
-        time_left = math.floor((1 - str.build_progress) * bot.game_data.units[str.type_id.value].cost.time / 22.4)
-        match str.type_id:
+        time_left = math.floor((1 - structure.build_progress) * bot.game_data.units[structure.type_id.value].cost.time / 22.4)
+        match structure.type_id:
             case UnitTypeId.SUPPLYDEPOT:
                 action = Action.build_house
             case UnitTypeId.COMMANDCENTER:
@@ -55,7 +55,7 @@ def get_constructions(bot: 'MyBot') -> list[Construction]:
             case UnitTypeId.FACTORYTECHLAB:
                 action = Action.build_factory
             case _:
-                raise ValueError(f"Unknown structure type {str.type_id}")
+                raise ValueError(f"Unknown structure type {structure.type_id}")
         construction = Construction(
             time_left=time_left,
             action=action
@@ -198,13 +198,13 @@ def get_enemy(bot: 'MyBot') -> Enemy:
         enemy_air_power += unit_power[1]
     enemy_ground_production = 0
     enemy_air_production = 0
-    for str_time_tuple in bot.information_manager.enemy_structures.values():
-        str = str_time_tuple[0]
-        if str.type_id not in bot.information_manager.production_powers:
+    for structure_time_tuple in bot.information_manager.enemy_structures.values():
+        structure_type = structure_time_tuple[0].type_id
+        if structure_type not in bot.information_manager.production_powers:
             continue
-        str_power = bot.information_manager.production_powers[str.type_id]
-        enemy_ground_production += str_power[0]
-        enemy_air_production += str_power[1]
+        structure_power = bot.information_manager.production_powers[structure_type]
+        enemy_ground_production += structure_power[0]
+        enemy_air_production += structure_power[1]
     enemy = Enemy(math.floor(enemy_ground_power),
                   math.floor(enemy_air_power),
                   enemy_ground_production,
