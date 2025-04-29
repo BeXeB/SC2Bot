@@ -1,5 +1,6 @@
 import math
 import typing
+from collections import namedtuple
 from enum import Enum
 from typing import Optional, Dict, Set, List, Tuple
 
@@ -13,6 +14,10 @@ if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
 
 STEPS_PER_SECOND = 22.4
+
+CombatPower = namedtuple('CombatPower', ['ground_power', 'air_power'])
+ProductionPower = namedtuple('ProductionPower', ['ground_production', 'air_production'])
+EnemyEntity = namedtuple('EnemyEntity', ['entity', 'last_seen'])
 
 class WorkerRole(Enum):
     IDLE = 0
@@ -86,11 +91,11 @@ class InformationManager:
     building_type_to_placement_type: Dict[UnitTypeId, PlacementType]
     placement_type_to_size: Dict[PlacementType, Tuple[int, int]]
     terranbuild_mapping: Dict[AbilityId, UnitTypeId]
-    enemy_units: Dict[int, Tuple[Unit, int]]
-    enemy_structures: Dict[int, Tuple[Unit, int]]
+    enemy_units: Dict[int, EnemyEntity]
+    enemy_structures: Dict[int, EnemyEntity]
     units_to_ignore_for_army: Set[UnitTypeId]
-    combat_powers: Dict[UnitTypeId, Tuple[float, float]]
-    production_powers: Dict[UnitTypeId, Tuple[float, float]]
+    combat_powers: Dict[UnitTypeId, CombatPower]
+    production_powers: Dict[UnitTypeId, ProductionPower]
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
@@ -163,101 +168,101 @@ class InformationManager:
         self.enemy_structures = {}
         self.combat_powers = {
             # Terran
-            UnitTypeId.SCV: (0, 0),
-            UnitTypeId.MARINE: (1, 1),
-            UnitTypeId.MARAUDER: (1.5, 0),
-            UnitTypeId.REAPER: (1, 0),
-            UnitTypeId.GHOST: (2, 2),
-            UnitTypeId.HELLION: (2, 0),
-            UnitTypeId.HELLIONTANK: (2, 0),
-            UnitTypeId.CYCLONE: (3, 3),
-            UnitTypeId.WIDOWMINE: (3, 3),
-            UnitTypeId.SIEGETANK: (5, 0),
-            UnitTypeId.SIEGETANKSIEGED: (10, 0),
-            UnitTypeId.VIKINGFIGHTER: (0, 10),
-            UnitTypeId.VIKINGASSAULT: (2, 0),
-            UnitTypeId.BANSHEE: (5, 0),
-            UnitTypeId.MEDIVAC: (0, 0),
-            UnitTypeId.RAVEN: (0, 0),
-            UnitTypeId.BATTLECRUISER: (10, 10),
-            UnitTypeId.LIBERATOR: (10, 4),
+            UnitTypeId.SCV: CombatPower(0, 0),
+            UnitTypeId.MARINE: CombatPower(1, 1),
+            UnitTypeId.MARAUDER: CombatPower(1.5, 0),
+            UnitTypeId.REAPER: CombatPower(1, 0),
+            UnitTypeId.GHOST: CombatPower(2, 2),
+            UnitTypeId.HELLION: CombatPower(2, 0),
+            UnitTypeId.HELLIONTANK: CombatPower(2, 0),
+            UnitTypeId.CYCLONE: CombatPower(3, 3),
+            UnitTypeId.WIDOWMINE: CombatPower(3, 3),
+            UnitTypeId.SIEGETANK: CombatPower(5, 0),
+            UnitTypeId.SIEGETANKSIEGED: CombatPower(10, 0),
+            UnitTypeId.VIKINGFIGHTER: CombatPower(0, 10),
+            UnitTypeId.VIKINGASSAULT: CombatPower(2, 0),
+            UnitTypeId.BANSHEE: CombatPower(5, 0),
+            UnitTypeId.MEDIVAC: CombatPower(0, 0),
+            UnitTypeId.RAVEN: CombatPower(0, 0),
+            UnitTypeId.BATTLECRUISER: CombatPower(10, 10),
+            UnitTypeId.LIBERATOR: CombatPower(10, 4),
             # Protoss
-            UnitTypeId.PROBE: (0, 0),
-            UnitTypeId.ZEALOT: (1.5, 0),
-            UnitTypeId.STALKER: (1.5, 2),
-            UnitTypeId.SENTRY: (0.5, 0.5),
-            UnitTypeId.ADEPT: (1.5, 0),
-            UnitTypeId.HIGHTEMPLAR: (4, 4),
-            UnitTypeId.DARKTEMPLAR: (5, 0),
-            UnitTypeId.ARCHON: (5, 5),
-            UnitTypeId.IMMORTAL: (8, 0),
-            UnitTypeId.COLOSSUS: (10, 0),
-            UnitTypeId.DISRUPTOR: (5, 0),
-            UnitTypeId.PHOENIX: (0, 8),
-            UnitTypeId.VOIDRAY: (6, 6),
-            UnitTypeId.CARRIER: (10, 10),
-            UnitTypeId.ORACLE: (4, 0),
-            UnitTypeId.WARPPRISM: (0, 0),
-            UnitTypeId.MOTHERSHIP: (10, 10),
+            UnitTypeId.PROBE: CombatPower(0, 0),
+            UnitTypeId.ZEALOT: CombatPower(1.5, 0),
+            UnitTypeId.STALKER: CombatPower(1.5, 2),
+            UnitTypeId.SENTRY: CombatPower(0.5, 0.5),
+            UnitTypeId.ADEPT: CombatPower(1.5, 0),
+            UnitTypeId.HIGHTEMPLAR: CombatPower(4, 4),
+            UnitTypeId.DARKTEMPLAR: CombatPower(5, 0),
+            UnitTypeId.ARCHON: CombatPower(5, 5),
+            UnitTypeId.IMMORTAL: CombatPower(8, 0),
+            UnitTypeId.COLOSSUS: CombatPower(10, 0),
+            UnitTypeId.DISRUPTOR: CombatPower(5, 0),
+            UnitTypeId.PHOENIX: CombatPower(0, 8),
+            UnitTypeId.VOIDRAY: CombatPower(6, 6),
+            UnitTypeId.CARRIER: CombatPower(10, 10),
+            UnitTypeId.ORACLE: CombatPower(4, 0),
+            UnitTypeId.WARPPRISM: CombatPower(0, 0),
+            UnitTypeId.MOTHERSHIP: CombatPower(10, 10),
             # Zerg
-            UnitTypeId.DRONE: (0, 0),
-            UnitTypeId.OVERLORD: (0, 0),
-            UnitTypeId.OVERSEER: (0, 0),
-            UnitTypeId.LARVA: (0, 0),
-            UnitTypeId.QUEEN: (2, 2),
-            UnitTypeId.ZERGLING: (0.5, 0),
-            UnitTypeId.BANELING: (3, 0),
-            UnitTypeId.ROACH: (3, 0),
-            UnitTypeId.RAVAGER: (4, 0),
-            UnitTypeId.HYDRALISK: (3, 7),
-            UnitTypeId.LURKERMP: (8, 0),
-            UnitTypeId.INFESTOR: (5, 5),
-            UnitTypeId.ULTRALISK: (10, 0),
-            UnitTypeId.SWARMHOSTMP: (3, 0),
-            UnitTypeId.LOCUSTMP: (3, 0),
-            UnitTypeId.BROODLORD: (10, 0),
-            UnitTypeId.BROODLING: (4, 0),
-            UnitTypeId.VIPER: (5, 5),
-            UnitTypeId.MUTALISK: (4, 4),
-            UnitTypeId.CORRUPTOR: (0, 8),
+            UnitTypeId.DRONE: CombatPower(0, 0),
+            UnitTypeId.OVERLORD: CombatPower(0, 0),
+            UnitTypeId.OVERSEER: CombatPower(0, 0),
+            UnitTypeId.LARVA: CombatPower(0, 0),
+            UnitTypeId.QUEEN: CombatPower(2, 2),
+            UnitTypeId.ZERGLING: CombatPower(0.5, 0),
+            UnitTypeId.BANELING: CombatPower(3, 0),
+            UnitTypeId.ROACH: CombatPower(3, 0),
+            UnitTypeId.RAVAGER: CombatPower(4, 0),
+            UnitTypeId.HYDRALISK: CombatPower(3, 7),
+            UnitTypeId.LURKERMP: CombatPower(8, 0),
+            UnitTypeId.INFESTOR: CombatPower(5, 5),
+            UnitTypeId.ULTRALISK: CombatPower(10, 0),
+            UnitTypeId.SWARMHOSTMP: CombatPower(3, 0),
+            UnitTypeId.LOCUSTMP: CombatPower(3, 0),
+            UnitTypeId.BROODLORD: CombatPower(10, 0),
+            UnitTypeId.BROODLING: CombatPower(4, 0),
+            UnitTypeId.VIPER: CombatPower(5, 5),
+            UnitTypeId.MUTALISK: CombatPower(4, 4),
+            UnitTypeId.CORRUPTOR: CombatPower(0, 8),
         }
         self.production_powers = {
             # Terran
-            UnitTypeId.BARRACKS: (1, 1),
-            UnitTypeId.BARRACKSTECHLAB: (1.5, 0),
-            UnitTypeId.BARRACKSREACTOR: (1, 1),
-            UnitTypeId.FACTORY: (1.5, 0),
-            UnitTypeId.FACTORYTECHLAB: (3, 1),
-            UnitTypeId.FACTORYREACTOR: (1.5, 0),
-            UnitTypeId.STARPORT: (0.5, 2),
-            UnitTypeId.STARPORTTECHLAB: (1, 1),
-            UnitTypeId.STARPORTREACTOR: (0.5, 1),
-            UnitTypeId.GHOSTACADEMY: (1, 1),
-            UnitTypeId.FUSIONCORE: (2, 2),
+            UnitTypeId.BARRACKS: ProductionPower(1, 1),
+            UnitTypeId.BARRACKSTECHLAB: ProductionPower(1.5, 0),
+            UnitTypeId.BARRACKSREACTOR: ProductionPower(1, 1),
+            UnitTypeId.FACTORY: ProductionPower(1.5, 0),
+            UnitTypeId.FACTORYTECHLAB: ProductionPower(3, 1),
+            UnitTypeId.FACTORYREACTOR: ProductionPower(1.5, 0),
+            UnitTypeId.STARPORT: ProductionPower(0.5, 2),
+            UnitTypeId.STARPORTTECHLAB: ProductionPower(1, 1),
+            UnitTypeId.STARPORTREACTOR: ProductionPower(0.5, 1),
+            UnitTypeId.GHOSTACADEMY: ProductionPower(1, 1),
+            UnitTypeId.FUSIONCORE: ProductionPower(2, 2),
             # Protoss
-            UnitTypeId.GATEWAY: (1, 1),
-            UnitTypeId.WARPGATE: (1.2, 1.2),
-            UnitTypeId.CYBERNETICSCORE: (1, 1),
-            UnitTypeId.TWILIGHTCOUNCIL: (1, 1.2),
-            UnitTypeId.TEMPLARARCHIVE: (1.4, 1),
-            UnitTypeId.DARKSHRINE: (1, 0),
-            UnitTypeId.ROBOTICSFACILITY: (2, 0),
-            UnitTypeId.ROBOTICSBAY: (1, 0),
-            UnitTypeId.STARGATE: (1, 2),
-            UnitTypeId.FLEETBEACON: (1, 1.4),
+            UnitTypeId.GATEWAY: ProductionPower(1, 1),
+            UnitTypeId.WARPGATE: ProductionPower(1.2, 1.2),
+            UnitTypeId.CYBERNETICSCORE: ProductionPower(1, 1),
+            UnitTypeId.TWILIGHTCOUNCIL: ProductionPower(1, 1.2),
+            UnitTypeId.TEMPLARARCHIVE: ProductionPower(1.4, 1),
+            UnitTypeId.DARKSHRINE: ProductionPower(1, 0),
+            UnitTypeId.ROBOTICSFACILITY: ProductionPower(2, 0),
+            UnitTypeId.ROBOTICSBAY: ProductionPower(1, 0),
+            UnitTypeId.STARGATE: ProductionPower(1, 2),
+            UnitTypeId.FLEETBEACON: ProductionPower(1, 1.4),
             # Zerg
-            UnitTypeId.HATCHERY: (1, 1),
-            UnitTypeId.SPAWNINGPOOL: (1, 0),
-            UnitTypeId.ROACHWARREN: (1, 0),
-            UnitTypeId.BANELINGNEST: (1, 0),
-            UnitTypeId.LAIR: (1, 1),
-            UnitTypeId.HYDRALISKDEN: (1, 2),
-            UnitTypeId.LURKERDEN: (2, 0),
-            UnitTypeId.SPIRE: (1, 1),
-            UnitTypeId.INFESTATIONPIT: (1, 1),
-            UnitTypeId.HIVE: (1, 1),
-            UnitTypeId.ULTRALISKCAVERN: (2, 0),
-            UnitTypeId.GREATERSPIRE: (1.5, 1.5),
+            UnitTypeId.HATCHERY: ProductionPower(1, 1),
+            UnitTypeId.SPAWNINGPOOL: ProductionPower(1, 0),
+            UnitTypeId.ROACHWARREN: ProductionPower(1, 0),
+            UnitTypeId.BANELINGNEST: ProductionPower(1, 0),
+            UnitTypeId.LAIR: ProductionPower(1, 1),
+            UnitTypeId.HYDRALISKDEN: ProductionPower(1, 2),
+            UnitTypeId.LURKERDEN: ProductionPower(2, 0),
+            UnitTypeId.SPIRE: ProductionPower(1, 1),
+            UnitTypeId.INFESTATIONPIT: ProductionPower(1, 1),
+            UnitTypeId.HIVE: ProductionPower(1, 1),
+            UnitTypeId.ULTRALISKCAVERN: ProductionPower(2, 0),
+            UnitTypeId.GREATERSPIRE: ProductionPower(1.5, 1.5),
         }
 
 

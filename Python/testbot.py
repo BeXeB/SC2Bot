@@ -25,7 +25,7 @@ from Python.Modules.result_saver import save_result
 from Python.Modules.worker_manager import WorkerManager
 from Python.Modules.army_manager import ArmyManager
 from Python.Modules.information_manager import WorkerRole, InformationManager, \
-    STEPS_PER_SECOND, WorkerData, TownhallData, GasBuildingData, StructureData, UnitData
+    STEPS_PER_SECOND, WorkerData, TownhallData, GasBuildingData, StructureData, UnitData, EnemyEntity
 from Python.Modules.scoutmanager import ScoutManager
 from Python.Actions.build_structure_helper import StructureBuilderHelper
 from Python.Actions.build_unit_helper import UnitBuilderHelper
@@ -337,9 +337,9 @@ class MyBot(BotAI):
         if unit.is_snapshot:
             return
         if unit.is_structure:
-            self.information_manager.enemy_structures.update({unit.tag: unit})
+            self.information_manager.enemy_structures.update({unit.tag: EnemyEntity(unit, math.floor(self.time))})
         else:
-            self.information_manager.enemy_units.update({unit.tag: unit})
+            self.information_manager.enemy_units.update({unit.tag: EnemyEntity(unit, math.floor(self.time))})
 
     async def on_unit_created(self, unit: Unit):
         match unit.type_id:
@@ -420,10 +420,10 @@ class MyBot(BotAI):
     def update_enemy_units_and_structures(self):
         for unit in self.enemy_units:
             if unit.tag in self.information_manager.enemy_units:
-                self.information_manager.enemy_units.update({unit.tag: (unit, math.floor(self.time))})
+                self.information_manager.enemy_units.update({unit.tag: EnemyEntity(unit, math.floor(self.time))})
         for unit in self.enemy_structures:
             if unit.tag in self.information_manager.enemy_structures:
-                self.information_manager.enemy_structures.update({unit.tag: (unit, math.floor(self.time))})
+                self.information_manager.enemy_structures.update({unit.tag: EnemyEntity(unit, math.floor(self.time))})
 
 
 class PeacefulBot(BotAI):

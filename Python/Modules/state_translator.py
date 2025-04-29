@@ -189,22 +189,22 @@ def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
 def get_enemy(bot: 'MyBot') -> Enemy:
     enemy_ground_power = 0
     enemy_air_power = 0
-    for unit_time_tuple in bot.information_manager.enemy_units.values():
-        unit_type = unit_time_tuple[0].type_id
+    for enemy_entity in bot.information_manager.enemy_units.values():
+        unit_type = enemy_entity.entity.type_id
         if unit_type not in bot.information_manager.combat_powers:
             continue
         unit_power = bot.information_manager.combat_powers[unit_type]
-        enemy_ground_power += unit_power[0]
-        enemy_air_power += unit_power[1]
+        enemy_ground_power += unit_power.ground_power
+        enemy_air_power += unit_power.air_power
     enemy_ground_production = 0
     enemy_air_production = 0
-    for structure_time_tuple in bot.information_manager.enemy_structures.values():
-        structure_type = structure_time_tuple[0].type_id
+    for enemy_entity in bot.information_manager.enemy_structures.values():
+        structure_type = enemy_entity.entity.type_id
         if structure_type not in bot.information_manager.production_powers:
             continue
-        structure_power = bot.information_manager.production_powers[structure_type]
-        enemy_ground_production += structure_power[0]
-        enemy_air_production += structure_power[1]
+        structure_production_power = bot.information_manager.production_powers[structure_type]
+        enemy_ground_production += structure_production_power.ground_production
+        enemy_air_production += structure_production_power.air_production
     enemy = Enemy(math.floor(enemy_ground_power),
                   math.floor(enemy_air_power),
                   enemy_ground_production,
