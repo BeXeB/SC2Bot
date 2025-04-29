@@ -221,7 +221,9 @@ class MyBot(BotAI):
     async def build_tank(self) -> None:
         if not self.can_afford(UnitTypeId.SIEGETANK):
             return
-        if not self.structures.filter(lambda sr: sr.type_id == UnitTypeId.FACTORY and sr.has_techlab and len(sr.orders) == 0).ready:
+        if not self.structures.filter(lambda sr: sr.type_id == UnitTypeId.FACTORY
+                                                 and sr.has_techlab
+                                                 and len(sr.orders) == 0).ready:
             return
         await self.siege_builder.build_tank()
         self.set_next_action()
@@ -325,9 +327,11 @@ class MyBot(BotAI):
                 self.information_manager.gas_data.update({unit.tag: GasBuildingData(unit.position, unit.tag)})
             case UnitTypeId.SUPPLYDEPOT:
                 unit(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
-                self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
+                self.information_manager.structures_data.update(
+                    {unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
             case _:
-                self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
+                self.information_manager.structures_data.update(
+                    {unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
         building_worker = self.workers.closest_to(unit)
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
 
@@ -337,9 +341,11 @@ class MyBot(BotAI):
         if unit.is_snapshot:
             return
         if unit.is_structure:
-            self.information_manager.enemy_structures.update({unit.tag: EnemyEntity(unit, math.floor(self.time))})
+            self.information_manager.enemy_structures.update(
+                {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
         else:
-            self.information_manager.enemy_units.update({unit.tag: EnemyEntity(unit, math.floor(self.time))})
+            self.information_manager.enemy_units.update(
+                {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
 
     async def on_unit_created(self, unit: Unit):
         match unit.type_id:
@@ -420,10 +426,12 @@ class MyBot(BotAI):
     def update_enemy_units_and_structures(self):
         for unit in self.enemy_units:
             if unit.tag in self.information_manager.enemy_units:
-                self.information_manager.enemy_units.update({unit.tag: EnemyEntity(unit, math.floor(self.time))})
+                self.information_manager.enemy_units.update(
+                    {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
         for unit in self.enemy_structures:
             if unit.tag in self.information_manager.enemy_structures:
-                self.information_manager.enemy_structures.update({unit.tag: EnemyEntity(unit, math.floor(self.time))})
+                self.information_manager.enemy_structures.update(
+                    {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
 
 
 class PeacefulBot(BotAI):
