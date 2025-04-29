@@ -34,8 +34,8 @@ if __name__ == "__main__":
         print(result, " against opponent ", opponentid)
     else:
         print("Starting local game...")
-        opponent = Computer(Race.Terran, Difficulty.MediumHard)
-        #opponent = Bot(Race.Terran, PeacefulBot())
+        # opponent = Computer(Race.Terran, Difficulty.MediumHard)
+        opponent = Bot(Race.Terran, PeacefulBot())
         match = GameMatch(
             maps.get("KingsCoveLE"),
             [opponent,bot],

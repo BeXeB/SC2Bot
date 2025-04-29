@@ -25,7 +25,7 @@ from Python.Modules.result_saver import save_result
 from Python.Modules.worker_manager import WorkerManager
 from Python.Modules.army_manager import ArmyManager
 from Python.Modules.information_manager import WorkerRole, InformationManager, \
-    STEPS_PER_SECOND, WorkerData, TownhallData, GasBuildingData, StructureData, UnitData
+    STEPS_PER_SECOND, WorkerData, TownhallData, GasBuildingData, StructureData, UnitData, EnemyEntity
 from Python.Modules.scoutmanager import ScoutManager
 from Python.Actions.build_structure_helper import StructureBuilderHelper
 from Python.Actions.build_unit_helper import UnitBuilderHelper
@@ -137,6 +137,7 @@ class MyBot(BotAI):
         self.manage_workers()
         self.army_manager.manage_army()
         self.scout_manager.manage_scouts()
+        self.update_enemy_units_and_structures()
 
         match self.next_action:
             case Action.build_base:
@@ -220,7 +221,9 @@ class MyBot(BotAI):
     async def build_tank(self) -> None:
         if not self.can_afford(UnitTypeId.SIEGETANK):
             return
-        if not self.structures.filter(lambda sr: sr.type_id == UnitTypeId.FACTORY and sr.has_techlab and len(sr.orders) == 0).ready:
+        if not self.structures.filter(lambda sr: sr.type_id == UnitTypeId.FACTORY
+                                                 and sr.has_techlab
+                                                 and len(sr.orders) == 0).ready:
             return
         await self.siege_builder.build_tank()
         self.set_next_action()
@@ -324,11 +327,25 @@ class MyBot(BotAI):
                 self.information_manager.gas_data.update({unit.tag: GasBuildingData(unit.position, unit.tag)})
             case UnitTypeId.SUPPLYDEPOT:
                 unit(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
-                self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
+                self.information_manager.structures_data.update(
+                    {unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
             case _:
-                self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
+                self.information_manager.structures_data.update(
+                    {unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
         building_worker = self.workers.closest_to(unit)
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
+
+    # When a unit enters the vision of the bot, we update the information manager
+    async def on_enemy_unit_entered_vision(self, unit: Unit):
+        # We don't want to store snapshots
+        if unit.is_snapshot:
+            return
+        if unit.is_structure:
+            self.information_manager.enemy_structures.update(
+                {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
+        else:
+            self.information_manager.enemy_units.update(
+                {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
 
     async def on_unit_created(self, unit: Unit):
         match unit.type_id:
@@ -404,6 +421,18 @@ class MyBot(BotAI):
     def manage_workers(self):
         self.worker_manager.distribute_workers()
         self.worker_manager.speed_mine()
+
+    # While we see the enemy units, we update the information stored in the information manager
+    def update_enemy_units_and_structures(self):
+        for unit in self.enemy_units:
+            if unit.tag in self.information_manager.enemy_units:
+                self.information_manager.enemy_units.update(
+                    {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
+        for unit in self.enemy_structures:
+            if unit.tag in self.information_manager.enemy_structures:
+                self.information_manager.enemy_structures.update(
+                    {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
+
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:

@@ -1,5 +1,6 @@
 import math
 import typing
+from collections import namedtuple
 from enum import Enum
 from typing import Optional, Dict, Set, List, Tuple
 
@@ -13,6 +14,10 @@ if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
 
 STEPS_PER_SECOND = 22.4
+
+CombatPower = namedtuple('CombatPower', ['ground_power', 'air_power'])
+ProductionPower = namedtuple('ProductionPower', ['ground_production', 'air_production'])
+EnemyEntity = namedtuple('EnemyEntity', ['entity', 'last_seen'])
 
 class WorkerRole(Enum):
     IDLE = 0
@@ -76,7 +81,7 @@ class PlacementType(Enum):
 
 class InformationManager:
     worker_data: Dict[int, WorkerData]
-    structures_data: Dict[int, StructureData] #Combine it all?
+    structures_data: Dict[int, StructureData]
     townhall_data: Dict[int, TownhallData]
     gas_data: Dict[int, GasBuildingData]
     unit_data: Dict[int, UnitData]
@@ -86,6 +91,11 @@ class InformationManager:
     building_type_to_placement_type: Dict[UnitTypeId, PlacementType]
     placement_type_to_size: Dict[PlacementType, Tuple[int, int]]
     terranbuild_mapping: Dict[AbilityId, UnitTypeId]
+    enemy_units: Dict[int, EnemyEntity]
+    enemy_structures: Dict[int, EnemyEntity]
+    units_to_ignore_for_army: Set[UnitTypeId]
+    combat_powers: Dict[UnitTypeId, CombatPower]
+    production_powers: Dict[UnitTypeId, ProductionPower]
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
@@ -154,10 +164,108 @@ class InformationManager:
             AbilityId.TERRANBUILD_ENGINEERINGBAY: UnitTypeId.ENGINEERINGBAY,
             AbilityId.TERRANBUILD_FUSIONCORE: UnitTypeId.FUSIONCORE
         }
+        self.enemy_units = {}
+        self.enemy_structures = {}
+        self.combat_powers = {
+            # Terran
+            UnitTypeId.SCV: CombatPower(ground_power=0, air_power=0),
+            UnitTypeId.MARINE: CombatPower(ground_power=1, air_power=1),
+            UnitTypeId.MARAUDER: CombatPower(ground_power=1.5, air_power=0),
+            UnitTypeId.REAPER: CombatPower(ground_power=1, air_power=0),
+            UnitTypeId.GHOST: CombatPower(ground_power=2, air_power=2),
+            UnitTypeId.HELLION: CombatPower(ground_power=2, air_power=0),
+            UnitTypeId.HELLIONTANK: CombatPower(ground_power=2, air_power=0),
+            UnitTypeId.CYCLONE: CombatPower(ground_power=3, air_power=3),
+            UnitTypeId.WIDOWMINE: CombatPower(ground_power=3, air_power=3),
+            UnitTypeId.SIEGETANK: CombatPower(ground_power=5, air_power=0),
+            UnitTypeId.SIEGETANKSIEGED: CombatPower(ground_power=10, air_power=0),
+            UnitTypeId.VIKINGFIGHTER: CombatPower(ground_power=0, air_power=10),
+            UnitTypeId.VIKINGASSAULT: CombatPower(ground_power=2, air_power=0),
+            UnitTypeId.BANSHEE: CombatPower(ground_power=5, air_power=0),
+            UnitTypeId.MEDIVAC: CombatPower(ground_power=0, air_power=0),
+            UnitTypeId.RAVEN: CombatPower(ground_power=0, air_power=0),
+            UnitTypeId.BATTLECRUISER: CombatPower(ground_power=10, air_power=10),
+            UnitTypeId.LIBERATOR: CombatPower(ground_power=10, air_power=4),
+            # Protoss
+            UnitTypeId.PROBE: CombatPower(ground_power=0, air_power=0),
+            UnitTypeId.ZEALOT: CombatPower(ground_power=1.5, air_power=0),
+            UnitTypeId.STALKER: CombatPower(ground_power=1.5, air_power=2),
+            UnitTypeId.SENTRY: CombatPower(ground_power=0.5, air_power=0.5),
+            UnitTypeId.ADEPT: CombatPower(ground_power=1.5, air_power=0),
+            UnitTypeId.HIGHTEMPLAR: CombatPower(ground_power=4, air_power=4),
+            UnitTypeId.DARKTEMPLAR: CombatPower(ground_power=5, air_power=0),
+            UnitTypeId.ARCHON: CombatPower(ground_power=5, air_power=5),
+            UnitTypeId.IMMORTAL: CombatPower(ground_power=8, air_power=0),
+            UnitTypeId.COLOSSUS: CombatPower(ground_power=10, air_power=0),
+            UnitTypeId.DISRUPTOR: CombatPower(ground_power=5, air_power=0),
+            UnitTypeId.PHOENIX: CombatPower(ground_power=0, air_power=8),
+            UnitTypeId.VOIDRAY: CombatPower(ground_power=6, air_power=6),
+            UnitTypeId.CARRIER: CombatPower(ground_power=10, air_power=10),
+            UnitTypeId.ORACLE: CombatPower(ground_power=4, air_power=0),
+            UnitTypeId.WARPPRISM: CombatPower(ground_power=0, air_power=0),
+            UnitTypeId.MOTHERSHIP: CombatPower(ground_power=10, air_power=10),
+            # Zerg
+            UnitTypeId.DRONE: CombatPower(ground_power=0, air_power=0),
+            UnitTypeId.OVERLORD: CombatPower(ground_power=0, air_power=0),
+            UnitTypeId.OVERSEER: CombatPower(ground_power=0, air_power=0),
+            UnitTypeId.LARVA: CombatPower(ground_power=0, air_power=0),
+            UnitTypeId.QUEEN: CombatPower(ground_power=2, air_power=2),
+            UnitTypeId.ZERGLING: CombatPower(ground_power=0.5, air_power=0),
+            UnitTypeId.BANELING: CombatPower(ground_power=3, air_power=0),
+            UnitTypeId.ROACH: CombatPower(ground_power=3, air_power=0),
+            UnitTypeId.RAVAGER: CombatPower(ground_power=4, air_power=0),
+            UnitTypeId.HYDRALISK: CombatPower(ground_power=3, air_power=7),
+            UnitTypeId.LURKERMP: CombatPower(ground_power=8, air_power=0),
+            UnitTypeId.INFESTOR: CombatPower(ground_power=5, air_power=5),
+            UnitTypeId.ULTRALISK: CombatPower(ground_power=10, air_power=0),
+            UnitTypeId.SWARMHOSTMP: CombatPower(ground_power=3, air_power=0),
+            UnitTypeId.LOCUSTMP: CombatPower(ground_power=3, air_power=0),
+            UnitTypeId.BROODLORD: CombatPower(ground_power=10, air_power=0),
+            UnitTypeId.BROODLING: CombatPower(ground_power=4, air_power=0),
+            UnitTypeId.VIPER: CombatPower(ground_power=5, air_power=5),
+            UnitTypeId.MUTALISK: CombatPower(ground_power=4, air_power=4),
+            UnitTypeId.CORRUPTOR: CombatPower(ground_power=0, air_power=8),
+        }
+        self.production_powers = {
+            # Terran
+            UnitTypeId.BARRACKS: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.BARRACKSTECHLAB: ProductionPower(ground_production=1.5, air_production=0),
+            UnitTypeId.BARRACKSREACTOR: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.FACTORY: ProductionPower(ground_production=1.5, air_production=0),
+            UnitTypeId.FACTORYTECHLAB: ProductionPower(ground_production=3, air_production=1),
+            UnitTypeId.FACTORYREACTOR: ProductionPower(ground_production=1.5, air_production=0),
+            UnitTypeId.STARPORT: ProductionPower(ground_production=0.5, air_production=2),
+            UnitTypeId.STARPORTTECHLAB: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.STARPORTREACTOR: ProductionPower(ground_production=0.5, air_production=1),
+            UnitTypeId.GHOSTACADEMY: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.FUSIONCORE: ProductionPower(ground_production=2, air_production=2),
+            # Protoss
+            UnitTypeId.GATEWAY: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.WARPGATE: ProductionPower(ground_production=1.2, air_production=1.2),
+            UnitTypeId.CYBERNETICSCORE: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.TWILIGHTCOUNCIL: ProductionPower(ground_production=1, air_production=1.2),
+            UnitTypeId.TEMPLARARCHIVE: ProductionPower(ground_production=1.4, air_production=1),
+            UnitTypeId.DARKSHRINE: ProductionPower(ground_production=1, air_production=0),
+            UnitTypeId.ROBOTICSFACILITY: ProductionPower(ground_production=2, air_production=0),
+            UnitTypeId.ROBOTICSBAY: ProductionPower(ground_production=1, air_production=0),
+            UnitTypeId.STARGATE: ProductionPower(ground_production=1, air_production=2),
+            UnitTypeId.FLEETBEACON: ProductionPower(ground_production=1, air_production=1.4),
+            # Zerg
+            UnitTypeId.HATCHERY: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.SPAWNINGPOOL: ProductionPower(ground_production=1, air_production=0),
+            UnitTypeId.ROACHWARREN: ProductionPower(ground_production=1, air_production=0),
+            UnitTypeId.BANELINGNEST: ProductionPower(ground_production=1, air_production=0),
+            UnitTypeId.LAIR: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.HYDRALISKDEN: ProductionPower(ground_production=1, air_production=2),
+            UnitTypeId.LURKERDEN: ProductionPower(ground_production=2, air_production=0),
+            UnitTypeId.SPIRE: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.INFESTATIONPIT: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.HIVE: ProductionPower(ground_production=1, air_production=1),
+            UnitTypeId.ULTRALISKCAVERN: ProductionPower(ground_production=2, air_production=0),
+            UnitTypeId.GREATERSPIRE: ProductionPower(ground_production=1.5, air_production=1.5),
+        }
 
 
-    # Refactor to handle_structure_destroyed and handle_unit_destroyed.
-    # Also refactor the structures to be generalised
     async def remove_unit_by_tag(self, tag: int) -> None:
         if tag in self.worker_data:
             self.handle_worker_destroyed(tag)
@@ -169,7 +277,10 @@ class InformationManager:
             self.handle_unit_destroyed(tag)
         elif tag in self.structures_data:
             self.handle_structure_destroyed(tag)
-
+        elif tag in self.enemy_units:
+            self.enemy_units.pop(tag)
+        elif tag in self.enemy_structures:
+            self.enemy_structures.pop(tag)
 
     def handle_worker_destroyed(self, tag: int) -> None:
         self.remove_worker_from_assigned_structure(tag)
