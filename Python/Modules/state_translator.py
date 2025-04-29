@@ -212,10 +212,18 @@ def get_enemy(bot: 'MyBot') -> Enemy:
     return enemy
 
 
+def count_enemy_combat_units(bot: 'MyBot') -> int:
+    enemy_combat_units = 0
+    for unit, _ in bot.information_manager.enemy_units.values():
+        if unit.type_id not in bot.information_manager.units_to_ignore_for_army:
+            enemy_combat_units += 1
+    return enemy_combat_units
+
+
 def translate_state(bot: 'MyBot') -> State:
     bases = get_bases(bot)
     constructions = get_constructions(bot)
-    enemy_combat_units = len(bot.information_manager.enemy_units)
+    enemy_combat_units = count_enemy_combat_units(bot)
     marines = bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE).amount
     tanks = bot.units.filter(lambda u: u.type_id in {UnitTypeId.SIEGETANK, UnitTypeId.SIEGETANKSIEGED}).amount
     vikings = bot.units.filter(
