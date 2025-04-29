@@ -10,10 +10,10 @@ from torch.utils.data import Dataset
 class MicroArenaDataset(Dataset):
     def __init__(self, data:pd.DataFrame, transform=None, target_transform=None):
         self.data:pd.DataFrame = data
-        self.labels:torch.Tensor = torch.tensor(data['result'].to_numpy(), dtype=torch.float32)
+        self.labels:torch.Tensor = torch.tensor(data['result'].to_numpy(), dtype=torch.long)
 
         features_df = data.drop('result', axis=1)
-        self.features:torch.Tensor = torch.tensor(features_df.to_numpy(), dtype=torch.int)
+        self.features:torch.Tensor = torch.tensor(features_df.to_numpy(), dtype=torch.float32)
 
         self.transform = transform
         self.target_transform = target_transform
@@ -35,12 +35,12 @@ class MicroArenaDataset(Dataset):
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
-        self.input = nn.Linear(69, 128)
+        self.input = nn.Linear(53, 128)
         self.hidden = nn.Linear(128, 64)
         self.output = nn.Linear(64, 3)
 
     def forward(self, x):
-        x = x.view(-1, 69)
+        x = x.view(-1, 53)
         x = F.relu(self.input(x))
         x = F.relu(self.hidden(x))
         x = F.log_softmax(self.output(x), dim=1)
@@ -50,6 +50,9 @@ class NeuralNetwork(nn.Module):
 df = pd.read_csv("micro_arena.csv")
 # removes columns that does not have any other values than 0
 df = df.loc[:,(df != 0).any()]
+
+# Remap result labels: -1 → 0 (loss), 0 → 1 (tie), 1 → 2 (win)
+df['result'] = df['result'].map({-1: 0, 0: 1, 1: 2})
 
 print(df)
 
@@ -63,26 +66,29 @@ https://www.baeldung.com/cs/normalizing-inputs-artificial-neural-network
 '''
 
 dataset = MicroArenaDataset(df)
-train_df, test_df = torch.utils.data.random_split(dataset, [0.8, 0.2])
+train_set, test_set = torch.utils.data.random_split(dataset, [0.8, 0.2])
 
+train_loader = torch.utils.data.DataLoader(train_set, batch_size=32, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_set, batch_size=32, shuffle=False)
 
-print("Number of rows in test data: " + str(len(test_dataset)))
-print("Number of rows in train data: " + str(len(train_dataset)))
+print("Number of rows in test data: " + str(len(test_set)))
+print("Number of rows in train data: " + str(len(train_set)))
 
+print(f"Shape of the images in the training dataset: {train_loader.dataset[0][0].shape}")
 model = NeuralNetwork()
 
 loss_function = nn.NLLLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-epochs = 5
-# for epoch in range(epochs):
-#     for images, labels in train_loader:
-#         optimizer.zero_grad()
-#
-#         output = model(images)
-#         loss = loss_function(output, labels)
-#
-#         loss.backward()
-#         optimizer.step()
-#
-#     print(f'Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}')
+epochs = 50
+for epoch in range(epochs):
+    for images, labels in train_loader:
+        optimizer.zero_grad()
+
+        output = model(images)
+        loss = loss_function(output, labels)
+
+        loss.backward()
+        optimizer.step()
+
+    print(f'Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}')
