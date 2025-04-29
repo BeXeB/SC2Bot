@@ -92,3 +92,15 @@ for epoch in range(epochs):
         optimizer.step()
 
     print(f'Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}')
+
+correct = 0
+total = 0
+with torch.no_grad():
+    for features, labels in test_loader:
+        output = model(features)
+        _, predicted = torch.max(output, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print(f'Accuracy of the neural network on the {total} test battles: {100 * correct / total}%')
+
