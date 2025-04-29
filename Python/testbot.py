@@ -191,6 +191,11 @@ class MyBot(BotAI):
         #         if grid[(x, y)]:
         #             self.client.debug_text_3d(f"{x},{y}", Point3((x, y+0.5, self.get_terrain_z_height(Point2((x,y)))+0.1)), (255, 255, 255))
 
+        for asd in self.scout_manager.orbit_points:
+            height = self.get_terrain_z_height(asd)
+            self.client.debug_sphere_out(Point3((asd.x, asd.y, height)), 0.5, (255, 0, 0))
+
+
         for worker in self.workers:
             data = self.information_manager.worker_data[worker.tag]
             self.client.debug_text_3d(f"Role: {data.role}\nAssigned: {data.assigned_to_tag}", Point3((worker.position.x, worker.position.y, self.get_terrain_z_height(worker.position) + 0.2)))
