@@ -82,10 +82,10 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 epochs = 50
 for epoch in range(epochs):
-    for images, labels in train_loader:
+    for features, labels in train_loader:
         optimizer.zero_grad()
 
-        output = model(images)
+        output = model(features)
         loss = loss_function(output, labels)
 
         loss.backward()
