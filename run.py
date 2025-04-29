@@ -38,7 +38,7 @@ if __name__ == "__main__":
         opponent = Bot(Race.Terran, PeacefulBot())
         match = GameMatch(
             maps.get("KingsCoveLE"),
-            [opponent,bot],
+            [bot,opponent],
             realtime=False,
             disable_fog=False,
             random_seed=0
