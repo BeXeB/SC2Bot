@@ -32,75 +32,81 @@ class MicroArenaDataset(Dataset):
         return features, label
 
 
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super(NeuralNetwork, self).__init__()
-        self.input = nn.Linear(53, 128)
+class ArenaNetwork(nn.Module):
+    def __init__(self, input_size: int):
+        super(ArenaNetwork, self).__init__()
+        self.input_size = input_size
+        self.input = nn.Linear(input_size, 128)
         self.hidden = nn.Linear(128, 64)
         self.output = nn.Linear(64, 3)
 
     def forward(self, x):
-        x = x.view(-1, 53)
+        x = x.view(-1, self.input_size)
         x = F.relu(self.input(x))
         x = F.relu(self.hidden(x))
         x = F.log_softmax(self.output(x), dim=1)
         return x
 
-# reading csv file
-df = pd.read_csv("micro_arena.csv")
-# removes columns that does not have any other values than 0
-df = df.loc[:,(df != 0).any()]
+if __name__ == '__main__':
+    filepath = "micro_arena.csv"
 
-# Remap result labels: -1 → 0 (loss), 0 → 1 (tie), 1 → 2 (win)
-df['result'] = df['result'].map({-1: 0, 0: 1, 1: 2})
+    # reading csv file
+    df = pd.read_csv(filepath)
 
-print(df)
+    # Remap result labels: -1 → 0 (loss), 0 → 1 (tie), 1 → 2 (win)
+    df['result'] = df['result'].map({-1: 0, 0: 1, 1: 2})
 
-'''
-Maybe do some kind of normalization
-https://www.baeldung.com/cs/normalizing-inputs-artificial-neural-network
-  - Min-Max Scaling
-  - Z-Score Normalization
-  - Proportional Normalization
-  - Batch normalization
-'''
+    print(df)
 
-dataset = MicroArenaDataset(df)
-train_set, test_set = torch.utils.data.random_split(dataset, [0.8, 0.2])
+    '''
+    Maybe do some kind of normalization
+    https://www.baeldung.com/cs/normalizing-inputs-artificial-neural-network
+      - Min-Max Scaling
+      - Z-Score Normalization
+      - Proportional Normalization
+      - Batch normalization
+    '''
 
-train_loader = torch.utils.data.DataLoader(train_set, batch_size=32, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_set, batch_size=32, shuffle=False)
+    dataset = MicroArenaDataset(df)
+    train_set, test_set = torch.utils.data.random_split(dataset, [0.8, 0.2])
 
-print("Number of rows in test data: " + str(len(test_set)))
-print("Number of rows in train data: " + str(len(train_set)))
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=32, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(test_set, batch_size=32, shuffle=False)
 
-print(f"Shape of the images in the training dataset: {train_loader.dataset[0][0].shape}")
-model = NeuralNetwork()
+    print("Number of rows in test data: " + str(len(test_set)))
+    print("Number of rows in train data: " + str(len(train_set)))
 
-loss_function = nn.NLLLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+    print(f"Shape of the images in the training dataset: {train_loader.dataset[0][0].shape}")
 
-epochs = 50
-for epoch in range(epochs):
-    for features, labels in train_loader:
-        optimizer.zero_grad()
+    input_size = len(df.columns) - 1
+    model = ArenaNetwork(input_size=input_size)
 
-        output = model(features)
-        loss = loss_function(output, labels)
+    loss_function = nn.NLLLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-        loss.backward()
-        optimizer.step()
+    epochs = 30
+    for epoch in range(epochs):
+        for features, labels in train_loader:
+            optimizer.zero_grad()
 
-    print(f'Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}')
+            output = model(features)
+            loss = loss_function(output, labels)
 
-correct = 0
-total = 0
-with torch.no_grad():
-    for features, labels in test_loader:
-        output = model(features)
-        _, predicted = torch.max(output, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+            loss.backward()
+            optimizer.step()
 
-print(f'Accuracy of the neural network on the {total} test battles: {100 * correct / total}%')
+        print(f'Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}')
 
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for features, labels in test_loader:
+            output = model(features)
+            _, predicted = torch.max(output, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+
+    print(f'Accuracy of the neural network on the {total} test battles: {100 * correct / total}%')
+
+    torch.save(model.state_dict(), 'arena_model.pth')
