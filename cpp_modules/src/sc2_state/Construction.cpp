@@ -28,11 +28,25 @@ Sc2::Construction::Construction(const int constructionTime, const Action action)
         case Action::buildMarine:
             _constructionFunction = &State::addMarine;
             break;
+        case Action::buildFactory:
+            _constructionFunction = &State::addFactory;
+            break;
+        case Action::buildTank:
+            _constructionFunction = &State::addTank;
+            break;
+        case Action::buildViking:
+            _constructionFunction = &State::addViking;
+            break;
+        case Action::buildStarPort:
+            _constructionFunction = &State::addStarPort;
+            break;
         case Action::attackPlayer:
             throw std::invalid_argument("Action::attackPlayer");
         case Action::addEnemyUnit:
             throw std::invalid_argument("Action::addEnemyUnit");
         case Action::none:
             throw std::invalid_argument("Action::none");
+        default:
+            throw std::runtime_error("No Construction action" + actionToString(action));
     }
 }

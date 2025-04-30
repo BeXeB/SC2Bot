@@ -7,7 +7,7 @@
 #include <fstream>
 
 #include "Mcts.h"
-#include "Sc2State.h"
+// #include "Sc2State.h"
 using namespace Sc2::Mcts;
 using namespace std::chrono;
 
@@ -20,6 +20,8 @@ struct BenchmarkParams {
 	const double exploration = 1;
 	const ValueHeuristic valueHeuristic = ValueHeuristic::UCT;
 	const RolloutHeuristic rolloutHeuristic = RolloutHeuristic::Random;
+	const int endProbabilityFunction = 0;
+	const Sc2::ArmyValueFunction armyValueFunction = Sc2::ArmyValueFunction::None;
 	bool shouldPrintActions = false;
 };
 
@@ -48,52 +50,59 @@ struct BenchmarkResult {
 	float numberOfWorkers = 0;
 	float numberOfBases = 0;
 	float numberOfVespeneCollectors = 0;
+	float numberOfMarines = 0;
+	float numberOfVikings = 0;
+	float numberOfTanks = 0;
 	double finalStateValue = 0;
 	int finalVespene = 0;
 	int finalMinerals = 0;
 	float valuePerAction = 0;
 	float valuePerSecond = 0;
 
-	std::string toString() {
-		// std::string str;
-		// str += std::format(
-		// 	"|{:<{}}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}.{}f}|{:<{}}|{:<{}}|{:<{}.{}f}|{:<{}.{}f}|",
-		// 	benchmarkIndex, indexSize,
-		// 	numberOfRollouts, numberOfActionsSize,
-		// 	endTime, endTimeSize,
-		// 	exploration, explorationSize, 4,
-		// 	valueHeuristicToString(valueHeuristic), valueHeuristicSize,
-		// 	rolloutHeuristicToString(rolloutHeuristic), rolloutHeuristicSize,
-		// 	timeElapsed, timeElapsedSize, 2,
-		// 	numberOfActions, numberOfActionsSize,
-		// 	finalStateValue, finalStateValueSize, 4,
-		// 	finalVespene, finalVespeneSize,
-		// 	finalMinerals, finalMineralSize,
-		// 	valuePerAction, valuePerActionSize, 4,
-		// 	valuePerSecond, valuePerSecondSize, 4);
-		return "str";
+	[[nodiscard]] std::string toString() const {
+		std::ostringstream stream;
+		stream << std::to_string(benchmarkIndex) << ", "
+		<< std::to_string(numberOfRollouts) << ","
+		<< std::to_string(endTime) << ","
+		<< std::to_string(exploration)<< ","
+		<< valueHeuristicToString(valueHeuristic)<< ","
+		<< rolloutHeuristicToString(rolloutHeuristic)<< ","
+		<< std::to_string(timeElapsed)<< ","
+		<< std::to_string(numberOfActions) << ","
+		<< std::to_string(finalStateValue) << ","
+		<< std::to_string(finalVespene) << ","
+		<< std::to_string(finalMinerals) << ","
+		<< std::to_string(valuePerAction) << ","
+		<< std::to_string(valuePerSecond) << ","
+		<< std::to_string(numberOfWorkers) << ","
+		<< std::to_string(numberOfMarines) << ","
+		<< std::to_string(numberOfTanks) << ","
+		<< std::to_string(numberOfVikings) << ","
+		<< std::to_string(numberOfBases) << ","
+		<< std::to_string(numberOfVespeneCollectors);
+		return stream.str();
 	}
 
-	std::string toCsvLine() {
-		// std::string str = std::format(
-		// 	"{},{},{},{:.{}f},{},{},{:.{}f},{},{:.{}f},{},{},{:.{}f},{:.{}f},{:.{}f},{:.{}f},{:.{}f}",
-		// 	benchmarkIndex,
-		// 	numberOfRollouts,
-		// 	endTime,
-		// 	exploration, 4,
-		// 	valueHeuristicToString(valueHeuristic),
-		// 	rolloutHeuristicToString(rolloutHeuristic),
-		// 	timeElapsed, 4,
-		// 	numberOfActions,
-		// 	finalStateValue, 4,
-		// 	finalVespene,
-		// 	finalMinerals,
-		// 	valuePerAction, 4,
-		// 	valuePerSecond, 4,
-		// 	numberOfWorkers, 1,
-		// 	numberOfBases, 1,
-		// 	numberOfVespeneCollectors, 1);
-		return "str";
+	[[nodiscard]] std::string toCsvLine() const {
+		// std::string str = std::to_string(benchmarkIndex);
+		// str += std::to_string(numberOfRollouts);
+		// str += std::to_string(endTime);
+		// str += std::to_string(exploration);
+		// str += std::to_string(valueHeuristicSize);
+		// str += std::to_string(rolloutHeuristicSize);
+		// str += std::to_string(timeElapsed);
+		// str += std::to_string(numberOfActions);
+		// str += std::to_string(finalStateValue);
+		// str += std::to_string(finalVespene);
+		// str += std::to_string(finalMinerals);
+		// str += std::to_string(valuePerAction);
+		// str += std::to_string(valuePerSecond);
+		// str += std::to_string(numberOfWorkers);
+		// str += std::to_string(numberOfBases);
+		// str += std::to_string(numberOfVespeneCollectors);
+
+		return toString();
+
 	}
 };
 
@@ -119,13 +128,10 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 		.rolloutHeuristic = params.rolloutHeuristic,
 	};
 
-	auto state = std::make_shared<Sc2::State>(params.endTime, params.seed, nullptr, nullptr);
+	auto state = std::make_shared<Sc2::State>(params.endTime, params.endProbabilityFunction , params.armyValueFunction,params.seed);
 
 	const auto mcts = new Mcts(state, params.seed, params.endTime, params.exploration, params.valueHeuristic,
-	                           params.rolloutHeuristic);
-
-	state->setBiases(mcts->getBias());
-	state->setEnemyActions(mcts->getEnemyActions());
+	                           params.rolloutHeuristic, params.endProbabilityFunction, params.armyValueFunction);
 
 	std::cout << "MCTS Benchmark " << params.benchmarkIndex << ": {" << std::endl
 			<< "\t" << "Seed: " << params.seed << std::endl
@@ -135,6 +141,8 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 			<< "\t" << "Rollout time: " << params.endTime << std::endl
 			<< "\t" << "Value heuristic: " << params.valueHeuristic << std::endl
 			<< "\t" << "Rollout heuristic: " << params.rolloutHeuristic << std::endl
+			<< "\t" << "End probabability function: " << params.endProbabilityFunction << std::endl
+			<< "\t" << "Army value function: " << params.armyValueFunction << std::endl
 			<< "}" << std::endl;
 
 	int actionsTaken = 0;
@@ -147,7 +155,16 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 		if (params.shouldPrintActions)
 			std::cout << "--- Index: " << actionsTaken << " ---" << std::endl <<
 					"Action: " << action << std::endl
-					<< "Current time of state: " << state->getCurrentTime() << std::endl;
+					<< "Current time of state: " << state->getCurrentTime() << std::endl
+					<< "Minerals: " << state->getMinerals() << std::endl
+					<< "Vespene: " << state->getVespene() << std::endl
+					<< "Our Units (M/T/V): " << state->getMarinePopulation() << "/" << state->getTankPopulation() << "/"
+					<< state->getVikingPopulation() << std::endl
+					<< "Enemy marines: " << state->getEnemyCombatUnits() << std::endl
+					<< "Enemy Ground (Pwr/Prod): " << state->getEnemy().groundPower << "/" << state->getEnemy().
+					groundProduction << std::endl
+					<< "Enemy Air (Pwr/Prod): " << state->getEnemy().airPower << "/" << state->getEnemy().
+					airProduction << std::endl;
 
 		if (action == Action::none) {
 			state->wait();
@@ -165,13 +182,19 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 	result.numberOfActions = actionsTaken;
 	result.valuePerAction = static_cast<float>(stateValue) / static_cast<float>(actionsTaken);
 	result.valuePerSecond = static_cast<float>(stateValue) / static_cast<float>(state->getCurrentTime());
-	result.numberOfWorkers = state->getPopulation();
+	result.numberOfWorkers = state->getWorkerPopulation();
+	result.numberOfMarines = state->getMarinePopulation();
+	result.numberOfTanks = state->getTankPopulation();
+	result.numberOfVikings = state->getVikingPopulation();
 	result.numberOfBases = static_cast<int>(state->getBases().size());
 	result.numberOfVespeneCollectors = state->getVespeneCollectorsAmount();
-	std::cout << "Benchmark " << params.benchmarkIndex << " State value: " << stateValue <<
+	std::cout << std::endl << "Benchmark " << params.benchmarkIndex << " State value: " << stateValue <<
 			std::endl <<
 			"Marines: " << state->getMarinePopulation() << std::endl <<
-			"enemiesUnits: " << state->getEnemyCombatUnits() << std::endl
+			"Tanks: " << state->getTankPopulation() << std::endl <<
+			"Vikings: " << state->getVikingPopulation() << std::endl <<
+			"Enemy Ground Power: " << state->getEnemy().groundPower << std::endl <<
+			"Enemy Air Power: " << state->getEnemy().airPower << std::endl
 			<< std::endl
 			<< "------------------------------------------------------------------" << std::endl << std::endl;
 
@@ -180,7 +203,7 @@ BenchmarkResult benchmarkOnTime(const BenchmarkParams &params) {
 }
 
 void dumbBenchmark() {
-	const auto state = std::make_shared<Sc2::State>(100, 0, nullptr, nullptr);
+	const auto state = std::make_shared<Sc2::State>(100, 0, Sc2::ArmyValueFunction::MinPower, 0);
 
 	int actionsTaken = 0;
 	for (auto i = 0; i < 8; i++) {
@@ -214,7 +237,7 @@ void heuristicBenchmark(int time, const unsigned int seed) {
 
 
 	int actionsTaken = 0;
-	const auto state = std::make_shared<Sc2::State>(time, 0, nullptr, nullptr);
+	const auto state = std::make_shared<Sc2::State>(time, 0, Sc2::ArmyValueFunction::MinPower, 0);
 
 	while (!state->endTimeReached()) {
 		actionsTaken++;
@@ -238,9 +261,9 @@ void printResults(const std::vector<float> &results) {
 }
 
 float threadedMcts(const BenchmarkParams &params) {
-	const auto state = std::make_shared<Sc2::State>(params.endTime, 0, nullptr, nullptr);
+	const auto state = std::make_shared<Sc2::State>(params.endTime, params.endProbabilityFunction, params.armyValueFunction, 0);
 	auto mcts = Mcts(state, params.seed, params.endTime, params.exploration, params.valueHeuristic,
-	                 params.rolloutHeuristic);
+	                 params.rolloutHeuristic, params.endProbabilityFunction, params.armyValueFunction);
 	mcts.startSearchThread();
 	int actionsTaken = 0;
 	while (!state->endTimeReached()) {
@@ -316,6 +339,27 @@ void writeBenchmarksToFile(const std::vector<BenchmarkResult> &results) {
 		std::cerr << "Error opening file: " << fileName << std::endl;
 	}
 
+	file	<< "index,"
+			<< "rollout,"
+			<< "end time,"
+			<< "explore,"
+			<< "value heuristics,"
+			<< "rollout heuristic,"
+			<< "time elapsed,"
+			<< "actions taken,"
+			<< "final state value,"
+			<< "final vespene,"
+			<< "final mineral,"
+			<<"value per action,"
+			<<"value per second,"
+			<< "workers,"
+			<< "marines, "
+			<< "tanks, "
+			<< "vikings,"
+			<< "bases,"
+			<< "vespene collectors"
+			<< std::endl;
+
 	// file << std::format("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
 	//                     "index",
 	//                     "rollout",
@@ -341,64 +385,10 @@ void writeBenchmarksToFile(const std::vector<BenchmarkResult> &results) {
 	file.close();
 }
 
-std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollouts, int endTime,
+std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollouts, int endTime,Sc2::ArmyValueFunction armyValueFunction, int endProbabilityFunction,
                                             int benchmarkIndex = 0) {
 	std::vector<BenchmarkResult> results;
 	BenchmarkResult result = {};
-	//
-	// // ------ UCT ------
-	// //----- Random ------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = sqrt(2),
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.4,
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.8,
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 2,
-	// 	.valueHeuristic = ValueHeuristic::UCT,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
 
 	// ------ UCT ------
 	//----- weighted ------
@@ -411,7 +401,22 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = sqrt(2),
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+		.endProbabilityFunction = endProbabilityFunction,
+		.armyValueFunction = armyValueFunction,
+	});
+	results.push_back(result);
 
+	benchmarkIndex++;
+	result = benchmarkOnTime({
+		.benchmarkIndex = benchmarkIndex,
+		.seed = seed,
+		.numberOfRollouts = numberOfRollouts,
+		.endTime = endTime,
+		.exploration = sqrt(2),
+		.valueHeuristic = ValueHeuristic::UCT,
+		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+		.endProbabilityFunction = endProbabilityFunction,
+		.armyValueFunction = armyValueFunction,
 	});
 	results.push_back(result);
 
@@ -424,7 +429,8 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.4,
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-
+		.endProbabilityFunction = endProbabilityFunction,
+		.armyValueFunction = armyValueFunction,
 	});
 	results.push_back(result);
 
@@ -437,7 +443,8 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.8,
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-
+		.endProbabilityFunction = endProbabilityFunction,
+		.armyValueFunction = armyValueFunction,
 	});
 	results.push_back(result);
 
@@ -450,104 +457,10 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 2,
 		.valueHeuristic = ValueHeuristic::UCT,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-
+		.endProbabilityFunction = endProbabilityFunction,
+		.armyValueFunction = armyValueFunction,
 	});
 	results.push_back(result);
-
-	// // ------ UCB normal --------
-	// //--------- Random ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 1,
-	// 	.valueHeuristic = ValueHeuristic::UCB1Normal,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	//
-	// });
-	// results.push_back(result);
-	//
-	// // ------ UCB1 normal --------
-	// //--------- weighted choice ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 1,
-	// 	.valueHeuristic = ValueHeuristic::UCB1Normal,
-	// 	.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	// });
-	// results.push_back(result);
-	//
-	// // ------ UCB1 normal2 --------
-	// //--------- Random ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 1,
-	// 	.valueHeuristic = ValueHeuristic::UCB1Normal2,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// });
-	// results.push_back(result);
-	//
-	// // ------ UCB1 normal2 --------
-	// //--------- weighted choice ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 1,
-	// 	.valueHeuristic = ValueHeuristic::UCB1Normal2,
-	// 	.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-	// });
-	// results.push_back(result);
-	//
-	// // ------ Epsilon greedy --------
-	// //--------- Random ----------
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.2,
-	// 	.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.5,
-	// 	.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// });
-	// results.push_back(result);
-	//
-	// benchmarkIndex++;
-	// result = benchmarkOnTime({
-	// 	.benchmarkIndex = benchmarkIndex,
-	// 	.seed = seed,
-	// 	.numberOfRollouts = numberOfRollouts,
-	// 	.endTime = endTime,
-	// 	.exploration = 0.8,
-	// 	.valueHeuristic = ValueHeuristic::EpsilonGreedy,
-	// 	.rolloutHeuristic = RolloutHeuristic::Random,
-	// });
-	// results.push_back(result);
 
 	// ------ Epsilon greedy --------
 	//--------- Weighted choice ----------
@@ -560,7 +473,8 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.2,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
-		.shouldPrintActions = true,
+		.endProbabilityFunction = endProbabilityFunction,
+		.armyValueFunction = armyValueFunction,
 
 	});
 	results.push_back(result);
@@ -575,6 +489,8 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.5,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+		.endProbabilityFunction = endProbabilityFunction,
+		.armyValueFunction = armyValueFunction,
 	});
 	results.push_back(result);
 
@@ -587,6 +503,8 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.exploration = 0.8,
 		.valueHeuristic = ValueHeuristic::EpsilonGreedy,
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+		.endProbabilityFunction = endProbabilityFunction,
+		.armyValueFunction = armyValueFunction,
 	});
 	results.push_back(result);
 
@@ -596,20 +514,47 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed, const int endTime) {
 	std::vector<BenchmarkResult> allResults;
 	int index = 0;
-	std::vector<BenchmarkResult> results = {}; //BenchmarkSuite(seed, 500, endTime, index);
-	// allResults.insert(allResults.end(), results.begin(), results.end());
-	//
-	// index += 18;
-	// results = BenchmarkSuite(seed, 1000, endTime, index);
-	// allResults.insert(allResults.end(), results.begin(), results.end());
-	//
-	// index += 18;
-	// results = BenchmarkSuite(seed, 2000, endTime, index);
-	// allResults.insert(allResults.end(), results.begin(), results.end());
+	std::vector<BenchmarkResult> results = {};
 
-	index += 18;
-	results = BenchmarkSuite(seed, 5000, endTime, index);
+	results = BenchmarkSuite(seed, 5000, endTime, Sc2::ArmyValueFunction::MarinePower,0, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
+
+	index += 8;
+	results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::MarinePower,0, index);
+	allResults.insert(allResults.end(), results.begin(), results.end());
+
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::MinPower,1, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::MinPower,2, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::AveragePower,0, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::AveragePower,1, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::AveragePower,2, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::ScaledPower,0, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::ScaledPower,1, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
+	//
+	// index += 8;
+	// results = BenchmarkSuite(seed, 10000, endTime, Sc2::ArmyValueFunction::ScaledPower,2, index);
+	// allResults.insert(allResults.end(), results.begin(), results.end());
 
 	return allResults;
 }
@@ -630,6 +575,9 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 			averageBenchmarkResult[benchIndex].valuePerAction += benchmarkRuns[runIndex][benchIndex].valuePerAction;
 			averageBenchmarkResult[benchIndex].valuePerSecond += benchmarkRuns[runIndex][benchIndex].valuePerSecond;
 			averageBenchmarkResult[benchIndex].numberOfWorkers += benchmarkRuns[runIndex][benchIndex].numberOfWorkers;
+			averageBenchmarkResult[benchIndex].numberOfMarines += benchmarkRuns[runIndex][benchIndex].numberOfMarines;
+			averageBenchmarkResult[benchIndex].numberOfTanks += benchmarkRuns[runIndex][benchIndex].numberOfTanks;
+			averageBenchmarkResult[benchIndex].numberOfVikings += benchmarkRuns[runIndex][benchIndex].numberOfVikings;
 			averageBenchmarkResult[benchIndex].numberOfBases += benchmarkRuns[runIndex][benchIndex].numberOfBases;
 			averageBenchmarkResult[benchIndex].numberOfVespeneCollectors += benchmarkRuns[runIndex][benchIndex].
 					numberOfVespeneCollectors;
@@ -648,6 +596,9 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 		averageBenchmarkResult[benchIndex].numberOfActions = static_cast<int>(
 			averageBenchmarkResult[benchIndex].numberOfActions / static_cast<double>(numberOfRuns));
 		averageBenchmarkResult[benchIndex].numberOfWorkers /= static_cast<float>(numberOfRuns);
+		averageBenchmarkResult[benchIndex].numberOfMarines /= static_cast<float>(numberOfRuns);
+		averageBenchmarkResult[benchIndex].numberOfTanks /= static_cast<float>(numberOfRuns);
+		averageBenchmarkResult[benchIndex].numberOfVikings /= static_cast<float>(numberOfRuns);
 		averageBenchmarkResult[benchIndex].numberOfBases /= static_cast<float>(numberOfRuns);
 		averageBenchmarkResult[benchIndex].numberOfVespeneCollectors /= static_cast<float>(numberOfRuns);
 		averageBenchmarkResult[benchIndex].finalStateValue /= static_cast<double>(numberOfRuns);
@@ -690,11 +641,13 @@ int main() {
 	// benchmarkOnTime({
 	// 	.benchmarkIndex = 1,
 	// 	.seed = seed,
-	// 	.numberOfRollouts = 5000,
+	// 	.numberOfRollouts = 10000,
 	// 	.endTime = 480,
 	// 	.exploration = 0.4,
 	// 	.valueHeuristic = ValueHeuristic::UCT,
 	// 	.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
+	// 	.endProbabilityFunction = 1,
+	// 	.armyValueFunction = Sc2::ArmyValueFunction::AveragePower,
 	// 	.shouldPrintActions = true,
 	//
 	// });

@@ -25,7 +25,7 @@ from Python.Modules.result_saver import save_result
 from Python.Modules.worker_manager import WorkerManager
 from Python.Modules.army_manager import ArmyManager
 from Python.Modules.information_manager import WorkerRole, InformationManager, \
-    STEPS_PER_SECOND, WorkerData, TownhallData, GasBuildingData, StructureData, UnitData
+    STEPS_PER_SECOND, WorkerData, TownhallData, GasBuildingData, StructureData, UnitData, EnemyEntity
 from Python.Modules.scoutmanager import ScoutManager
 from Python.Actions.build_structure_helper import StructureBuilderHelper
 from Python.Actions.build_unit_helper import UnitBuilderHelper
@@ -72,6 +72,7 @@ class MyBot(BotAI):
     base_worker = None
     busy_workers: dict[int, float] = {}
     actions_taken: dict[int, Action] = {}
+    waiting_for_techlab: bool = False
 
     # Completed_bases is used to keep track of processed vespene extractors
     def __init__(self,
@@ -84,7 +85,7 @@ class MyBot(BotAI):
                  action_selection: ActionSelection = ActionSelection.BestAction,
                  future_action_queue_length: int = 1,
                  minimum_search_rollouts: int = 5000) -> None:
-        self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics)
+        self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics, end_probability_function=1, army_value_function=ArmyValueFunction.marine_power)
         self.mcts_settings = [
             mcts_seed,
             mcts_rollout_end_time,
@@ -136,6 +137,7 @@ class MyBot(BotAI):
         self.manage_workers()
         self.army_manager.manage_army()
         self.scout_manager.manage_scouts()
+        self.update_enemy_units_and_structures()
 
         match self.next_action:
             case Action.build_base:
@@ -156,6 +158,18 @@ class MyBot(BotAI):
             case Action.build_marine:
                 await self.build_marine()
                 self.actions_taken.update({iteration: Action.build_marine})
+            case Action.build_tank:
+                await self.build_tank()
+                self.actions_taken.update({iteration: Action.build_tank})
+            case Action.build_viking:
+                await self.build_viking()
+                self.actions_taken.update({iteration: Action.build_viking})
+            case Action.build_factory:
+                await self.build_factory()
+                self.actions_taken.update({iteration: Action.build_factory})
+            case Action.build_starport:
+                await self.build_starport()
+                self.actions_taken.update({iteration: Action.build_starport})
             case Action.none:
                 match self.action_selection:
                     case ActionSelection.BestAction:
@@ -172,10 +186,19 @@ class MyBot(BotAI):
             height = self.get_terrain_z_height(loc) + 0.1
             self.client.debug_box_out(Point3((start_loc[0], start_loc[1], height)), Point3((end_loc[0], end_loc[1], height)), color=color)
 
-        grid = self.map_analyzer.grid
-        for x, y in product(range(grid.width), range(grid.height)):
-                if grid[(x, y)]:
-                    self.client.debug_text_3d(f"{x},{y}", Point3((x, y+0.5, self.get_terrain_z_height(Point2((x,y)))+0.1)), (255, 255, 255))
+        # grid = self.map_analyzer.grid
+        # for x, y in product(range(grid.width), range(grid.height)):
+        #         if grid[(x, y)]:
+        #             self.client.debug_text_3d(f"{x},{y}", Point3((x, y+0.5, self.get_terrain_z_height(Point2((x,y)))+0.1)), (255, 255, 255))
+
+        for asd in self.scout_manager.orbit_points:
+            height = self.get_terrain_z_height(asd)
+            self.client.debug_sphere_out(Point3((asd.x, asd.y, height)), 0.5, (255, 0, 0))
+
+
+        for worker in self.workers:
+            data = self.information_manager.worker_data[worker.tag]
+            self.client.debug_text_3d(f"Role: {data.role}\nAssigned: {data.assigned_to_tag}", Point3((worker.position.x, worker.position.y, self.get_terrain_z_height(worker.position) + 0.2)))
 
         thlocs = self.information_manager.expansion_locations
         for thloc in thlocs:
@@ -195,9 +218,53 @@ class MyBot(BotAI):
     async def build_marine(self) -> None:
         if not self.can_afford(UnitTypeId.MARINE):
             return
-        if not self.structures.filter(lambda sr: sr.type_id == UnitTypeId.BARRACKS).ready.filter(lambda t: len(t.orders) == 0):
+        if not self.structures.filter(lambda sr: sr.type_id == UnitTypeId.BARRACKS and len(sr.orders) == 0).ready:
             return
         await self.marine_builder.build_marine()
+        self.set_next_action()
+
+    async def build_tank(self) -> None:
+        if not self.can_afford(UnitTypeId.SIEGETANK):
+            return
+        if not self.structures.filter(lambda sr: sr.type_id == UnitTypeId.FACTORY
+                                                 and sr.has_techlab
+                                                 and len(sr.orders) == 0).ready:
+            return
+        await self.siege_builder.build_tank()
+        self.set_next_action()
+
+    async def build_viking(self) -> None:
+        if not self.can_afford(UnitTypeId.VIKINGFIGHTER):
+            return
+        if not self.structures.filter(lambda sr: sr.type_id == UnitTypeId.STARPORT and len(sr.orders) == 0).ready:
+            return
+        await self.viking_builder.build_viking()
+        self.set_next_action()
+
+    async def build_factory(self) -> None:
+        if self.waiting_for_techlab:
+            if not self.can_afford(UnitTypeId.TECHLAB):
+                return
+            if not self.structures(UnitTypeId.FACTORY).ready.filter(lambda sr: sr.has_techlab == False):
+                return
+            # TODO: If a worker is blocking the techlab location we never place it :(
+            await self.factory_builder.build_tech_lab()
+            self.waiting_for_techlab = False
+            self.set_next_action()
+            return
+        if not self.can_afford(UnitTypeId.FACTORY):
+            return
+        if not self.tech_requirement_progress(UnitTypeId.FACTORY) >= 1:
+            return
+        await self.factory_builder.build_factory()
+        self.waiting_for_techlab = True
+
+    async def build_starport(self) -> None:
+        if not self.can_afford(UnitTypeId.STARPORT):
+            return
+        if not self.tech_requirement_progress(UnitTypeId.STARPORT) >= 1:
+            return
+        await self.starport_builder.build_starport()
         self.set_next_action()
 
     async def build_base(self) -> None:
@@ -265,15 +332,31 @@ class MyBot(BotAI):
                 self.information_manager.gas_data.update({unit.tag: GasBuildingData(unit.position, unit.tag)})
             case UnitTypeId.SUPPLYDEPOT:
                 unit(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
-                self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
+                self.information_manager.structures_data.update(
+                    {unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
             case _:
-                self.information_manager.structures_data.update({unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
+                self.information_manager.structures_data.update(
+                    {unit.tag: StructureData(unit.position, unit.tag, unit.type_id)})
         building_worker = self.workers.closest_to(unit)
         self.worker_manager.assign_worker(building_worker.tag, WorkerRole.IDLE, None)
+
+    # When a unit enters the vision of the bot, we update the information manager
+    async def on_enemy_unit_entered_vision(self, unit: Unit):
+        # We don't want to store snapshots
+        if unit.is_snapshot:
+            return
+        if unit.is_structure:
+            self.information_manager.enemy_structures.update(
+                {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
+        else:
+            self.information_manager.enemy_units.update(
+                {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
 
     async def on_unit_created(self, unit: Unit):
         match unit.type_id:
             case UnitTypeId.SCV:
+                if self.information_manager.worker_data.__contains__(unit.tag):
+                    return
                 unit(AbilityId.STOP_STOP)
                 self.information_manager.worker_data.update({unit.tag: WorkerData(WorkerRole.IDLE, unit.tag)})
             case _:
@@ -343,6 +426,18 @@ class MyBot(BotAI):
     def manage_workers(self):
         self.worker_manager.distribute_workers()
         self.worker_manager.speed_mine()
+
+    # While we see the enemy units, we update the information stored in the information manager
+    def update_enemy_units_and_structures(self):
+        for unit in self.enemy_units:
+            if unit.tag in self.information_manager.enemy_units:
+                self.information_manager.enemy_units.update(
+                    {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
+        for unit in self.enemy_structures:
+            if unit.tag in self.information_manager.enemy_structures:
+                self.information_manager.enemy_structures.update(
+                    {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
+
 
 class PeacefulBot(BotAI):
     async def on_step(self, iteration: int) -> None:
