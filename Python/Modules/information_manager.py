@@ -3,12 +3,16 @@ import typing
 from collections import namedtuple
 from enum import Enum
 from typing import Optional, Dict, Set, List, Tuple
+import pandas as pd
+import torch
 
 from sc2.unit import Unit
 
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
+from data.data_processing import ArenaNetwork
+from sc2.units import Units
 
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
@@ -80,6 +84,7 @@ class PlacementType(Enum):
     TECH = 2
 
 class InformationManager:
+    combat_model: ArenaNetwork
     worker_data: Dict[int, WorkerData]
     structures_data: Dict[int, StructureData]
     townhall_data: Dict[int, TownhallData]
@@ -99,6 +104,14 @@ class InformationManager:
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
+
+        # Columns names of the feature vector
+        self.column_names = pd.read_csv('data/micro_arena.csv').drop('result', axis=1).columns
+
+        self.combat_model = ArenaNetwork(input_size=len(self.column_names))
+        self.combat_model.load_state_dict(torch.load('data/arena_model.pth'))
+        self.combat_model.eval()
+
         if bot.game_mode != bot.GameMode.micro_arena:
             self.expansion_locations = {el: el.distance_to(self.bot.start_location) < 15
                 for el in self.bot.expansion_locations_list}
@@ -351,3 +364,34 @@ class InformationManager:
         if worker_role is None:
             return self.worker_data
         return {key: value for key, value in self.worker_data.items() if value.role == worker_role}
+
+    def get_combat_win_probability(self, player_units: Units, enemy_units: Units) -> float:
+        features = self.__get_features(player_units, enemy_units)
+        with torch.no_grad():
+            outputs = self.combat_model(features)
+            probs = torch.exp(outputs) # Outputs is log probabilities, this converts them to regular probabilities
+            win_prob = probs[0][2].item()
+
+        return win_prob
+
+    def __get_features(self, player_units: Units, enemy_units: Units) -> torch.Tensor:
+        player_unit_dict = self.__get_units_for("player", player_units)
+        enemy_unit_dict = self.__get_units_for("enemy", enemy_units)
+        unit_dict = player_unit_dict | enemy_unit_dict
+
+        df = pd.DataFrame([unit_dict])
+        df = df[self.column_names] # only keep the columns which exist in the dataset
+        row = df.iloc[0]
+
+        tensor = torch.tensor(row.to_numpy(), dtype=torch.float32).unsqueeze(0)
+        return tensor
+
+    def __get_units_for(self, player: str,units: Units) -> dict:
+        res: dict ={}
+
+        for name in UnitTypeId._member_names_:
+            res[player + ":" + name] = 0
+
+        for unit in units:
+            res[player + ":" + unit.type_id.name] += 1
+        return res
