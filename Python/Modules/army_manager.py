@@ -18,14 +18,23 @@ class ArmyManager:
         self.unit_exclusion_list = self.bot.information_manager.units_to_ignore_for_army
         self.viking_manager = VikingFighterCombat(bot)
         self.tank_manager = SiegeTankCombat(bot)
+        self.attacking = False
+        self.rally_point: Point2 = self.bot.start_location
 
     # TODO: Analyze the map to determine where to attack
     # TODO: Implement squads
+    def __units_to_include(self) -> Units:
+        return self.bot.units.exclude_type(self.unit_exclusion_list)
 
     def manage_army(self) -> None:
-        marine_count = self.bot.units.filter(lambda u: u.type_id == UnitTypeId.MARINE).amount
-        if marine_count > 20:
+        if self.__units_to_include().amount > 20 or self.attacking:
+            self.attacking = True
             self.attack_enemy_base()
+
+        if self.__units_to_include().amount < 20 and self.attacking:
+            self.attacking = False
+            for unit in self.__units_to_include():
+                unit.move(self.rally_point)
 
         self.defend_structures()
 
@@ -37,9 +46,6 @@ class ArmyManager:
                 for unit in combat_units:
                     unit.attack(position)
                 break
-
-    def __units_to_include(self) -> Units:
-        return self.bot.units.exclude_type(self.unit_exclusion_list)
 
     def attack_enemy(self):
         for unit in self.bot.units:
