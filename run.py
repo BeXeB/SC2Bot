@@ -39,6 +39,8 @@ if __name__ == "__main__":
         match = GameMatch(
             maps.get("KingsCoveLE"),
             [bot,opponent],
+            # maps.get("MicroDataCollectionMap"),
+            # [battle_bot, opponent],
             realtime=False,
             disable_fog=False,
             random_seed=0

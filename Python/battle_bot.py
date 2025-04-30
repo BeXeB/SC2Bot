@@ -4,6 +4,8 @@ import os
 from enum import Enum
 from typing import List
 
+import pandas as pd
+
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
@@ -80,22 +82,22 @@ class BattleBot(MyBot):
         for matchup in self.matchups:
             player_unit_dict = self.get_units_for(player, matchup.player_units)
             enemy_unit_dict = self.get_units_for(enemy, matchup.enemy_units)
-            match_dict = player_unit_dict | enemy_unit_dict
+            match_dict = player_unit_dict | enemy_unit_dict # merge dictionaries
             match_dict.update({result: matchup.result.value})
             data.append(match_dict)
+
+        df = pd.DataFrame(data)
 
         file_exists = os.path.exists(filepath)
 
         if file_exists:
-            with open(filepath, 'a', newline='') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writerows(data)
-        else:
-            with open(filepath, 'w', newline='') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
-                writer.writerows(data)
+            csv_data = pd.read_csv(filepath)
 
+            df = pd.concat([df, csv_data], ignore_index=True) # merge existing data with new data.
+            df.fillna(0, inplace=True) #Fills na values for columns not in the csv file
+
+        df = df.loc[:, (df != 0).any()] # only keep columns where there exists a non-zero value
+        df.to_csv(filepath, index=False)
 
     def get_units_for(self, player: str,units: List[Unit]) -> dict:
         res: dict ={}
