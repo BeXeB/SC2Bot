@@ -266,13 +266,13 @@ std::vector<Action> Sc2::State::getLegalActions() const {
         actions.emplace_back(Action::buildBarracks);
     }
 
-    // if (hasWorkers && (_barracksAmount > 0 || _incomingBarracks) && (_incomingVespeneCollectors > 0 || getVespeneCollectorsAmount() > 0)) {
-    //     actions.emplace_back(Action::buildFactory);
-    // }
-    //
-    // if (hasWorkers && (_factoryAmount > 0 || _incomingFactory > 0)) {
-    //     actions.emplace_back(Action::buildStarPort);
-    // }
+    if (hasWorkers && (_barracksAmount > 0 || _incomingBarracks) && (_incomingVespeneCollectors > 0 || getVespeneCollectorsAmount() > 0)) {
+        actions.emplace_back(Action::buildFactory);
+    }
+
+    if (hasWorkers && (_factoryAmount > 0 || _incomingFactory > 0)) {
+        actions.emplace_back(Action::buildStarPort);
+    }
 
     // if (_factoryAmount + _incomingFactory > _factoryTechLabAmount + _incomingFactoryTechLab) {
     //     actions.emplace_back(Action::buildFactoryTechLab);
