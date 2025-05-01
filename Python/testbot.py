@@ -139,6 +139,9 @@ class MyBot(BotAI):
         self.scout_manager.manage_scouts()
         self.update_enemy_units_and_structures()
 
+        if self.structures(UnitTypeId.FACTORY).ready.filter(lambda sr: sr.has_techlab == False):
+            await self.factory_builder.build_tech_lab()
+
         match self.next_action:
             case Action.build_base:
                 await self.build_base()
@@ -242,22 +245,12 @@ class MyBot(BotAI):
         self.set_next_action()
 
     async def build_factory(self) -> None:
-        if self.waiting_for_techlab:
-            if not self.can_afford(UnitTypeId.TECHLAB):
-                return
-            if not self.structures(UnitTypeId.FACTORY).ready.filter(lambda sr: sr.has_techlab == False):
-                return
-            # TODO: If a worker is blocking the techlab location we never place it :(
-            await self.factory_builder.build_tech_lab()
-            self.waiting_for_techlab = False
-            self.set_next_action()
-            return
         if not self.can_afford(UnitTypeId.FACTORY):
             return
         if not self.tech_requirement_progress(UnitTypeId.FACTORY) >= 1:
             return
         await self.factory_builder.build_factory()
-        self.waiting_for_techlab = True
+        self.set_next_action()
 
     async def build_starport(self) -> None:
         if not self.can_afford(UnitTypeId.STARPORT):
@@ -360,6 +353,7 @@ class MyBot(BotAI):
                 unit(AbilityId.STOP_STOP)
                 self.information_manager.worker_data.update({unit.tag: WorkerData(WorkerRole.IDLE, unit.tag)})
             case _:
+                unit.move(self.army_manager.rally_point)
                 self.information_manager.unit_data.update({unit.tag: UnitData(unit.tag, unit.type_id)})
 
     async def on_end(self, game_result: Result):

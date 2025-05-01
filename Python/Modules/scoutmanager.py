@@ -47,7 +47,7 @@ class ScoutManager:
         # If there are not, update the target
         elif not self.__in_danger(scout, enemy_units):
             if self.__enemies_in_range(enemy_units, scout):
-                self.__update_target()
+                self.__handle_orbiting(scout)
             else:
                 self.__update_target()
         # Otherwise, if the scout is in danger, go to the next target
