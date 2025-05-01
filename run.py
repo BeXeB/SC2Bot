@@ -1,5 +1,7 @@
 import sys
 from typing import List
+
+from Python.battle_bot import BattleBot
 from sc2.player import Bot, Computer
 from sc2.data import Difficulty, Race
 from sc2.main import run_multiple_games, run_game, GameMatch
@@ -22,18 +24,23 @@ bot = Bot(Race.Terran, MyBot(
     minimum_search_rollouts=5000
 ))
 
+battle_bot = Bot(Race.Terran, BattleBot())
+
 if __name__ == "__main__":
+
     if "--LadderServer" in sys.argv:
         print("Starting ladder game...")
         result, opponentid = run_ladder_game(bot)
         print(result, " against opponent ", opponentid)
     else:
         print("Starting local game...")
-        opponent = Computer(Race.Terran, Difficulty.MediumHard)
-        #opponent = Bot(Race.Terran, PeacefulBot())
+        # opponent = Computer(Race.Terran, Difficulty.MediumHard)
+        opponent = Bot(Race.Terran, PeacefulBot())
         match = GameMatch(
             maps.get("KingsCoveLE"),
-            [opponent,bot],
+            [bot,opponent],
+            # maps.get("MicroDataCollectionMap"),
+            # [battle_bot, opponent],
             realtime=False,
             disable_fog=False,
             random_seed=0
