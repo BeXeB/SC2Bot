@@ -36,9 +36,9 @@ class ArenaNetwork(nn.Module):
     def __init__(self, input_size: int):
         super(ArenaNetwork, self).__init__()
         self.input_size = input_size
-        self.input = nn.Linear(input_size, 5)
-        self.hidden = nn.Linear(5, 5)
-        self.output = nn.Linear(5, 3)
+        self.input = nn.Linear(input_size, 128)
+        self.hidden = nn.Linear(128, 64)
+        self.output = nn.Linear(64, 3)
 
     def forward(self, x):
         x = x.view(-1, self.input_size)
