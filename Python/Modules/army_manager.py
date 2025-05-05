@@ -96,3 +96,40 @@ class ArmyManager:
                 self.viking_manager.manage_unit(unit)
             case UnitTypeId.SIEGETANK | UnitTypeId.SIEGETANKSIEGED:
                 self.tank_manager.manage_unit(unit)
+
+    async def split_combat_units(self, nearest_enemy: Unit):
+        print("GOT INTO SPLIT")
+        enemy_squad = self.bot.enemy_units.closer_than(5, nearest_enemy)
+        own_buildings = self.bot.structures
+
+        print("GOT TO BUILDINGS")
+
+        for building in own_buildings:
+            if enemy_squad.closer_than(5, building):
+                split_units = await self.find_winning_composition(enemy_squad)
+                for unit in split_units:
+                    unit.attack(building)
+
+    async def find_winning_composition(self, enemy_squad: Units) -> Units:
+        own_units = self.bot.units.exclude_type(self.unit_exclusion_list)
+        win_prob = self.bot.information_manager.get_combat_win_probability(own_units, enemy_squad)
+        own_units = list(own_units)
+        final_units = own_units.copy()
+        i = 0
+
+
+        if (win_prob < 0.5):
+            print("Army can't win")
+            return Units([], self.bot)
+
+        while (i < len(final_units)):
+            # Takes the elements before index i and the elements after index i, excluding element i
+            test_units = final_units[:i] + final_units[i+1:]
+
+            win_prob = self.bot.information_manager.get_combat_win_probability(Units(test_units, self.bot), enemy_squad)
+            if win_prob > 0.5:
+                # If our win probability is still above 50%, we keep the new list for further iterations
+                final_units = test_units
+            else:
+                i += 1
+        return Units(final_units, self.bot)
