@@ -115,6 +115,8 @@ class InformationManager:
         if bot.game_mode != bot.GameMode.micro_arena:
             self.expansion_locations = {el: el.distance_to(self.bot.start_location) < 15
                 for el in self.bot.expansion_locations_list}
+        else:
+            self.expansion_locations = {}
         self.worker_data = {worker.tag: WorkerData(WorkerRole.IDLE, worker.tag)
             for worker in self.bot.workers}
 
