@@ -65,6 +65,14 @@ target_include_directories(
         PRIVATE ${MCTS_SOURCE}
 )
 
+add_executable(Enemy
+        ${STATE_SOURCE}/enemy/Enemy.cpp
+)
+
+target_include_directories(
+        Enemy
+        PRIVATE ${STATE_SOURCE}
+)
 #add_executable(
 #        sc2State
 #        ${STATE_SOURCE}/Sc2State.cpp

@@ -448,7 +448,19 @@ TEST_SUITE("Test the Sc2State") {
 		auto enemy = Enemy(EnemyRace::Terran, 1);
 
 		SUBCASE("Enemies can take actions") {
-			enemy.takeAction(500, Action::addEnemyUnit);
+			auto initialProduction = enemy.productionBuildings;
+			enemy.takeAction(500, EnemyAction::addEnemyProduction);
+
+
+			bool productionIncreased = false;
+			for (auto [type,building]: initialProduction) {
+				productionIncreased = enemy.productionBuildings[type].amount > building.amount;
+				if (productionIncreased) {
+					break;
+				}
+			}
+			CHECK(productionIncreased);
+
 		}
 		SUBCASE("Copied enemies will take the same actions") {
 			enemy.takeAction(500);

@@ -2,9 +2,10 @@
 // Created by marco on 06/05/2025.
 //
 #include "Enemy.h"
-#include "ActionEnum.h"
 
-Action Enemy::generateEnemyAction() {
+#include <iostream>
+
+EnemyAction Enemy::generateEnemyAction() {
     // Over the span of 60 seconds we assume that the enemy:
     // Specifies how many enemy units will be built
     constexpr double buildUnitAction = 8;
@@ -30,63 +31,63 @@ Action Enemy::generateEnemyAction() {
     // 0: None, 1: Build unit, 2: Attack, 3: GroundPowerIncrease, 4: AirPowerIncrease, 5: Ground Production, 6: Air Production
     switch (dist(_rng)) {
         case 1:
-            return Action::addEnemyUnit;
+            return EnemyAction::addEnemyUnit;
         case 2:
-            return Action::attackPlayer;
+            return EnemyAction::attackPlayer;
         case 3:
-            return Action::addEnemyGroundPower;
+            return EnemyAction::addEnemyGroundPower;
         case 4:
-            return Action::addEnemyAirPower;
+            return EnemyAction::addEnemyAirPower;
         case 5:
-            return Action::addEnemyGroundProduction;
+            return EnemyAction::addEnemyGroundProduction;
         case 6:
-            return Action::addEnemyAirProduction;
+            return EnemyAction::addEnemyAirProduction;
         default:
-            return Action::none;
+            return EnemyAction::none;
     }
 }
 
-Action Enemy::takeAction(const int currentTime, std::optional<Action> action) {
+EnemyAction Enemy::takeAction(const int currentTime, std::optional<EnemyAction> action) {
     if (!action) {
         action = generateEnemyAction();
     }
     switch (action.value()) {
-        case Action::addEnemyUnit:
-            if (currentTime < 90) {
-                break;
-            }
+        // case Action::addEnemyUnit:
+        //     if (currentTime < 90) {
+        //         break;
+        //     }
+        //     break;
+        case EnemyAction::attackPlayer:
             break;
-        case Action::attackPlayer:
-            break;
-        case Action::addEnemyGroundPower:
+        case EnemyAction::addEnemyGroundPower:
             if (currentTime < 90) {
                 break;
             }
             addEnemyGroundPower();
             break;
-        case Action::addEnemyAirPower:
+        case EnemyAction::addEnemyAirPower:
             if (currentTime < 120) {
                 break;
             }
             addEnemyAirPower();
             break;
-        case Action::addEnemyGroundProduction:
+        case EnemyAction::addEnemyGroundProduction:
             if (currentTime < 90) {
                 break;
             }
             addEnemyGroundProduction();
             break;
-        case Action::addEnemyAirProduction:
+        case EnemyAction::addEnemyAirProduction:
             if (currentTime < 120) {
                 break;
             }
             addEnemyAirProduction();
             break;
-        // case Action::addEnemyUnit:
-        // addUnits();
-        // case Action::addEnemyProduction:
-        // addProductionBuilding();
-        case Action::none:
+        case EnemyAction::addEnemyUnit:
+            addUnits();
+        case EnemyAction::addEnemyProduction:
+            addProductionBuilding(currentTime);
+        case EnemyAction::none:
             break;
         default:
             throw std::invalid_argument("invalid action");
@@ -101,7 +102,7 @@ void Enemy::addProductionBuilding(const int currentTime) {
             continue;
 
         auto requiredBuilding = building.buildingRequirement;
-        if (productionBuildings[requiredBuilding].amount < 1 ) {
+        if (requiredBuilding!= ProductionBuildingType::None && productionBuildings[requiredBuilding].amount < 1 ) {
             continue;
         }
 
@@ -125,9 +126,42 @@ void Enemy::addUnits() {
             }
         }
     }
+
+    if (availableUnits.empty()) {
+        return;
+    }
     const auto unit = randomChoice(availableUnits);
     const auto building = unitBuildings[unit];
     const auto buildingAmount = productionBuildings[building].amount;
 
     units[unit] += std::floor(buildingAmount);
 }
+
+// int main() {
+//     std::cout << "Hello, World!\n";
+//     auto enemy = Enemy(EnemyRace::Terran, 1);
+//
+//
+//     auto initialProduction = enemy.productionBuildings;
+//     // enemy.takeAction(500, EnemyAction::addEnemyProduction);
+//     //
+//     //
+//     // bool productionIncreased = false;
+//     // for (auto [type,building]: initialProduction) {
+//     //     productionIncreased = enemy.productionBuildings[type].amount > building.amount;
+//     //     if (productionIncreased) {
+//     //         break;
+//     //     }
+//     // }
+//     //
+//     enemy.takeAction(500);
+//     enemy.takeAction(500);
+//
+//     auto enemy2 = enemy;
+//
+//     for (int i = 0; i < 50; i++) {
+//         auto action = enemy.takeAction(500);
+//         auto action2 = enemy2.takeAction(500);
+//
+//     }
+// }

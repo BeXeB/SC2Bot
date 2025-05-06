@@ -21,7 +21,16 @@ enum class EnemyRace {
 };
 
 enum class Action;
-
+enum class EnemyAction {
+	none,
+	addEnemyUnit,
+	addEnemyGroundPower,
+	addEnemyAirPower,
+	addEnemyGroundProduction,
+	addEnemyAirProduction,
+	addEnemyProduction,
+	attackPlayer
+};
 struct Enemy {
 	EnemyRace race = EnemyRace::Terran;
 	std::map<EnemyUnitType, int> units = {
@@ -69,8 +78,8 @@ struct Enemy {
 	float airProduction = 0;
 	int enemyCombatUnit = 0;
 
-	Action generateEnemyAction();
-	Action takeAction(int currentTime, std::optional<Action> action = std::nullopt);
+	EnemyAction generateEnemyAction();
+	EnemyAction takeAction(int currentTime, std::optional<EnemyAction> action = std::nullopt);
 
 
 	Enemy(const EnemyRace race, std::map<EnemyUnitType, int> units, std::unordered_map<ProductionBuildingType,ProductionBuilding> productionBuildings, const unsigned int seed)

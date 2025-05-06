@@ -18,21 +18,24 @@ enum class ProductionBuildingType {
 struct ProductionBuilding {
     float amount = 0;
     int timeRequirement = 0;
+    ProductionBuildingType type = ProductionBuildingType::None;
     ProductionBuildingType buildingRequirement = ProductionBuildingType::None;
 
     [[nodiscard]] const std::vector<EnemyUnitType>& getProductionList() const {return productionList;}
 
-    ProductionBuilding(const float amount, const int timeRequirement, const ProductionBuildingType buildRequirement, std::vector<EnemyUnitType> const &productionList):
+    ProductionBuilding(const ProductionBuildingType type,const float amount, const int timeRequirement, const ProductionBuildingType buildRequirement, std::vector<EnemyUnitType> const &productionList):
         amount(amount),
         timeRequirement(timeRequirement),
+        type(type),
         buildingRequirement(buildRequirement),
-        productionList(productionList) {}
+        productionList(productionList){}
 
     ProductionBuilding(const ProductionBuilding& productionBuilding) {
         amount = productionBuilding.amount;
         productionList = productionBuilding.productionList;
         timeRequirement = productionBuilding.timeRequirement;
         buildingRequirement = productionBuilding.buildingRequirement;
+        type = productionBuilding.type;
     };
 
     ProductionBuilding() = default;
@@ -41,7 +44,7 @@ private:
 };
 
 struct BarracksProductionBuilding : public ProductionBuilding {
-    explicit BarracksProductionBuilding(const float amount) : ProductionBuilding(amount, 130, ProductionBuildingType::None,  std::vector<EnemyUnitType> {
+    explicit BarracksProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Barracks ,amount, 130, ProductionBuildingType::None,  std::vector<EnemyUnitType> {
                                                                                       EnemyUnitType::MARINE,
                                                                                       EnemyUnitType::MARAUDER,
                                                                                       EnemyUnitType::REAPER,
@@ -52,7 +55,7 @@ struct BarracksProductionBuilding : public ProductionBuilding {
 };
 
 struct FactoryProductionBuilding : public ProductionBuilding {
-    explicit FactoryProductionBuilding(const float amount) : ProductionBuilding(amount, 0, ProductionBuildingType::Barracks ,std::vector<EnemyUnitType> {
+    explicit FactoryProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Factory ,amount, 0, ProductionBuildingType::Barracks ,std::vector<EnemyUnitType> {
                                                                                       EnemyUnitType::HELLION,
                                                                                       EnemyUnitType::SIEGETANK,
                                                                                       EnemyUnitType::THOR,
@@ -64,7 +67,7 @@ struct FactoryProductionBuilding : public ProductionBuilding {
 };
 
 struct StarportProductionBuilding : public ProductionBuilding {
-    explicit StarportProductionBuilding(const float amount) : ProductionBuilding(amount, 0, ProductionBuildingType::Factory ,std::vector<EnemyUnitType> {
+    explicit StarportProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Starport ,amount, 0, ProductionBuildingType::Factory ,std::vector<EnemyUnitType> {
                                                                                       EnemyUnitType::VIKINGFIGHTER,
                                                                                       EnemyUnitType::MEDIVAC,
                                                                                       EnemyUnitType::LIBERATOR,
