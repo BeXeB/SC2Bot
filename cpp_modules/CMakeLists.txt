@@ -24,6 +24,7 @@ add_executable(RunTests
         ${STATE_SOURCE}/Sc2State.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
+        ${STATE_SOURCE}/enemy/Enemy.cpp
 )
 
 target_include_directories(
