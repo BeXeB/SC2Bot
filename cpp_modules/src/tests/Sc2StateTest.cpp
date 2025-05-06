@@ -5,6 +5,9 @@
 
 #include "doctest.h"
 #include "Sc2State.h"
+#include "Enemy.h"
+
+#include <iostream>
 
 
 TEST_SUITE("Test the Sc2State") {
@@ -435,6 +438,30 @@ TEST_SUITE("Test the Sc2State") {
 		state->addEnemyUnit();
 		state->addEnemyUnit();
 		CHECK(state->getEnemyCombatUnits() == 3);
+		Enemy e = Enemy(EnemyRace::Terran, 0);
+		auto a = e.generateEnemyAction();
+		auto b = e;
+		e.generateEnemyAction();
+	}
+
+	TEST_CASE("Test Enemy") {
+		auto enemy = Enemy(EnemyRace::Terran, 1);
+
+		SUBCASE("Enemies can take actions") {
+			enemy.takeAction(500, Action::addEnemyUnit);
+		}
+		SUBCASE("Copied enemies will take the same actions") {
+			enemy.takeAction(500);
+			enemy.takeAction(500);
+
+			auto enemy2 = enemy;
+			
+			for (int i = 0; i < 50; i++) {
+				auto action = enemy.takeAction(500);
+				auto action2 = enemy2.takeAction(500);
+				CHECK(action == action2);
+			}
+		}
 	}
 
 	/*
