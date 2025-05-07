@@ -21,6 +21,9 @@ enum class ProductionBuildingType {
     Spire,
     BanelingNest,
     InfestationPit,
+    Gateway,
+    Stargate,
+    RoboticsFacility,
     None,
 };
 
@@ -155,6 +158,46 @@ struct SpireProductionBuilding : public ProductionBuilding {
         ProductionBuildingType::InfestationPit,
         std::vector<EnemyUnitType>{EnemyUnitType::MUTALISK,EnemyUnitType::CORRUPTOR, EnemyUnitType::BROODLORD}){}
 };
+struct UltraliskCavernProductionBuilding : public ProductionBuilding {
+    explicit UltraliskCavernProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::UltraliskCavern,
+        amount,
+        0,
+        ProductionBuildingType::InfestationPit,
+        std::vector<EnemyUnitType>{EnemyUnitType::ULTRALISK}){}
+};
 
-
+struct GatewayProductionBuilding : public ProductionBuilding {
+    explicit GatewayProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Gateway,
+        amount,
+        0,
+        ProductionBuildingType::None,
+        std::vector<EnemyUnitType>{ EnemyUnitType::ZEALOT,
+                                    EnemyUnitType::STALKER,
+                                    EnemyUnitType::SENTRY,
+                                    EnemyUnitType::ADEPT,
+                                    EnemyUnitType::DARKTEMPLAR,
+                                    EnemyUnitType::HIGHTEMPLAR}){}
+};
+struct StargateProductionBuilding : public ProductionBuilding {
+    explicit StargateProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Stargate,
+        amount,
+        0,
+        ProductionBuildingType::Gateway,
+        std::vector<EnemyUnitType>{ EnemyUnitType::PHOENIX,
+                                    EnemyUnitType::VOIDRAY,
+                                    EnemyUnitType::ORACLE,
+                                    EnemyUnitType::TEMPEST,
+                                    EnemyUnitType::CARRIER}){}
+};
+struct RoboticsFacilityProductionBuilding : public ProductionBuilding {
+    explicit RoboticsFacilityProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::RoboticsFacility,
+        amount,
+        0,
+        ProductionBuildingType::Gateway,
+        std::vector<EnemyUnitType>{ EnemyUnitType::WARPPRISM,
+                                    EnemyUnitType::OBSERVER,
+                                    EnemyUnitType::IMMORTAL,
+                                    EnemyUnitType::COLOSSUS,
+                                    EnemyUnitType::DISRUPTOR}){}
+};
 #endif //PRODUCTIONBUILDINGS_H

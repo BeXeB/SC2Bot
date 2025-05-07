@@ -69,9 +69,21 @@ struct Enemy {
       			productionBuildings[ProductionBuildingType::Starport] = StarportProductionBuilding(0);
 				productionBuildings[ProductionBuildingType::Factory] = FactoryProductionBuilding(0);
 	            break;
-	        case EnemyRace::Zerg:
+			case EnemyRace::Zerg:
+	        	productionBuildings[ProductionBuildingType::Hatchery] = HatcheryProductionBuilding(1);
+				productionBuildings[ProductionBuildingType::Spire] = SpireProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::BanelingNest] = BanelingNestProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::HydraliskDen] = HydraliskProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::InfestationPit] = InfestationPitProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::LurkerDen] = LurkerDenProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::RoachWarren] = RoachWarrenProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::SpawningPool] = SpawningPoolProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::UltraliskCavern] = UltraliskCavernProductionBuilding(0);
           		break;
-	        case EnemyRace::Protoss:
+			case EnemyRace::Protoss:
+	        	productionBuildings[ProductionBuildingType::Gateway] = GatewayProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::Stargate] = StargateProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::RoboticsFacility] = RoboticsFacilityProductionBuilding(0);
           		break;
 		}
 		_rng = std::mt19937(seed);
