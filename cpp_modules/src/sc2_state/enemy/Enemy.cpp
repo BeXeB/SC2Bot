@@ -84,6 +84,9 @@ EnemyAction Enemy::takeAction(const int currentTime, std::optional<EnemyAction> 
             addEnemyAirProduction();
             break;
         case EnemyAction::addEnemyUnit:
+            if (currentTime >= 90) {
+                enemyCombatUnit += 1;
+            }
             addUnits();
         case EnemyAction::addEnemyProduction:
             addProductionBuilding(currentTime);

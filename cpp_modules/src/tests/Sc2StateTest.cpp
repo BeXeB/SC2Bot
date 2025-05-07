@@ -447,10 +447,9 @@ TEST_SUITE("Test the Sc2State") {
 	TEST_CASE("Test Enemy") {
 		auto enemy = Enemy(EnemyRace::Terran, 1);
 
-		SUBCASE("Enemies can take actions") {
+		SUBCASE("Enemies can add production buildings") {
 			auto initialProduction = enemy.productionBuildings;
 			enemy.takeAction(500, EnemyAction::addEnemyProduction);
-
 
 			bool productionIncreased = false;
 			for (auto [type,building]: initialProduction) {
@@ -460,7 +459,42 @@ TEST_SUITE("Test the Sc2State") {
 				}
 			}
 			CHECK(productionIncreased);
+		}
+		SUBCASE("Enemies can add units") {
+			enemy.productionBuildings[ProductionBuildingType::Barracks].amount = 1;
+			auto initialUnits = enemy.units;
+			auto initialEnemyCombatUnits = enemy.enemyCombatUnit;
+			enemy.takeAction(500, EnemyAction::addEnemyUnit);
 
+			bool unitsIncreased = false;
+			for (auto [unit, amount]: enemy.units) {
+				unitsIncreased = initialUnits[unit] < amount;
+				if (unitsIncreased) {
+					break;
+				}
+			}
+			CHECK(unitsIncreased);
+			CHECK(enemy.enemyCombatUnit > initialEnemyCombatUnits);
+		}
+		SUBCASE("Enemies can add ground and air production") {
+			auto initialAirProduction = enemy.airProduction;
+			auto initialGroundProduction = enemy.groundProduction;
+			enemy.takeAction(500, EnemyAction::addEnemyAirProduction);
+			enemy.takeAction(500, EnemyAction::addEnemyGroundProduction);
+
+			CHECK(enemy.groundProduction > initialGroundProduction);
+			CHECK(enemy.airProduction > initialAirProduction);
+		}
+		SUBCASE("Enemies can add ground and air power") {
+			auto initialGroundPower = enemy.groundPower;
+			auto initialAirPower = enemy.airPower;
+			enemy.airProduction = 1;
+			enemy.groundProduction = 1;
+			enemy.takeAction(500, EnemyAction::addEnemyAirPower);
+			enemy.takeAction(500, EnemyAction::addEnemyGroundPower);
+
+			CHECK(enemy.groundPower > initialGroundPower);
+			CHECK(enemy.airPower > initialAirPower);
 		}
 		SUBCASE("Copied enemies will take the same actions") {
 			enemy.takeAction(500);
