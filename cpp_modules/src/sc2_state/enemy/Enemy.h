@@ -20,7 +20,6 @@ enum class EnemyRace {
 	Terran,
 };
 
-enum class Action;
 enum class EnemyAction {
 	none,
 	addEnemyUnit,
@@ -33,44 +32,8 @@ enum class EnemyAction {
 };
 struct Enemy {
 	EnemyRace race = EnemyRace::Terran;
-	std::map<EnemyUnitType, int> units = {
-		{EnemyUnitType::COLOSSUS,0},
-		{EnemyUnitType::MOTHERSHIP,0},
-		{EnemyUnitType::SIEGETANK,0},
-		{EnemyUnitType::VIKINGFIGHTER,0},
-		{EnemyUnitType::SCV,0},
-		{EnemyUnitType::MARINE,0},
-		{EnemyUnitType::REAPER,0},
-		{EnemyUnitType::GHOST,0},
-		{EnemyUnitType::MARAUDER,0},
-		{EnemyUnitType::THOR,0},
-		{EnemyUnitType::HELLION,0},
-		{EnemyUnitType::MEDIVAC,0},
-		{EnemyUnitType::BANSHEE,0},
-		{EnemyUnitType::RAVEN,0},
-		{EnemyUnitType::BATTLECRUISER,0},
-		{EnemyUnitType::ZEALOT,0},
-		{EnemyUnitType::STALKER,0},
-		{EnemyUnitType::HIGHTEMPLAR,0},
-		{EnemyUnitType::DARKTEMPLAR,0},
-		{EnemyUnitType::SENTRY,0},
-		{EnemyUnitType::PHOENIX,0},
-		{EnemyUnitType::CARRIER,0},
-		{EnemyUnitType::VOIDRAY,0},
-		{EnemyUnitType::WARPPRISM,0},
-		{EnemyUnitType::OBSERVER,0},
-		{EnemyUnitType::IMMORTAL,0},
-		{EnemyUnitType::PROBE,0},
-		{EnemyUnitType::ARCHON,0},
-		{EnemyUnitType::ADEPT,0},
-		{EnemyUnitType::HELLIONTANK,0},
-		{EnemyUnitType::ORACLE,0},
-		{EnemyUnitType::TEMPEST,0},
-		{EnemyUnitType::WIDOWMINE,0},
-		{EnemyUnitType::LIBERATOR,0},
-		{EnemyUnitType::CYCLONE,0},
-		{EnemyUnitType::DISRUPTOR,0}
-	};
+	std::map<EnemyUnitType, int> units = {};
+
 	std::unordered_map<ProductionBuildingType, ProductionBuilding> productionBuildings = {};
 	int groundPower = 0;
 	float groundProduction = 0;
@@ -81,24 +44,36 @@ struct Enemy {
 	EnemyAction generateEnemyAction();
 	EnemyAction takeAction(int currentTime, std::optional<EnemyAction> action = std::nullopt);
 
+	void initializeUnits() {
+		// Iterate through each value in the enum
+		for (int i = static_cast<int>(EnemyUnitType::COLOSSUS); i != static_cast<int>(EnemyUnitType::Last); i++ ) {
+			units[static_cast<EnemyUnitType>(i)] = 0;
+		}
+	}
 
-	Enemy(const EnemyRace race, std::map<EnemyUnitType, int> units, std::unordered_map<ProductionBuildingType,ProductionBuilding> productionBuildings, const unsigned int seed)
+	Enemy(const EnemyRace race,
+		  std::map<EnemyUnitType, int> units,
+		  std::unordered_map<ProductionBuildingType,
+		  ProductionBuilding> productionBuildings,
+		  const unsigned int seed)
 		: race(race), units(std::move(units)), productionBuildings(std::move(productionBuildings)) {
 		_rng = std::mt19937(seed);
 	}
 
+
     Enemy(const EnemyRace race, const unsigned int seed):race(race) {
-      switch (race) {
-      	case EnemyRace::Terran:
-        	productionBuildings[ProductionBuildingType::Barracks] = BarracksProductionBuilding(0);
-      		productionBuildings[ProductionBuildingType::Starport] = StarportProductionBuilding(0);
-			productionBuildings[ProductionBuildingType::Factory] = FactoryProductionBuilding(0);
-            break;
-        case EnemyRace::Zerg:
-          	break;
-        case EnemyRace::Protoss:
-          	break;
-      }
+		initializeUnits();
+		switch (race) {
+      		case EnemyRace::Terran:
+        		productionBuildings[ProductionBuildingType::Barracks] = BarracksProductionBuilding(0);
+      			productionBuildings[ProductionBuildingType::Starport] = StarportProductionBuilding(0);
+				productionBuildings[ProductionBuildingType::Factory] = FactoryProductionBuilding(0);
+	            break;
+	        case EnemyRace::Zerg:
+          		break;
+	        case EnemyRace::Protoss:
+          		break;
+		}
 		_rng = std::mt19937(seed);
     }
 
@@ -119,7 +94,13 @@ struct Enemy {
 		airProduction = enemy.airProduction;
 	}
 
-	Enemy() = default;
+	Enemy() {
+		race = EnemyRace::Terran;
+		initializeUnits();
+		productionBuildings[ProductionBuildingType::Barracks] = BarracksProductionBuilding(0);
+		productionBuildings[ProductionBuildingType::Starport] = StarportProductionBuilding(0);
+		productionBuildings[ProductionBuildingType::Factory] = FactoryProductionBuilding(0);
+	}
 	private:
 	std::mt19937 _rng;
 
