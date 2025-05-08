@@ -55,6 +55,7 @@ target_include_directories(
 add_executable(MCTS_benchmark
         ${BENCHMARK_SOURCE}/mcts_benchmark.cpp
         ${STATE_SOURCE}/Sc2State.cpp
+        ${STATE_SOURCE}/enemy/enemy.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
 )
@@ -62,6 +63,7 @@ add_executable(MCTS_benchmark
 target_include_directories(
         MCTS_benchmark
         PRIVATE ${STATE_SOURCE}
+        PRIVATE ${STATE_SOURCE}/enemy
         PRIVATE ${MCTS_SOURCE}
 )
 

@@ -36,10 +36,10 @@ struct Enemy {
 
 	std::unordered_map<ProductionBuildingType, ProductionBuilding> productionBuildings = {};
 	int groundPower = 0;
-	float groundProduction = 0;
+	double groundProduction = 1;
 	int airPower = 0;
-	float airProduction = 0;
-	int enemyCombatUnit = 0;
+	double airProduction = 0;
+	int enemyCombatUnits = 0;
 
 	EnemyAction generateEnemyAction();
 	EnemyAction takeAction(int currentTime, std::optional<EnemyAction> action = std::nullopt);
@@ -94,11 +94,11 @@ struct Enemy {
 		_rng = std::mt19937(seed);
 	}
 
-	Enemy(Enemy& enemy) {
+	Enemy(const Enemy& enemy) {
 		_rng = enemy._rng;
 		race = enemy.race;
 		units = enemy.units;
-		enemyCombatUnit = enemy.enemyCombatUnit;
+		enemyCombatUnits = enemy.enemyCombatUnits;
 		productionBuildings = enemy.productionBuildings;
 		groundPower = enemy.groundPower;
 		groundProduction = enemy.groundProduction;
@@ -116,7 +116,7 @@ struct Enemy {
 	private:
 	std::mt19937 _rng;
 
-	void addEnemyUnit() { enemyCombatUnit += 1; }
+	void addEnemyUnit() { enemyCombatUnits += 1; }
 	void addEnemyGroundPower() { groundPower += std::floor(groundProduction); }
 	void addEnemyAirPower() { airPower += std::floor(airProduction); }
 	void addEnemyGroundProduction() { groundProduction += 0.1; }

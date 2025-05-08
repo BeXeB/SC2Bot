@@ -81,7 +81,7 @@ EnemyAction Enemy::takeAction(const int currentTime, std::optional<EnemyAction> 
             break;
         case EnemyAction::addEnemyUnit:
             if (currentTime >= 90) {
-                enemyCombatUnit += 1;
+                enemyCombatUnits += 1;
             }
             addUnits();
         case EnemyAction::addEnemyProduction:

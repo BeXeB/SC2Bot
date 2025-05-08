@@ -463,7 +463,7 @@ TEST_SUITE("Test the Sc2State") {
 		SUBCASE("Enemies can add units") {
 			enemy.productionBuildings[ProductionBuildingType::Barracks].amount = 1;
 			auto initialUnits = enemy.units;
-			auto initialEnemyCombatUnits = enemy.enemyCombatUnit;
+			auto initialEnemyCombatUnits = enemy.enemyCombatUnits;
 			enemy.takeAction(500, EnemyAction::addEnemyUnit);
 
 			bool unitsIncreased = false;
@@ -474,7 +474,7 @@ TEST_SUITE("Test the Sc2State") {
 				}
 			}
 			CHECK(unitsIncreased);
-			CHECK(enemy.enemyCombatUnit > initialEnemyCombatUnits);
+			CHECK(enemy.enemyCombatUnits > initialEnemyCombatUnits);
 		}
 		SUBCASE("Enemies can add ground and air production") {
 			auto initialAirProduction = enemy.airProduction;

@@ -11,24 +11,24 @@
 #include "Construction.h"
 #include "ActionEnum.h"
 #include "UnitPower.h"
+#include "enemy/Enemy.h"
 
 namespace Sc2 {
-	struct Enemy {
-		int groundPower = 0;
-		int airPower = 0;
-		double groundProduction = 1;
-		double airProduction = 0;
-
-		Enemy(const int groundPower, const int airPower, const double groundProduction, const double airProduction) {
-			this->groundPower = groundPower;
-			this->airPower = airPower;
-			this->groundProduction = groundProduction;
-			this->airProduction = airProduction;
-		}
-
-		Enemy() = default;
-	};
-
+	// struct Enemy {
+	// 	int groundPower = 0;
+	// 	int airPower = 0;
+	// 	double groundProduction = 1;
+	// 	double airProduction = 0;
+	//
+	// 	Enemy(const int groundPower, const int airPower, const double groundProduction, const double airProduction) {
+	// 		this->groundPower = groundPower;
+	// 		this->airPower = airPower;
+	// 		this->groundProduction = groundProduction;
+	// 		this->airProduction = airProduction;
+	// 	}
+	//
+	// 	Enemy() = default;
+	// };
 	struct StateBuilderParams {
 		const int minerals = 0;
 		const int vespene = 0;
@@ -49,7 +49,6 @@ namespace Sc2 {
 		std::vector<int> &occupiedWorkerTimers;
 		const int currentTime = 0;
 		const int endTime = 0;
-		const int enemyCombatUnits = 0;
 		const bool hasHouse = false;
 		const bool incomingHouse = false;
 		const bool incomingBarracks = false;
@@ -119,7 +118,6 @@ namespace Sc2 {
 		std::vector<int> _occupiedWorkerTimers{};
 		std::mt19937 _rng;
 
-		int _enemyCombatUnits = 0;
 		Enemy _enemy;
 
 		const int _endTime;
@@ -261,8 +259,8 @@ namespace Sc2 {
 		[[nodiscard]] int getTankPopulation() const { return _tankPopulation; }
 		[[nodiscard]] int getVikingPopulation() const { return _vikingPopulation; }
 		[[nodiscard]] int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
-		[[nodiscard]] int getEnemyCombatUnits() const { return _enemyCombatUnits; }
-		[[nodiscard]] Enemy getEnemy() const { return _enemy; }
+		[[nodiscard]] int getEnemyCombatUnits() const { return _enemy.enemyCombatUnits; }
+		[[nodiscard]] Enemy getEnemy() { return _enemy; }
 		[[nodiscard]] std::list<Construction> getConstructions() const { return _constructions; }
 		[[nodiscard]] std::vector<Base> getBases() const { return _bases; }
 		[[nodiscard]] int getBarracksAmount() const { return _barracksAmount; }
@@ -309,7 +307,7 @@ namespace Sc2 {
 		void buildMarine();
 		void buildTank();
 		void buildViking();
-		void addEnemyUnit() { _enemyCombatUnits += 1; }
+		void addEnemyUnit() { _enemy.enemyCombatUnits += 1; }
 		void addEnemyGroundPower() { _enemy.groundPower += std::floor(_enemy.groundProduction); }
 		void addEnemyAirPower() { _enemy.airPower += std::floor(_enemy.airProduction); }
 		void addEnemyGroundProduction() { _enemy.groundProduction += 0.1; }
@@ -374,7 +372,7 @@ namespace Sc2 {
 
 		double getValueMarines() const {
 			return softmax(std::vector{
-				               static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemyCombatUnits) / 4
+				               static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemy.enemyCombatUnits) / 4
 			               }, 0);
 		}
 
@@ -565,7 +563,6 @@ namespace Sc2 {
 				occupiedWorkerTimers,
 				currentTime,
 				endTime,
-				enemyCombatUnits,
 				hasHouse,
 				incomingHouse,
 				incomingBarracks,
@@ -617,7 +614,7 @@ namespace Sc2 {
 		                     _constructions(std::list<Construction>()),
 		                     _occupiedWorkerTimers(
 			                     std::move(params.occupiedWorkerTimers)),
-		                     _enemyCombatUnits(params.enemyCombatUnits),
+		                     _enemy(params.enemy),
 		                     _endTime(params.endTime),
 		                     _currentTime(params.currentTime),
 		                     _hasHouse(params.hasHouse),
@@ -666,7 +663,6 @@ namespace Sc2 {
 			_constructions = std::list<Construction>();
 			_occupiedWorkerTimers = state._occupiedWorkerTimers;
 
-			_enemyCombatUnits = state._enemyCombatUnits;
 			_enemy = state._enemy;
 
 			_rng = state._rng;
@@ -706,7 +702,7 @@ namespace Sc2 {
 					<< "    Number of bases: " << _bases.size() << "\n"
 					<< "    Number of barracks: " << _barracksAmount << "\n"
 					<< "    Number of constructions: " << _constructions.size() << "\n"
-					<< "    Enemy combat units: " << _enemyCombatUnits << "\n"
+					<< "    Enemy combat units: " << _enemy.enemyCombatUnits << "\n"
 					<< "    current_time: " << _currentTime << "\n"
 					<< "    EndTime: " << _endTime << "\n"
 					<< "    HasHouse: " << _hasHouse << "\n"

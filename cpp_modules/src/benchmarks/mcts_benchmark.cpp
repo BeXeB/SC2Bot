@@ -403,6 +403,7 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
 		.endProbabilityFunction = endProbabilityFunction,
 		.armyValueFunction = armyValueFunction,
+		.shouldPrintActions = true,
 	});
 	results.push_back(result);
 
