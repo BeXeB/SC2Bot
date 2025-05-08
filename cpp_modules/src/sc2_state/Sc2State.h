@@ -234,7 +234,6 @@ namespace Sc2 {
 		};
 
 	public:
-
 		int id = 0;
 		[[nodiscard]] int getMinerals() const { return _minerals; }
 		void setMinerals(int minerals) { _minerals = minerals; }
@@ -380,45 +379,48 @@ namespace Sc2 {
 
 		double getValueArmyPowerScaled() const {
 			//this assumes the vikings can attack both air and ground at the same time
-			auto airPower = calculateAirPower();
-			auto groundPower = calculateGroundPower();
-			auto groundSoftMax = softmax(std::vector{
-				                             static_cast<double>(groundPower) / 4,
-				                             static_cast<double>(_enemy.groundPower) / 4
-			                             }, 0);
-			auto airSoftMax = softmax(std::vector{
-				                          static_cast<double>(airPower) / 4, static_cast<double>(_enemy.airPower) / 4
-			                          }, 0);
-			auto average = (airSoftMax + groundSoftMax) / 2;
-			auto difference = std::abs(airSoftMax - groundSoftMax);
+			const auto airPower = calculateAirPower();
+			const auto groundPower = calculateGroundPower();
+			const auto groundSoftMax = softmax(std::vector{
+				                                   static_cast<double>(groundPower) / 4,
+				                                   static_cast<double>(_enemy.groundPower) / 4
+			                                   }, 0);
+			const auto airSoftMax = softmax(std::vector{
+				                                static_cast<double>(airPower) / 4,
+				                                static_cast<double>(_enemy.airPower) / 4
+			                                }, 0);
+			const auto average = (airSoftMax + groundSoftMax) / 2;
+			const auto difference = std::abs(airSoftMax - groundSoftMax);
 			return average * (1 - difference);
 		}
 
 		double getValueArmyPowerAverage() const {
 			//this assumes the vikings can attack both air and ground at the same time
-			auto airPower = calculateAirPower();
-			auto groundPower = calculateGroundPower();
-			auto groundSoftMax = softmax(std::vector{
-				                             static_cast<double>(groundPower) / 4,
-				                             static_cast<double>(_enemy.groundPower) / 4
-			                             }, 0);
-			auto airSoftMax = softmax(std::vector{
-				                          static_cast<double>(airPower) / 4, static_cast<double>(_enemy.airPower) / 4
-			                          }, 0);
-			auto average = (airSoftMax + groundSoftMax) / 2;
+			const auto airPower = calculateAirPower();
+			const auto groundPower = calculateGroundPower();
+			const auto groundSoftMax = softmax(std::vector{
+				                                   static_cast<double>(groundPower) / 4,
+				                                   static_cast<double>(_enemy.groundPower) / 4
+			                                   }, 0);
+			const auto airSoftMax = softmax(std::vector{
+				                                static_cast<double>(airPower) / 4,
+				                                static_cast<double>(_enemy.airPower) / 4
+			                                }, 0);
+			const auto average = (airSoftMax + groundSoftMax) / 2;
 			return average;
 		}
 
 		double getValueMinArmyPower() const {
-			auto airPower = calculateAirPower();
-			auto groundPower = calculateGroundPower();
-			auto groundSoftMax = softmax(std::vector{
-				                             static_cast<double>(groundPower) / 4,
-				                             static_cast<double>(_enemy.groundPower) / 4
-			                             }, 0);
-			auto airSoftMax = softmax(std::vector{
-				                          static_cast<double>(airPower) / 4, static_cast<double>(_enemy.airPower) / 4
-			                          }, 0);
+			const auto airPower = calculateAirPower();
+			const auto groundPower = calculateGroundPower();
+			const auto groundSoftMax = softmax(std::vector{
+				                                   static_cast<double>(groundPower) / 4,
+				                                   static_cast<double>(_enemy.groundPower) / 4
+			                                   }, 0);
+			const auto airSoftMax = softmax(std::vector{
+				                                static_cast<double>(airPower) / 4,
+				                                static_cast<double>(_enemy.airPower) / 4
+			                                }, 0);
 			return std::min(groundSoftMax, airSoftMax);
 		}
 
@@ -432,6 +434,27 @@ namespace Sc2 {
 			return _marinePopulation * unitAirPower.at(UnitType::Marine) +
 			       _tankPopulation * unitAirPower.at(UnitType::Tank) +
 			       _vikingPopulation * unitAirPower.at(UnitType::Viking);
+		}
+
+		double calculateFloatingResourcesValue() const {
+			//1 if 0 and 0 if 1000
+			const auto mineralValue = 1 - std::min(_minerals / 1000.0, 1.0);
+			//1 if 0 and 0 if 500
+			const auto gasValue = 1 - std::min(_vespene / 500.0, 1.0);
+			return (gasValue + mineralValue) / 2.0;
+		}
+
+		double calculateResourceGatheredValue() const {
+			//53+27
+			const auto resourcesGathered = mineralGainedPerTimestep() + vespeneGainedPerTimestep() * 1.5;
+			return std::min(resourcesGathered / 80, 1.0);
+		}
+
+		double getAllValueTypes() const {
+			const auto armyValue = getValueMinArmyPower();
+			const auto floatingValue = calculateFloatingResourcesValue();
+			const auto resourceValue = calculateResourceGatheredValue();
+			return armyValue * 0 + floatingValue * 0 + resourceValue * 1;
 		}
 
 		double getValue() const {
@@ -574,7 +597,7 @@ namespace Sc2 {
 				maxBases,
 				enemy
 			};
-			return InternalStateBuilder(params,-1, ArmyValueFunction::None, seed);
+			return InternalStateBuilder(params, -1, ArmyValueFunction::None, seed);
 		}
 
 		/*
@@ -582,10 +605,10 @@ namespace Sc2 {
 		 * These cannot be set via the python script.
 		 */
 		static std::shared_ptr<State> InternalStateBuilder(StateBuilderParams params,
-												  		   const unsigned int endProbabilityFunction,
-														   const ArmyValueFunction armyValueFunction,
+		                                                   const unsigned int endProbabilityFunction,
+		                                                   const ArmyValueFunction armyValueFunction,
 		                                                   unsigned int seed) {
-			auto state = std::make_shared<State>(params,endProbabilityFunction, armyValueFunction ,seed);
+			auto state = std::make_shared<State>(params, endProbabilityFunction, armyValueFunction, seed);
 
 			for (auto &construction: params.constructions) {
 				construction.setState(state);
@@ -595,46 +618,46 @@ namespace Sc2 {
 			return state;
 		};
 
-		State(const StateBuilderParams &params, const int endProbabilityFunction, const ArmyValueFunction armyValueFunction,const unsigned int seed):
-							 _armyValueFunction(armyValueFunction),
-		                     END_PROBABILITY_FUNCTION(endProbabilityFunction),
-		                     _minerals(params.minerals),
-		                     _vespene(params.vespene),
-		                     _workerPopulation(params.workerPopulation),
-		                     _marinePopulation(params.marinePopulation),
-		                     _tankPopulation(params.tankPopulation),
-		                     _vikingPopulation(params.vikingPopulation),
-		                     _incomingWorkers(params.incomingWorkers),
-		                     _incomingMarines(params.incomingMarines),
-		                     _incomingTanks(params.incomingTanks),
-		                     _incomingVikings(params.incomingVikings),
-		                     MAX_BASES(params.maxBases),
-		                     _populationLimit(params.populationLimit),
-		                     _barracksAmount(params.barracksAmount),
-		                     _factoryAmount(params.factoryAmount),
-		                     _starPortAmount(params.starPortAmount),
-		                     _bases(std::move(params.bases)),
-		                     _constructions(std::list<Construction>()),
-		                     _occupiedWorkerTimers(
-			                     std::move(params.occupiedWorkerTimers)),
-		                     _enemyCombatUnits(params.enemyCombatUnits),
-		                     _endTime(params.endTime),
-		                     _currentTime(params.currentTime),
-		                     _hasHouse(params.hasHouse),
-		                     _incomingHouse(params.incomingHouse),
-		                     _incomingBarracks(params.incomingBarracks),
-							 _incomingFactory(params.incomingFactory),
-							 _incomingBases(params.incomingBases){
+		State(const StateBuilderParams &params, const int endProbabilityFunction,
+		      const ArmyValueFunction armyValueFunction,
+		      const unsigned int seed): _armyValueFunction(armyValueFunction),
+		                                END_PROBABILITY_FUNCTION(endProbabilityFunction),
+		                                _minerals(params.minerals),
+		                                _vespene(params.vespene),
+		                                _workerPopulation(params.workerPopulation),
+		                                _marinePopulation(params.marinePopulation),
+		                                _tankPopulation(params.tankPopulation),
+		                                _vikingPopulation(params.vikingPopulation),
+		                                _incomingWorkers(params.incomingWorkers),
+		                                _incomingMarines(params.incomingMarines),
+		                                _incomingTanks(params.incomingTanks),
+		                                _incomingVikings(params.incomingVikings),
+		                                MAX_BASES(params.maxBases),
+		                                _populationLimit(params.populationLimit),
+		                                _barracksAmount(params.barracksAmount),
+		                                _factoryAmount(params.factoryAmount),
+		                                _starPortAmount(params.starPortAmount),
+		                                _bases(std::move(params.bases)),
+		                                _constructions(std::list<Construction>()),
+		                                _occupiedWorkerTimers(
+			                                std::move(params.occupiedWorkerTimers)),
+		                                _enemyCombatUnits(params.enemyCombatUnits),
+		                                _endTime(params.endTime),
+		                                _currentTime(params.currentTime),
+		                                _hasHouse(params.hasHouse),
+		                                _incomingHouse(params.incomingHouse),
+		                                _incomingBarracks(params.incomingBarracks),
+		                                _incomingFactory(params.incomingFactory),
+		                                _incomingBases(params.incomingBases) {
 			_rng = std::mt19937(seed);
 		};
 
-		State(const State &state) :
-				enable_shared_from_this(state),
-				_armyValueFunction(state._armyValueFunction),
-				END_PROBABILITY_FUNCTION(state.END_PROBABILITY_FUNCTION),
-				MAX_BASES(state.MAX_BASES),
-			    _endTime(state._endTime),
-				_currentTime(state._currentTime) {
+		State(const State &state) : enable_shared_from_this(state),
+		                            _armyValueFunction(state._armyValueFunction),
+		                            END_PROBABILITY_FUNCTION(state.END_PROBABILITY_FUNCTION),
+		                            MAX_BASES(state.MAX_BASES),
+		                            _endTime(state._endTime),
+		                            _currentTime(state._currentTime) {
 			_minerals = state._minerals;
 			_vespene = state._vespene;
 			_workerPopulation = state._workerPopulation;
@@ -677,14 +700,15 @@ namespace Sc2 {
 			_incomingBases = state._incomingBases;
 		};
 
-		explicit State(const int endTime, const int endProbabilityFunction, const ArmyValueFunction armyValueFunction ,const unsigned int seed):
-					_armyValueFunction(armyValueFunction),
-					END_PROBABILITY_FUNCTION(endProbabilityFunction),
-					_endTime(endTime) {
+		explicit State(const int endTime, const int endProbabilityFunction, const ArmyValueFunction armyValueFunction,
+		               const unsigned int seed): _armyValueFunction(armyValueFunction),
+		                                         END_PROBABILITY_FUNCTION(endProbabilityFunction),
+		                                         _endTime(endTime) {
 			_rng = std::mt19937(seed);
 		}
 
-		State(): _armyValueFunction(ArmyValueFunction::MinPower), END_PROBABILITY_FUNCTION(2), _rng(std::mt19937(std::random_device{}())), _endTime(1000) {
+		State(): _armyValueFunction(ArmyValueFunction::MinPower), END_PROBABILITY_FUNCTION(2),
+		         _rng(std::mt19937(std::random_device{}())), _endTime(1000) {
 		}
 
 		std::string toString() const {
