@@ -458,7 +458,7 @@ namespace Sc2 {
 		}
 
 		double getValue() const {
-			return getValueMinArmyPower();
+			return getCombatSuccessProbability();
 		}
 
 		std::tuple<double, double, double> getWinProbabilities();
@@ -690,6 +690,7 @@ namespace Sc2 {
 			_occupiedWorkerTimers = state._occupiedWorkerTimers;
 
 			_enemyCombatUnits = state._enemyCombatUnits;
+			_enemy = state._enemy;
 
 			_rng = state._rng;
 

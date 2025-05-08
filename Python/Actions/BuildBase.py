@@ -22,7 +22,7 @@ class BaseBuilder():
         closest = None
         min_distance = math.inf
         for expansion_location in self.bot.information_manager.expansion_locations:
-            if (self.bot.information_manager.expansion_locations[expansion_location]):
+            if self.bot.information_manager.expansion_locations[expansion_location]:
                 # already taken
                 continue
 
