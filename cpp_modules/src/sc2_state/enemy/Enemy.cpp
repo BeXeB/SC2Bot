@@ -52,11 +52,7 @@ EnemyAction Enemy::takeAction(const int currentTime, std::optional<EnemyAction> 
         action = generateEnemyAction();
     }
     switch (action.value()) {
-        // case Action::addEnemyUnit:
-        //     if (currentTime < 90) {
-        //         break;
-        //     }
-        //     break;
+
         case EnemyAction::attackPlayer:
             break;
         case EnemyAction::addEnemyGroundPower:
