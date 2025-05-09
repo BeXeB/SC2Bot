@@ -433,23 +433,24 @@ TEST_SUITE("Test the Sc2State") {
 
 	TEST_CASE("Test that enemy units are correctly added") {
 		const auto state = std::make_shared<Sc2::State>();
+
 		CHECK(state->getEnemyCombatUnits() == 0);
 		state->addEnemyUnit();
 		state->addEnemyUnit();
 		state->addEnemyUnit();
 		CHECK(state->getEnemyCombatUnits() == 3);
-		Enemy e = Enemy(EnemyRace::Terran, 0);
+		Sc2::Enemy e = Sc2::Enemy(Sc2::EnemyRace::Terran, 0);
 		auto a = e.generateEnemyAction();
 		auto b = e;
 		e.generateEnemyAction();
 	}
 
 	TEST_CASE("Test Enemy") {
-		auto enemy = Enemy(EnemyRace::Terran, 1);
+		auto enemy = Sc2::Enemy(Sc2::EnemyRace::Terran, 1);
 
 		SUBCASE("Enemies can add production buildings") {
 			auto initialProduction = enemy.productionBuildings;
-			enemy.takeAction(500, EnemyAction::addEnemyProduction);
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyProduction);
 
 			bool productionIncreased = false;
 			for (auto [type,building]: initialProduction) {
@@ -461,10 +462,10 @@ TEST_SUITE("Test the Sc2State") {
 			CHECK(productionIncreased);
 		}
 		SUBCASE("Enemies can add units") {
-			enemy.productionBuildings[ProductionBuildingType::Barracks].amount = 1;
+			enemy.productionBuildings[Sc2::ProductionBuildingType::Barracks].amount = 1;
 			auto initialUnits = enemy.units;
 			auto initialEnemyCombatUnits = enemy.enemyCombatUnits;
-			enemy.takeAction(500, EnemyAction::addEnemyUnit);
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyUnit);
 
 			bool unitsIncreased = false;
 			for (auto [unit, amount]: enemy.units) {
@@ -479,8 +480,8 @@ TEST_SUITE("Test the Sc2State") {
 		SUBCASE("Enemies can add ground and air production") {
 			auto initialAirProduction = enemy.airProduction;
 			auto initialGroundProduction = enemy.groundProduction;
-			enemy.takeAction(500, EnemyAction::addEnemyAirProduction);
-			enemy.takeAction(500, EnemyAction::addEnemyGroundProduction);
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyAirProduction);
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyGroundProduction);
 
 			CHECK(enemy.groundProduction > initialGroundProduction);
 			CHECK(enemy.airProduction > initialAirProduction);
@@ -490,8 +491,8 @@ TEST_SUITE("Test the Sc2State") {
 			auto initialAirPower = enemy.airPower;
 			enemy.airProduction = 1;
 			enemy.groundProduction = 1;
-			enemy.takeAction(500, EnemyAction::addEnemyAirPower);
-			enemy.takeAction(500, EnemyAction::addEnemyGroundPower);
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyAirPower);
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyGroundPower);
 
 			CHECK(enemy.groundPower > initialGroundPower);
 			CHECK(enemy.airPower > initialAirPower);

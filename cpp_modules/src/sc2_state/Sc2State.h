@@ -418,6 +418,7 @@ namespace Sc2 {
 
 		double getCombatSuccessProbability() const;
 		double getEndProbability() const;
+		void addEnemyUnit(){_enemy.takeAction(500, EnemyAction::addEnemyUnit);}
 
 		static double softmax(std::vector<double> vector, const int index) {
 			double sum = 0;

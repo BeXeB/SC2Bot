@@ -46,7 +46,7 @@ namespace Sc2 {
 
 		void initializeUnits() {
 			// Iterate through each value in the enum
-			for (int i = static_cast<int>(EnemyUnitType::COLOSSUS); i != static_cast<int>(EnemyUnitType::Last); i++ ) {
+			for (int i = 0; i != static_cast<int>(EnemyUnitType::Last); i++ ) {
 				units[static_cast<EnemyUnitType>(i)] = 0;
 			}
 		}
@@ -68,30 +68,40 @@ namespace Sc2 {
 		}
 
 
+		void initializeTerranBuildings() {
+			productionBuildings[ProductionBuildingType::Barracks] = BarracksProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::Starport] = StarportProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::Factory] = FactoryProductionBuilding(0);
+		}
+		void initializeZergBuildings() {
+			productionBuildings[ProductionBuildingType::Hatchery] = HatcheryProductionBuilding(1);
+			productionBuildings[ProductionBuildingType::Spire] = SpireProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::BanelingNest] = BanelingNestProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::HydraliskDen] = HydraliskProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::InfestationPit] = InfestationPitProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::LurkerDen] = LurkerDenProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::RoachWarren] = RoachWarrenProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::SpawningPool] = SpawningPoolProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::UltraliskCavern] = UltraliskCavernProductionBuilding(0);
+		}
+		void initializeProtossBuildings() {
+			productionBuildings[ProductionBuildingType::Gateway] = GatewayProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::Stargate] = StargateProductionBuilding(0);
+			productionBuildings[ProductionBuildingType::RoboticsFacility] = RoboticsFacilityProductionBuilding(0);
+		}
+
 		Enemy(const EnemyRace race, const unsigned int seed):race(race) {
 			initializeUnits();
 			switch (race) {
 				case EnemyRace::Terran:
-					productionBuildings[ProductionBuildingType::Barracks] = BarracksProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::Starport] = StarportProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::Factory] = FactoryProductionBuilding(0);
-				break;
+					initializeTerranBuildings();
+					break;
 				case EnemyRace::Zerg:
-					productionBuildings[ProductionBuildingType::Hatchery] = HatcheryProductionBuilding(1);
-				productionBuildings[ProductionBuildingType::Spire] = SpireProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::BanelingNest] = BanelingNestProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::HydraliskDen] = HydraliskProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::InfestationPit] = InfestationPitProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::LurkerDen] = LurkerDenProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::RoachWarren] = RoachWarrenProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::SpawningPool] = SpawningPoolProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::UltraliskCavern] = UltraliskCavernProductionBuilding(0);
-				break;
+					initializeZergBuildings();
+					break;
 				case EnemyRace::Protoss:
-					productionBuildings[ProductionBuildingType::Gateway] = GatewayProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::Stargate] = StargateProductionBuilding(0);
-				productionBuildings[ProductionBuildingType::RoboticsFacility] = RoboticsFacilityProductionBuilding(0);
-				break;
+					initializeProtossBuildings();
+					break;
 			}
 			_rng = std::mt19937(seed);
 		}
@@ -116,9 +126,7 @@ namespace Sc2 {
 		Enemy() {
 			race = EnemyRace::Terran;
 			initializeUnits();
-			productionBuildings[ProductionBuildingType::Barracks] = BarracksProductionBuilding(0);
-			productionBuildings[ProductionBuildingType::Starport] = StarportProductionBuilding(0);
-			productionBuildings[ProductionBuildingType::Factory] = FactoryProductionBuilding(0);
+			initializeTerranBuildings();
 		}
 	private:
 		std::mt19937 _rng;
