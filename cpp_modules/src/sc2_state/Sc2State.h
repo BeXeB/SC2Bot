@@ -307,11 +307,6 @@ namespace Sc2 {
 		void buildMarine();
 		void buildTank();
 		void buildViking();
-		void addEnemyUnit() { _enemy.enemyCombatUnits += 1; }
-		void addEnemyGroundPower() { _enemy.groundPower += std::floor(_enemy.groundProduction); }
-		void addEnemyAirPower() { _enemy.airPower += std::floor(_enemy.airProduction); }
-		void addEnemyGroundProduction() { _enemy.groundProduction += 0.1; }
-		void addEnemyAirProduction() { _enemy.airProduction += 0.1; }
 
 		void attackPlayer() {
 			auto temp = getValue();
@@ -359,8 +354,6 @@ namespace Sc2 {
 					buildStarPort();
 					break;
 				case Action::none:
-				case Action::attackPlayer:
-				case Action::addEnemyUnit:
 					break;
 				default:
 					throw std::runtime_error("Could not perform action: " + actionToString(action));
@@ -462,48 +455,6 @@ namespace Sc2 {
 
 		int getCurrentTime() const { return _currentTime; }
 		void resetCurrentTime() { _currentTime = 0; }
-
-		Action generateEnemyAction() {
-			// Over the span of 60 seconds we assume that the enemy:
-			// Specifies how many enemy units will be built
-			constexpr double buildUnitAction = 8;
-			// Specifies how much ground power the enemy gets per production
-			constexpr double groundPowerIncrease = 5;
-			// Specifies how much air power the enemy gets per production
-			constexpr double airPowerIncrease = 5;
-			// Specifies how much ground production the enemy builds
-			constexpr double groundProductionIncrease = 3;
-			// Specifies how much air production the enemy builds
-			constexpr double airProductionIncrease = 3;
-			// Specifies how many times the enemy will attack
-			constexpr double attackAction = 0.3;
-			// Specifies how many times the enemy will do nothing
-			constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease -
-			                              groundProductionIncrease - airProductionIncrease;
-
-			const auto actionWeights = {
-				noneAction, buildUnitAction, attackAction, groundPowerIncrease, airPowerIncrease,
-				groundProductionIncrease, airProductionIncrease
-			};
-			std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
-			// 0: None, 1: Build unit, 2: Attack, 3: GroundPowerIncrease, 4: AirPowerIncrease, 5: Ground Production, 6: Air Production
-			switch (dist(_rng)) {
-				case 1:
-					return Action::addEnemyUnit;
-				case 2:
-					return Action::attackPlayer;
-				case 3:
-					return Action::addEnemyGroundPower;
-				case 4:
-					return Action::addEnemyAirPower;
-				case 5:
-					return Action::addEnemyGroundProduction;
-				case 6:
-					return Action::addEnemyAirProduction;
-				default:
-					return Action::none;
-			}
-		}
 
 		void setEndProbabilityFunction(const int endProbabilityFunction) {
 			END_PROBABILITY_FUNCTION = endProbabilityFunction;

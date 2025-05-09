@@ -84,8 +84,10 @@ EnemyAction Enemy::takeAction(const int currentTime, std::optional<EnemyAction> 
                 enemyCombatUnits += 1;
             }
             addUnits();
+            break;
         case EnemyAction::addEnemyProduction:
             addProductionBuilding(currentTime);
+            break;
         case EnemyAction::none:
             break;
         default:
@@ -106,6 +108,9 @@ void Enemy::addProductionBuilding(const int currentTime) {
         }
 
         availableBuildings.emplace_back(type);
+    }
+    if (availableBuildings.empty()) {
+        return;
     }
     const auto building = randomChoice(availableBuildings);
 
