@@ -41,6 +41,7 @@ pybind11_add_module(
         ${STATE_SOURCE}/Sc2State.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
+        ${STATE_SOURCE}/enemy/enemy.cpp
 )
 
 
@@ -49,6 +50,7 @@ target_include_directories(
         PRIVATE ${MODULE_SOURCE}
         PRIVATE ${STATE_SOURCE}
         PRIVATE ${MCTS_SOURCE}
+        PRIVATE ${STATE_SOURCE}/enemy
 )
 
 ## executables

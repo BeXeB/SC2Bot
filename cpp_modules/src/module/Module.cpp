@@ -37,7 +37,6 @@ namespace pymodule {
 						 py::arg("occupied_worker_timers"),
 						 py::arg("current_time"),
 						 py::arg("end_time"),
-						 py::arg("enemy_combat_units"),
 						 py::arg("has_house"),
 						 py::arg("incoming_house"),
 						 py::arg("incoming_barracks"),
@@ -92,13 +91,7 @@ namespace pymodule {
 		.value("build_tank", Action::buildTank)
 		.value("build_factory", Action::buildFactory)
 		.value("build_viking", Action::buildViking)
-		.value("build_starport", Action::buildStarPort)
-		.value("attack_player", Action::attackPlayer)
-		.value("add_enemy_unit", Action::addEnemyUnit)
-		.value("add_enemy_ground_power", Action::addEnemyGroundPower)
-		.value("add_enemy_air_power", Action::addEnemyAirPower)
-		.value("add_enemy_ground_production",Action::addEnemyGroundProduction)
-		.value("add_enemy_air_production", Action::addEnemyAirProduction);
+		.value("build_starport", Action::buildStarPort);
 
 		py::enum_<ValueHeuristic>(module, "ValueHeuristic")
 		.value("UCT", ValueHeuristic::UCT)

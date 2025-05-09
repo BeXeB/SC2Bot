@@ -89,9 +89,9 @@ namespace Sc2 {
 			_rng = std::mt19937(seed);
 		}
 
-		Enemy(int groundPower, int groundProduction, int airPower, int airProduction, unsigned int seed)
+		Enemy(const int groundPower, const int groundProduction, const int airPower, const int airProduction)
 			: groundPower(groundPower), groundProduction(groundProduction), airPower(airPower), airProduction(airProduction) {
-			_rng = std::mt19937(seed);
+			_rng = std::mt19937(std::random_device{}());
 		}
 
 		Enemy(const Enemy& enemy) {
