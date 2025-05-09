@@ -135,32 +135,3 @@ void Enemy::addUnits() {
 
     units[unit] += std::floor(buildingAmount);
 }
-
-// int main() {
-//     std::cout << "Hello, World!\n";
-//     auto enemy = Enemy(EnemyRace::Terran, 1);
-//
-//
-//     auto initialProduction = enemy.productionBuildings;
-//     // enemy.takeAction(500, EnemyAction::addEnemyProduction);
-//     //
-//     //
-//     // bool productionIncreased = false;
-//     // for (auto [type,building]: initialProduction) {
-//     //     productionIncreased = enemy.productionBuildings[type].amount > building.amount;
-//     //     if (productionIncreased) {
-//     //         break;
-//     //     }
-//     // }
-//     //
-//     enemy.takeAction(500);
-//     enemy.takeAction(500);
-//
-//     auto enemy2 = enemy;
-//
-//     for (int i = 0; i < 50; i++) {
-//         auto action = enemy.takeAction(500);
-//         auto action2 = enemy2.takeAction(500);
-//
-//     }
-// }
