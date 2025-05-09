@@ -53,11 +53,18 @@ namespace Sc2 {
 
 		Enemy(const EnemyRace race,
 			  std::map<EnemyUnitType, int> units,
-			  std::unordered_map<ProductionBuildingType,
-			  ProductionBuilding> productionBuildings,
+			  std::unordered_map<ProductionBuildingType, ProductionBuilding> productionBuildings,
 			  const unsigned int seed)
 			: race(race), units(std::move(units)), productionBuildings(std::move(productionBuildings)) {
 			_rng = std::mt19937(seed);
+		}
+
+
+		Enemy(const EnemyRace race,
+		      const std::map<std::string, int> &units,
+		      const std::map<ProductionBuildingType, int> &productionBuildings)
+			: race(race), units(convertToEnum(units)), productionBuildings(convertToProductionBuildings(productionBuildings)) {
+			_rng = std::mt19937(std::random_device{}());
 		}
 
 

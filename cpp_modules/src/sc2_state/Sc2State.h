@@ -11,7 +11,7 @@
 #include "Construction.h"
 #include "ActionEnum.h"
 #include "UnitPower.h"
-#include "enemy/Enemy.h"
+#include "Enemy.h"
 
 namespace Sc2 {
 	struct StateBuilderParams {
