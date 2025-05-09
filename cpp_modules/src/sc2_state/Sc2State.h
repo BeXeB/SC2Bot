@@ -454,7 +454,7 @@ namespace Sc2 {
 			const auto armyValue = getValueMinArmyPower();
 			const auto floatingValue = calculateFloatingResourcesValue();
 			const auto resourceValue = calculateResourceGatheredValue();
-			return armyValue * 0 + floatingValue * 0 + resourceValue * 1;
+			return armyValue * .5 + floatingValue * .1 + resourceValue * .4;
 		}
 
 		double getValue() const {

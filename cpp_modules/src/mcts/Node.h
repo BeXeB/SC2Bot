@@ -6,6 +6,7 @@
 #define NODE_H
 #include <map>
 #include <memory>
+#include <ranges>
 #include <utility>
 #include <vector>
 #include <sstream>
@@ -63,11 +64,60 @@ namespace Sc2::Mcts {
 		[[nodiscard]] std::string toString() const {
 			std::ostringstream str;
 			str << "Node: " << static_cast<int>(_action) << "{ \n"
-			<< "parent: " << (_parent.lock() != nullptr) << "\n"
-			<< "children: " << children.size() << "\n"
-			<< "numberOfSimulations: " << N << "\n"
-			<< "Q: " << Q << "\n"
-			<< "} \n";
+					<< "parent: " << (_parent.lock() != nullptr) << "\n"
+					<< "children: " << children.size() << "\n"
+					<< "numberOfSimulations: " << N << "\n"
+					<< "Q: " << Q << "\n"
+					<< "} \n";
+			return str.str();
+		}
+
+		std::string toDotString(int topChildCount, const std::string &parentId = "", const std::string &id = "0") {
+			std::ostringstream str;
+
+			//if there is no parent it the root
+			if (getParent() == nullptr) {
+				str << "digraph G {" << std::endl;
+			}
+
+			str << id << " [shape=none, margin=0, label=<"
+					"<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">"
+					"<TR><TD COLSPAN=\"2\">" << actionToString(_action) << "</TD></TR>"
+					"<TR><TD> N: " << N << "</TD><TD> Q: " << Q << " </TD></TR>"
+					"<TR><TD COLSPAN=\"2\"> Avg: " << Q/N << " </TD></TR>"
+					"</TABLE>>];" << std::endl;
+
+			if (getParent() != nullptr) {
+				str << parentId << "->" << id << ";" << std::endl;
+			}
+
+			if (children.size() < topChildCount) {
+				return str.str();
+			}
+
+			//get the string for the top topChildCount children
+			std::vector<std::shared_ptr<Node>> childNodes;
+			for (const auto &child: std::ranges::views::values(children)) {
+				childNodes.emplace_back(child);
+			}
+			std::ranges::sort(childNodes, [](const std::shared_ptr<Node> &lhs, const std::shared_ptr<Node> &rhs) {
+				return lhs->Q / lhs->N > rhs->Q / rhs->N;
+			});
+
+			int i = 0;
+			for (const auto &child: childNodes) {
+				if (i >= topChildCount) {
+					break;
+				}
+				str << child->toDotString(topChildCount, id, id + std::to_string(i));
+				i++;
+			}
+
+			//if there is no parent it the root
+			if (getParent() == nullptr) {
+				str << "}" << std::endl;
+			}
+
 			return str.str();
 		}
 
