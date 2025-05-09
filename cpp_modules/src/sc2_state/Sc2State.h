@@ -14,21 +14,6 @@
 #include "enemy/Enemy.h"
 
 namespace Sc2 {
-	// struct Enemy {
-	// 	int groundPower = 0;
-	// 	int airPower = 0;
-	// 	double groundProduction = 1;
-	// 	double airProduction = 0;
-	//
-	// 	Enemy(const int groundPower, const int airPower, const double groundProduction, const double airProduction) {
-	// 		this->groundPower = groundPower;
-	// 		this->airPower = airPower;
-	// 		this->groundProduction = groundProduction;
-	// 		this->airProduction = airProduction;
-	// 	}
-	//
-	// 	Enemy() = default;
-	// };
 	struct StateBuilderParams {
 		const int minerals = 0;
 		const int vespene = 0;
@@ -484,7 +469,6 @@ namespace Sc2 {
 		                                           std::vector<int> &occupiedWorkerTimers,
 		                                           const int currentTime,
 		                                           const int endTime,
-		                                           const int enemyCombatUnits,
 		                                           const bool hasHouse,
 		                                           const bool incomingHouse,
 		                                           const bool incomingBarracks,
