@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-EnemyAction Enemy::generateEnemyAction() {
+Sc2::EnemyAction Sc2::Enemy::generateEnemyAction() {
     // Over the span of 60 seconds we assume that the enemy:
     // Specifies how many enemy units will be built
     constexpr double buildUnitAction = 8;
@@ -47,7 +47,7 @@ EnemyAction Enemy::generateEnemyAction() {
     }
 }
 
-EnemyAction Enemy::takeAction(const int currentTime, std::optional<EnemyAction> action) {
+Sc2::EnemyAction Sc2::Enemy::takeAction(const int currentTime, std::optional<EnemyAction> action) {
     if (!action) {
         action = generateEnemyAction();
     }
@@ -96,7 +96,7 @@ EnemyAction Enemy::takeAction(const int currentTime, std::optional<EnemyAction> 
     return action.value();
 }
 
-void Enemy::addProductionBuilding(const int currentTime) {
+void Sc2::Enemy::addProductionBuilding(const int currentTime) {
     std::vector<ProductionBuildingType> availableBuildings = {};
     for (const auto &[type, building]: productionBuildings) {
         if (building.timeRequirement > currentTime)
@@ -117,7 +117,7 @@ void Enemy::addProductionBuilding(const int currentTime) {
     productionBuildings[building].amount += 0.1;
 }
 
-void Enemy::addUnits() {
+void Sc2::Enemy::addUnits() {
     std::vector<EnemyUnitType> availableUnits = {};
     std::unordered_map<EnemyUnitType, ProductionBuildingType> unitBuildings = {};
 
