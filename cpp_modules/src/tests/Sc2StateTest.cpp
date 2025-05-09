@@ -5,6 +5,9 @@
 
 #include "doctest.h"
 #include "Sc2State.h"
+#include "Enemy.h"
+
+#include <iostream>
 
 
 TEST_SUITE("Test the Sc2State") {
@@ -430,11 +433,82 @@ TEST_SUITE("Test the Sc2State") {
 
 	TEST_CASE("Test that enemy units are correctly added") {
 		const auto state = std::make_shared<Sc2::State>();
+
 		CHECK(state->getEnemyCombatUnits() == 0);
 		state->addEnemyUnit();
 		state->addEnemyUnit();
 		state->addEnemyUnit();
 		CHECK(state->getEnemyCombatUnits() == 3);
+		Sc2::Enemy e = Sc2::Enemy(Sc2::EnemyRace::Terran, 0);
+		auto a = e.generateEnemyAction();
+		auto b = e;
+		e.generateEnemyAction();
+	}
+
+	TEST_CASE("Test Enemy") {
+		auto enemy = Sc2::Enemy(Sc2::EnemyRace::Terran, 1);
+
+		SUBCASE("Enemies can add production buildings") {
+			auto initialProduction = enemy.productionBuildings;
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyProduction);
+
+			bool productionIncreased = false;
+			for (auto [type,building]: initialProduction) {
+				productionIncreased = enemy.productionBuildings[type].amount > building.amount;
+				if (productionIncreased) {
+					break;
+				}
+			}
+			CHECK(productionIncreased);
+		}
+		SUBCASE("Enemies can add units") {
+			enemy.productionBuildings[Sc2::ProductionBuildingType::Barracks].amount = 1;
+			auto initialUnits = enemy.units;
+			auto initialEnemyCombatUnits = enemy.enemyCombatUnits;
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyUnit);
+
+			bool unitsIncreased = false;
+			for (auto [unit, amount]: enemy.units) {
+				unitsIncreased = initialUnits[unit] < amount;
+				if (unitsIncreased) {
+					break;
+				}
+			}
+			CHECK(unitsIncreased);
+			CHECK(enemy.enemyCombatUnits > initialEnemyCombatUnits);
+		}
+		SUBCASE("Enemies can add ground and air production") {
+			auto initialAirProduction = enemy.airProduction;
+			auto initialGroundProduction = enemy.groundProduction;
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyAirProduction);
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyGroundProduction);
+
+			CHECK(enemy.groundProduction > initialGroundProduction);
+			CHECK(enemy.airProduction > initialAirProduction);
+		}
+		SUBCASE("Enemies can add ground and air power") {
+			auto initialGroundPower = enemy.groundPower;
+			auto initialAirPower = enemy.airPower;
+			enemy.airProduction = 1;
+			enemy.groundProduction = 1;
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyAirPower);
+			enemy.takeAction(500, Sc2::EnemyAction::addEnemyGroundPower);
+
+			CHECK(enemy.groundPower > initialGroundPower);
+			CHECK(enemy.airPower > initialAirPower);
+		}
+		SUBCASE("Copied enemies will take the same actions") {
+			enemy.takeAction(500);
+			enemy.takeAction(500);
+
+			auto enemy2 = enemy;
+			
+			for (int i = 0; i < 50; i++) {
+				auto action = enemy.takeAction(500);
+				auto action2 = enemy2.takeAction(500);
+				CHECK(action == action2);
+			}
+		}
 	}
 
 	/*

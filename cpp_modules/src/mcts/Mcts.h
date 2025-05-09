@@ -40,10 +40,6 @@ namespace Sc2::Mcts {
 		std::vector<double> _actionWeights = std::vector<double>(10);
 		std::discrete_distribution<int> _weightedDist = std::discrete_distribution<int>();
 
-		std::shared_ptr<std::map<int, Action> > _enemyActions = std::make_shared<std::map<int, Action> >();
-		std::shared_ptr<std::map<int, std::tuple<double, double> > > _combatBiases = std::make_shared<std::map<int,
-			std::tuple<double, double> > >();
-
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] static double ucb1Normal2(const std::shared_ptr<Node> &node);
@@ -73,10 +69,6 @@ namespace Sc2::Mcts {
 			_mctsMutex.unlock();
 			return state;
 		}
-
-		auto getBias() { return _combatBiases; }
-
-		auto getEnemyActions() { return _enemyActions; }
 
 		void setEndTime(const int time) {
 			_mctsMutex.lock();

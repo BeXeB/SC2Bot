@@ -403,6 +403,7 @@ std::vector<BenchmarkResult> BenchmarkSuite(unsigned int seed, int numberOfRollo
 		.rolloutHeuristic = RolloutHeuristic::WeightedChoice,
 		.endProbabilityFunction = endProbabilityFunction,
 		.armyValueFunction = armyValueFunction,
+		.shouldPrintActions = true,
 	});
 	results.push_back(result);
 
@@ -516,7 +517,7 @@ std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed, const int en
 	int index = 0;
 	std::vector<BenchmarkResult> results = {};
 
-	results = BenchmarkSuite(seed, 5000, endTime, Sc2::ArmyValueFunction::MarinePower,0, index);
+	results = BenchmarkSuite(seed, 5000, endTime, Sc2::ArmyValueFunction::AveragePower,0, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 8;

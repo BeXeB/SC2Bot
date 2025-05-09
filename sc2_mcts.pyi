@@ -15,8 +15,31 @@ class Mcts:
     def perform_action(self, action:Action) -> None: ...
     def get_number_of_rollouts(self) -> int: ...
 
+class Race(Enum):
+    terran = 0
+    protoss = 1
+    zerg = 2
+
+class ProductionBuilding(Enum):
+    barracks = 0
+    factory = 1
+    starport = 2
+    hydraliskDen = 3
+    hatchery = 4
+    lurkerDen = 5
+    ultraliskCavern = 6
+    spawningPool = 7
+    roachWarren = 8
+    spire = 9
+    banelingNest = 10
+    infestationPit = 11
+    gateway = 12
+    stargate = 13
+    roboticsFacility = 14
+    none = 15
 class Enemy:
     def __init__(self, ground_power: int, air_power: int, ground_production: int, air_production: int) -> Enemy: ...
+    def __init__(self, race:Race, units_amounts:dict[str, int], production_building_amounts:dict[ProductionBuilding, int]): ...
 
 def state_builder(minerals: int,
                   vespene: int,
@@ -37,7 +60,6 @@ def state_builder(minerals: int,
                   occupied_worker_timers: list[int],
                   current_time: int,
                   end_time: int,
-                  enemy_combat_units: int,
                   has_house: bool,
                   incoming_house:bool,
                   incoming_barracks: bool,

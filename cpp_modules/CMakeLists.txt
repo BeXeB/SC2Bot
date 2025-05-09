@@ -24,12 +24,14 @@ add_executable(RunTests
         ${STATE_SOURCE}/Sc2State.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
+        ${STATE_SOURCE}/enemy/Enemy.cpp
 )
 
 target_include_directories(
         RunTests
         PRIVATE ${STATE_SOURCE}
         PRIVATE ${MCTS_SOURCE}
+        PRIVATE "${STATE_SOURCE}/enemy"
 )
 
 # module
@@ -39,6 +41,7 @@ pybind11_add_module(
         ${STATE_SOURCE}/Sc2State.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
+        ${STATE_SOURCE}/enemy/enemy.cpp
 )
 
 
@@ -47,20 +50,22 @@ target_include_directories(
         PRIVATE ${MODULE_SOURCE}
         PRIVATE ${STATE_SOURCE}
         PRIVATE ${MCTS_SOURCE}
+        PRIVATE ${STATE_SOURCE}/enemy
 )
 
 ## executables
 add_executable(MCTS_benchmark
         ${BENCHMARK_SOURCE}/mcts_benchmark.cpp
         ${STATE_SOURCE}/Sc2State.cpp
+        ${STATE_SOURCE}/enemy/enemy.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
-        src/sc2_state/UnitPower.h
 )
 
 target_include_directories(
         MCTS_benchmark
         PRIVATE ${STATE_SOURCE}
+        PRIVATE ${STATE_SOURCE}/enemy
         PRIVATE ${MCTS_SOURCE}
 )
 

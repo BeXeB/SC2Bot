@@ -10,12 +10,43 @@ namespace pymodule {
 	PYBIND11_MODULE(sc2_mcts, module) { 
 		module.doc() = "sc2_mcts";
 
+	py::enum_<Sc2::EnemyRace>(module, "Race")
+			.value("terran", Sc2::EnemyRace::Terran)
+			.value("protoss", Sc2::EnemyRace::Protoss)
+			.value("zerg", Sc2::EnemyRace::Zerg);
+
+	py::enum_<Sc2::ProductionBuildingType>(module, "ProductionBuilding")
+		.value("barracks", Sc2::ProductionBuildingType::Barracks)
+		.value("factory", Sc2::ProductionBuildingType::Factory)
+		.value("starport", Sc2::ProductionBuildingType::Starport)
+		.value("hydraliskDen", Sc2::ProductionBuildingType::HydraliskDen)
+		.value("hatchery", Sc2::ProductionBuildingType::Hatchery)
+		.value("lurkerDen", Sc2::ProductionBuildingType::LurkerDen)
+		.value("ultraliskCavern", Sc2::ProductionBuildingType::UltraliskCavern)
+		.value("spawningPool", Sc2::ProductionBuildingType::SpawningPool)
+		.value("roachWarren", Sc2::ProductionBuildingType::RoachWarren)
+		.value("spire", Sc2::ProductionBuildingType::Spire)
+		.value("banelingNest", Sc2::ProductionBuildingType::BanelingNest)
+		.value("infestationPit", Sc2::ProductionBuildingType::InfestationPit)
+		.value("gateway", Sc2::ProductionBuildingType::Gateway)
+		.value("stargate", Sc2::ProductionBuildingType::Stargate)
+		.value("roboticsFacility", Sc2::ProductionBuildingType::RoboticsFacility)
+		.value("none", Sc2::ProductionBuildingType::None);
+
 		py::class_<Sc2::Enemy, std::shared_ptr<Sc2::Enemy>>(module, "Enemy")
 			.def(py::init<const int, const int, const double, const double>(),
 				py::arg("ground_power"),
 				py::arg("air_power"),
 				py::arg("ground_production"),
-				py::arg("air_production"));
+				py::arg("air_production"))
+			.def(py::init<const Sc2::EnemyRace,
+						const std::map<std::string, int> &,
+						const std::map<Sc2::ProductionBuildingType, int> &>(),
+					py::arg("race"),
+					py::arg("unit_amounts"),
+					py::arg("production_building_amounts"));
+
+
 
 		module.def("state_builder", &Sc2::State::StateBuilder, "A function that builds a State",
 						 py::arg("minerals"),
@@ -37,7 +68,6 @@ namespace pymodule {
 						 py::arg("occupied_worker_timers"),
 						 py::arg("current_time"),
 						 py::arg("end_time"),
-						 py::arg("enemy_combat_units"),
 						 py::arg("has_house"),
 						 py::arg("incoming_house"),
 						 py::arg("incoming_barracks"),
@@ -92,13 +122,7 @@ namespace pymodule {
 		.value("build_tank", Action::buildTank)
 		.value("build_factory", Action::buildFactory)
 		.value("build_viking", Action::buildViking)
-		.value("build_starport", Action::buildStarPort)
-		.value("attack_player", Action::attackPlayer)
-		.value("add_enemy_unit", Action::addEnemyUnit)
-		.value("add_enemy_ground_power", Action::addEnemyGroundPower)
-		.value("add_enemy_air_power", Action::addEnemyAirPower)
-		.value("add_enemy_ground_production",Action::addEnemyGroundProduction)
-		.value("add_enemy_air_production", Action::addEnemyAirProduction);
+		.value("build_starport", Action::buildStarPort);
 
 		py::enum_<ValueHeuristic>(module, "ValueHeuristic")
 		.value("UCT", ValueHeuristic::UCT)
