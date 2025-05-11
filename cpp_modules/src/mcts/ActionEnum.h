@@ -18,12 +18,6 @@ enum class Action {
     buildTank,
     buildStarPort,
     buildViking,
-    attackPlayer,
-    addEnemyUnit,
-    addEnemyGroundPower,
-    addEnemyAirPower,
-    addEnemyGroundProduction,
-    addEnemyAirProduction
 };
 
 inline std::string actionToString(Action action) {
@@ -61,12 +55,6 @@ inline std::string actionToString(Action action) {
             break;
         case Action::buildTank:
             actionString = std::string("buildTank");
-            break;
-        case Action::attackPlayer:
-            actionString = std::string("attackPlayer");
-            break;
-        case Action::addEnemyUnit:
-            actionString = std::string("addEnemyUnit");
             break;
         default:
             throw std::runtime_error("Could not convert action to string");
@@ -109,12 +97,6 @@ inline std::ostream &operator<<(std::ostream &os, const Action &action) {
             break;
         case Action::buildTank:
             os << std::string("buildTank");
-            break;
-        case Action::attackPlayer:
-            os << std::string("attackPlayer");
-            break;
-        case Action::addEnemyUnit:
-            os << std::string("addEnemyUnit");
             break;
         default:
             throw std::runtime_error("Could not convert action to string");
