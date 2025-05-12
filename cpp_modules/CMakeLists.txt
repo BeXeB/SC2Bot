@@ -3,6 +3,7 @@ project(sc2modules)
 
 set(CMAKE_CXX_STANDARD 20)
 
+
 if(WIN32)
     set(CMAKE_CXX_FLAGS -static)
 endif()
@@ -13,6 +14,18 @@ set(MODULE_SOURCE "${PROJECT_SOURCE_DIR}/src/module")
 set(BENCHMARK_SOURCE "${PROJECT_SOURCE_DIR}/src/benchmarks")
 set(TEST_SOURCE "${PROJECT_SOURCE_DIR}/src/tests")
 set(EXTERNALS "${PROJECT_SOURCE_DIR}/externals")
+
+# torchlib
+message(${CMAKE_BUILD_TYPE})
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_PREFIX_PATH ${EXTERNALS}/libtorch/debug/libtorch)
+else ()
+    set(CMAKE_PREFIX_PATH ${EXTERNALS}/libtorch/release/libtorch)
+endif()
+
+find_package(Torch REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
 
 # pybind11
 add_subdirectory(${EXTERNALS}/pybind11)
@@ -68,6 +81,22 @@ target_include_directories(
         PRIVATE ${STATE_SOURCE}/enemy
         PRIVATE ${MCTS_SOURCE}
 )
+
+## torchlib
+target_link_libraries(sc2_mcts PRIVATE "${TORCH_LIBRARIES}")
+target_link_libraries(RunTests PRIVATE "${TORCH_LIBRARIES}")
+target_link_libraries(MCTS_benchmark PRIVATE "${TORCH_LIBRARIES}")
+
+if (MSVC)
+    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+    foreach (target sc2_mcts RunTests MCTS_benchmark)
+        add_custom_command(TARGET ${target}
+                POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${TORCH_DLLS}
+                $<TARGET_FILE_DIR:${target}>)
+    endforeach ()
+endif (MSVC)
 
 #add_executable(
 #        sc2State
