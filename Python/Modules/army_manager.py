@@ -29,6 +29,7 @@ class ArmyManager:
         self.tank_manager = SiegeTankCombat(bot)
         self.attacking = False
         self.set_initial_rally_point()
+        self.cached_engagements: list[tuple[set[int], list[Unit]]] = []
 
     def set_initial_rally_point(self):
         closest: Optional[Point2] = None
@@ -98,13 +99,12 @@ class ArmyManager:
             case UnitTypeId.SIEGETANK | UnitTypeId.SIEGETANKSIEGED:
                 self.tank_manager.manage_unit(unit)
 
-    async def split_combat_units(self):
-        cached_enemy_squad = []
-        cached_counter_forces = []
 
+    async def split_combat_units(self):
         all_enemies = self.bot.enemy_units
 
         if all_enemies.empty:
+            print("No enemies to split against")
             return
 
         if all_enemies.first.position is None:
@@ -119,34 +119,66 @@ class ArmyManager:
 
         enemy_squad = self.bot.enemy_units.closer_than(5, nearest_enemy)
 
-        if cached_enemy_squad.__contains__(enemy_squad):
+        alive_units = self.bot.units
+
+        # Checks whether enemy_squad is a subset of the cached enemy_squad
+        if self.is_squad_cached_and_valid(enemy_squad, alive_units):
             print("already cached that enemy squad")
+            enemy_tags = set(unit.tag for unit in enemy_squad)
+            for cached_tags, counter_units in self.cached_engagements:
+                if enemy_tags == cached_tags:
+                    for unit in counter_units:
+                        unit.attack(enemy_squad.center)
+                    break
             return
 
         own_buildings = self.bot.structures
 
-
-        if cached_enemy_squad.__len__() < 1:
-            print("hæ")
-
-        for elements in cached_enemy_squad:
-            print("cached element id: " + str(elements.type_id) + ", tag: " + str(elements.tag))
-
         for building in own_buildings:
             if enemy_squad.closer_than(10, building):
                 split_units = await self.find_winning_composition(enemy_squad)
-                for enemies in enemy_squad:
-                    print("caching element id: " + str(enemies.type_id) + ", tag: " + str(enemies.tag))
-                    cached_enemy_squad.append(enemies.tag)
-                for counters in split_units:
-                    cached_counter_forces.append(counters.tag)
+
+                enemy_tags = set(unit.tag for unit in enemy_squad)
+
+                already_cached = any(enemy_tags == cached_tags for cached_tags, _ in self.cached_engagements)
+
+                if not already_cached:
+
+                    # Prune outdated subsets first
+                    self.cached_engagements = [
+                        (cached_tags, counter_units)
+                        for cached_tags, counter_units in self.cached_engagements
+                        if not cached_tags < enemy_tags
+                    ]
+
+                    # Cache the new superset
+                    self.cached_engagements.append((enemy_tags, list(split_units)))
+
                 if split_units.empty:
                     split_units = self.bot.units
+
                 for unit in split_units:
-                    print("unit with tag : " + str(unit.tag) + "is now attacking enemy squad consisting of: ")
-                    for enemy in enemy_squad:
-                        print(str(enemy.tag))
+                    print("unit with tag : " + str(unit.tag))
                     unit.attack(enemy_squad.center)
+                print("is now attacking enemy squad consisting of: ")
+                for enemy in enemy_squad:
+                    print(str(enemy.tag))
+
+    def is_squad_cached_and_valid(self, enemy_squad: Units, alive_units: Units) -> bool:
+        enemy_tags = set(unit.tag for unit in enemy_squad)
+        alive_tags = set(unit.tag for unit in alive_units)
+
+        for cached_tags, counter_units in self.cached_engagements:
+            if enemy_tags == cached_tags:
+                for unit in counter_units:
+                    if unit.tag not in alive_tags:
+                        print("Lost counter unit(s) for squad: " + str(enemy_tags))
+                        return False
+                return True
+
+        return False
+
+
 
     async def find_winning_composition(self, enemy_squad: Units) -> Units:
         own_units = self.bot.units.exclude_type(self.unit_exclusion_list)
