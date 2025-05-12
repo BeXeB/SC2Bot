@@ -1,10 +1,11 @@
-﻿import copy
+import copy
 import csv
 import os
 from enum import Enum
 from typing import List
 
 import pandas as pd
+from sc2.data import Result
 
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
@@ -68,7 +69,7 @@ class BattleBot(MyBot):
     async def on_unit_created(self, unit: Unit):
         pass
 
-    async def on_end(self, game_result: MatchupResult):
+    async def on_end(self, game_result: Result):
         filepath = 'data/micro_arena.csv'
         player = "player"
         enemy = "enemy"
