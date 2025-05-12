@@ -10,6 +10,8 @@
 #include <thread>
 #include <mutex>
 #include <sstream>
+#include <tuple>
+#include <torch/script.h>
 
 #include "Node.h"
 #include "ValueHeuristicEnum.h"
@@ -21,6 +23,7 @@ namespace Sc2::Mcts {
 
 	class Mcts {
 		std::mt19937 _rng;
+		torch::jit::Module _model;
 
 		const double EXPLORATION = sqrt(2);
 		int _rolloutEndTime = 100;
@@ -50,8 +53,11 @@ namespace Sc2::Mcts {
 		std::vector<std::shared_ptr<Node> > getMaxNodes(
 			std::map<Action, std::shared_ptr<Node> > &children);
 		void singleSearch();
+		std::vector<std::tuple<float, float, float>> predictWinProbabilities(const std::vector<std::vector<float>> &features);
 		void threadedSearch();
 		void threadedSearchRollout(int numberOfRollouts);
+
+		[[nodiscard]] static torch::jit::script::Module loadCombatPredictionNN();
 
 	public:
 		ArmyValueFunction _armyValueFunction = ArmyValueFunction::MinPower;
@@ -155,17 +161,18 @@ namespace Sc2::Mcts {
 		explicit Mcts(const std::shared_ptr<State> &rootState, const unsigned int seed, const int rolloutEndTime,
 		              const double exploration, const ValueHeuristic valueHeuristic,
 		              const RolloutHeuristic rolloutHeuristic, const int endProbabilityFunction, const ArmyValueFunction armyValueFunction) : EXPLORATION(exploration),
-		                                                         _rolloutEndTime(rolloutEndTime),
-		                                                         _valueHeuristic(valueHeuristic),
-		                                                         _rolloutHeuristic(rolloutHeuristic),
-																 _armyValueFunction(armyValueFunction),
-																 END_PROBABILITY_FUNCTION(endProbabilityFunction)
+		                                                                                                                                      _rolloutEndTime(rolloutEndTime),
+		                                                                                                                                      _valueHeuristic(valueHeuristic),
+		                                                                                                                                      _rolloutHeuristic(rolloutHeuristic),
+		                                                                                                                                      _armyValueFunction(armyValueFunction),
+		                                                                                                                                      END_PROBABILITY_FUNCTION(endProbabilityFunction)
 		{
 			_rng = std::mt19937(seed);
 			const auto deepCopy = State::DeepCopy(*rootState);
 			deepCopy->setEndProbabilityFunction(endProbabilityFunction);
 			deepCopy->setArmyValueFunction(armyValueFunction);
 			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, deepCopy));
+			_model = loadCombatPredictionNN();
 		}
 
 		explicit Mcts(const std::shared_ptr<State> &rootState) {
@@ -173,6 +180,7 @@ namespace Sc2::Mcts {
 			_rng = std::mt19937(seed);
 			const auto deepCopy = State::DeepCopy(*rootState);
 			_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, deepCopy));
+			_model = loadCombatPredictionNN();
 		}
 
 		Mcts() {
@@ -180,6 +188,7 @@ namespace Sc2::Mcts {
 			_rng = std::mt19937(seed);
 			auto rootState = std::make_shared<State>(_rolloutEndTime, 0, ArmyValueFunction::MinPower, seed);
 			_rootNode = std::make_shared<Node>(Action::none, nullptr, rootState);
+			_model = loadCombatPredictionNN();
 		}
 	};
 

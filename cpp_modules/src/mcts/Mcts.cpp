@@ -229,6 +229,56 @@ void Mcts::singleSearch() {
 	_numberOfRollouts++;
 }
 
+std::vector<std::tuple<float, float, float>> Mcts::predictWinProbabilities(const std::vector<std::vector<float>> &features) {
+	int featureSize = static_cast<int>(features[0].size());
+	int batchSize = static_cast<int>(features.size());
+
+	std::vector<float> flatFeatures = {};
+	for (auto feature: features) {
+		flatFeatures.insert(flatFeatures.end(), feature.begin(), feature.end());
+	}
+
+	const torch::Tensor input = torch::from_blob(flatFeatures.data(), {batchSize, featureSize}, torch::kFloat);
+
+	std::vector<torch::jit::IValue> inputs{input};
+
+	torch::Tensor output = _model.forward(inputs).toTensor();
+	output = torch::exp(output);
+	output = output.to(torch::kCPU).contiguous();
+
+	auto ptr = output.data_ptr<float>();
+
+	auto rows = output.size(0);
+	auto cols = output.size(1);
+
+	if (cols != 3) {
+		throw std::runtime_error("Expected output with 3 columns.");
+	}
+
+	std::vector<std::tuple<float, float, float>> results;
+
+	for (auto i = 0; i < rows; ++i) {
+		float loss = ptr[i * cols + 0];
+		float tie = ptr[i * cols + 1];
+		float win = ptr[i * cols + 2];
+		results.emplace_back(loss, tie, win);
+	}
+
+	return results;
+}
+
+torch::jit::script::Module Mcts::loadCombatPredictionNN() {
+	const std::string path = "../../data/arena_model.pt";
+	torch::jit::script::Module module;
+	try {
+		module = torch::jit::load(path);
+	}
+	catch (const c10::Error& _) {
+		std::cerr << "Error loading the model" << std::endl;
+	}
+	return module;
+}
+
 void Mcts::threadedSearch() {
 	while (_running) {
 		if (!_mctsRequestsPending) {
