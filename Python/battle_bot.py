@@ -87,8 +87,8 @@ class BattleBot(MyBot):
             player_unit_dict = self.get_units_for(player, matchup.player_units)
             enemy_unit_dict = self.get_units_for(enemy, matchup.enemy_units)
             match_dict = player_unit_dict | enemy_unit_dict # merge dictionaries
-            match_dict.update({result: matchup.result.value})
             match_dict.update({on_creep: matchup.on_creep})
+            match_dict.update({result: matchup.result.value})
             data.append(match_dict)
 
         df = pd.DataFrame(data)
