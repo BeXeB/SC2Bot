@@ -54,7 +54,7 @@ class ArmyManager:
     def __units_to_include(self) -> Units:
         return self.bot.units.exclude_type(self.unit_exclusion_list)
 
-    def manage_army(self) -> None:
+    async def manage_army(self) -> None:
         if self.__units_to_include().amount > 20 or self.attacking:
             self.attacking = True
             self.attack_enemy_base()
@@ -64,7 +64,8 @@ class ArmyManager:
             for unit in self.__units_to_include():
                 unit.move(self.rally_point)
 
-        self.defend_structures()
+        #self.defend_structures()
+        await self.split_combat_units()
 
     def defend_structures(self) -> None:
         for building in self.bot.structures:
@@ -97,18 +98,55 @@ class ArmyManager:
             case UnitTypeId.SIEGETANK | UnitTypeId.SIEGETANKSIEGED:
                 self.tank_manager.manage_unit(unit)
 
-    async def split_combat_units(self, nearest_enemy: Unit):
-        print("GOT INTO SPLIT")
+    async def split_combat_units(self):
+        cached_enemy_squad = []
+        cached_counter_forces = []
+
+        all_enemies = self.bot.enemy_units
+
+        if all_enemies.empty:
+            return
+
+        if all_enemies.first.position is None:
+            return
+
+        unit_nearest_cc = self.bot.units.closest_to(self.bot.start_location)
+
+        nearest_enemy = all_enemies.closest_to(unit_nearest_cc)
+
+        if nearest_enemy is None:
+            return
+
         enemy_squad = self.bot.enemy_units.closer_than(5, nearest_enemy)
+
+        if cached_enemy_squad.__contains__(enemy_squad):
+            print("already cached that enemy squad")
+            return
+
         own_buildings = self.bot.structures
 
-        print("GOT TO BUILDINGS")
+
+        if cached_enemy_squad.__len__() < 1:
+            print("hæ")
+
+        for elements in cached_enemy_squad:
+            print("cached element id: " + str(elements.type_id) + ", tag: " + str(elements.tag))
 
         for building in own_buildings:
-            if enemy_squad.closer_than(5, building):
+            if enemy_squad.closer_than(10, building):
                 split_units = await self.find_winning_composition(enemy_squad)
+                for enemies in enemy_squad:
+                    print("caching element id: " + str(enemies.type_id) + ", tag: " + str(enemies.tag))
+                    cached_enemy_squad.append(enemies.tag)
+                for counters in split_units:
+                    cached_counter_forces.append(counters.tag)
+                if split_units.empty:
+                    split_units = self.bot.units
                 for unit in split_units:
-                    unit.attack(building)
+                    print("unit with tag : " + str(unit.tag) + "is now attacking enemy squad consisting of: ")
+                    for enemy in enemy_squad:
+                        print(str(enemy.tag))
+                    unit.attack(enemy_squad.center)
 
     async def find_winning_composition(self, enemy_squad: Units) -> Units:
         own_units = self.bot.units.exclude_type(self.unit_exclusion_list)
@@ -132,4 +170,14 @@ class ArmyManager:
                 final_units = test_units
             else:
                 i += 1
+
+
+        # FOR TESTING PURPOSES PRINT OUTS #
+        print("Enemies attacking:")
+        for enemy in enemy_squad:
+            print(enemy.type_id)
+        print("CHOSEN SPLIT UNITS:")
+        for unit in final_units:
+            print(unit.type_id)
+
         return Units(final_units, self.bot)

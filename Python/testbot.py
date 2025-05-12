@@ -135,9 +135,11 @@ class MyBot(BotAI):
 
         self.update_busy_workers()
         self.manage_workers()
-        self.army_manager.manage_army()
+        await self.army_manager.manage_army()
         self.scout_manager.manage_scouts()
         self.update_enemy_units_and_structures()
+        #await self.army_manager.split_combat_units()
+
 
         if self.structures(UnitTypeId.FACTORY).ready.filter(lambda sr: sr.has_techlab == False):
             await self.factory_builder.build_tech_lab()
@@ -183,6 +185,9 @@ class MyBot(BotAI):
                         self.get_multi_best_action()
                     case ActionSelection.MultiBestActionMin:
                         self.get_multi_best_action_min()
+
+
+
 
     async def draw_debug(self):
         def draw_box(loc: Point2, start_loc: Tuple[int, int], end_loc: Tuple[int, int], color:Tuple[int, int, int]):
