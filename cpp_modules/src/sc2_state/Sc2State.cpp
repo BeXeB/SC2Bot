@@ -309,7 +309,7 @@ double Sc2::State::getCombatSuccessProbability() const {
     }
 }
 
-double Sc2::State::endProbabilityFunction(double successProb) const {
+double Sc2::State::endProbabilityFunction(const double successProb) const {
     switch (END_PROBABILITY_FUNCTION) {
         case 0:
             return std::pow(successProb - 0.5, 2) * 4;

@@ -53,7 +53,7 @@ namespace Sc2::Mcts {
 		std::vector<std::shared_ptr<Node> > getMaxNodes(
 			std::map<Action, std::shared_ptr<Node> > &children);
 		void singleSearch();
-		std::vector<std::tuple<float, float, float>> predictWinProbabilities(const std::vector<std::vector<float>> &features);
+		std::vector<double> predictWinProbabilities(const std::vector<std::vector<float>> &features);
 		void threadedSearch();
 		void threadedSearchRollout(int numberOfRollouts);
 

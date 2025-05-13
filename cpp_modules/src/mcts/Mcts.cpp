@@ -172,6 +172,7 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState(), true);
+	std::vector<std::vector<float>> featureVectors = {};
 	std::vector<double> winProbabilities;
 	// std::vector<double> lossProbabilities;
 	std::vector<double> continueProbabilities;
@@ -198,10 +199,27 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 
 		state->performAction(action);
 
-		const auto [winProb, _, continueProb] = state->getWinProbabilities();
-		winProbabilities.emplace_back(winProb);
-		continueProbabilities.emplace_back(continueProb);
+		if (_armyValueFunction == ArmyValueFunction::CombatNN) {
+			featureVectors.emplace_back(state->getFeatureVector());
+		}
+		else {
+			const auto [winProb, _, continueProb] = state->getWinProbabilities();
+			winProbabilities.emplace_back(winProb);
+			continueProbabilities.emplace_back(continueProb);
+		}
+
 	}
+
+	if (_armyValueFunction == ArmyValueFunction::CombatNN) {
+		winProbabilities = predictWinProbabilities(featureVectors);
+
+		for (auto probability: winProbabilities) {
+			auto continueProb = state->endProbabilityFunction(probability);
+			continueProbabilities.emplace_back(continueProb);
+		}
+	}
+
+
 
 	return calculateTotalWinProbability(winProbabilities, continueProbabilities);
 }
@@ -222,14 +240,7 @@ void Mcts::backPropagate(std::shared_ptr<Node> node, const double outcome) {
 	}
 }
 
-void Mcts::singleSearch() {
-	const auto node = selectNode();
-	const auto outcome = rollout(node);
-	backPropagate(node, outcome);
-	_numberOfRollouts++;
-}
-
-std::vector<std::tuple<float, float, float>> Mcts::predictWinProbabilities(const std::vector<std::vector<float>> &features) {
+std::vector<double> Mcts::predictWinProbabilities(const std::vector<std::vector<float>> &features) {
 	int featureSize = static_cast<int>(features[0].size());
 	int batchSize = static_cast<int>(features.size());
 
@@ -255,17 +266,25 @@ std::vector<std::tuple<float, float, float>> Mcts::predictWinProbabilities(const
 		throw std::runtime_error("Expected output with 3 columns.");
 	}
 
-	std::vector<std::tuple<float, float, float>> results;
+	std::vector<double> results;
 
 	for (auto i = 0; i < rows; ++i) {
 		float loss = ptr[i * cols + 0];
 		float tie = ptr[i * cols + 1];
 		float win = ptr[i * cols + 2];
-		results.emplace_back(loss, tie, win);
+		results.emplace_back(win);
 	}
 
 	return results;
 }
+
+void Mcts::singleSearch() {
+	const auto node = selectNode();
+	const auto outcome = rollout(node);
+	backPropagate(node, outcome);
+	_numberOfRollouts++;
+}
+
 
 torch::jit::script::Module Mcts::loadCombatPredictionNN() {
 	const std::string path = "../../data/arena_model.pt";
