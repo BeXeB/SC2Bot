@@ -364,6 +364,8 @@ class InformationManager:
     def handle_structure_destroyed(self, tag: int) -> None:
         if tag not in self.structures_data:
             return
+        if not self.structures_data[tag].structure_type in self.building_type_to_placement_type:
+            return
         position = self.structures_data[tag].position
         self.bot.map_analyzer.make_location_buildable(position, self.building_type_to_placement_type[self.structures_data[tag].structure_type])
 
