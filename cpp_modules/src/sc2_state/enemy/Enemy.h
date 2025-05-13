@@ -63,7 +63,7 @@ namespace Sc2 {
 		Enemy(const EnemyRace race,
 		      const std::map<std::string, int> &units,
 		      const std::map<ProductionBuildingType, int> &productionBuildings)
-			: race(race), units(convertToEnum(units)), productionBuildings(convertToProductionBuildings(productionBuildings)) {
+			: race(race), units(convertToEnemyEnum(units)), productionBuildings(convertToProductionBuildings(productionBuildings)) {
 			_rng = std::mt19937(std::random_device{}());
 		}
 
