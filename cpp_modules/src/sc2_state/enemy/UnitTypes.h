@@ -128,7 +128,7 @@ inline std::unordered_map<std::string, EnemyUnitType> stringToUnitType = {
     {"enemy:DISRUPTOR", EnemyUnitType::DISRUPTOR},
 };
 
-static std::map<EnemyUnitType, int> convertToEnum(const std::map<std::string, int> & unitStrings) {
+static std::map<EnemyUnitType, int> convertToEnemyEnum(const std::map<std::string, int> & unitStrings) {
     std::map<EnemyUnitType, int>unitMap = {};
     // Initialize all units to 0
     for (int i = static_cast<int>(EnemyUnitType::COLOSSUS); i != static_cast<int>(EnemyUnitType::Last); i++ ) {
@@ -141,4 +141,27 @@ static std::map<EnemyUnitType, int> convertToEnum(const std::map<std::string, in
     }
     return unitMap;
 };
+
+enum class PlayerUnitType {
+    SIEGETANKSIEGED,
+    SIEGETANK,
+    VIKINGFIGHTER,
+    SCV,
+    MARINE,
+    REAPER,
+    GHOST,
+    MARAUDER,
+    THOR,
+    HELLION,
+    MEDIVAC,
+    BANSHEE,
+    RAVEN,
+    BATTLECRUISER,
+    HELLIONTANK,
+    WIDOWMINE,
+    LIBERATOR,
+    CYCLONE,
+    Last
+};
+
 #endif //UNITTYPES_H
