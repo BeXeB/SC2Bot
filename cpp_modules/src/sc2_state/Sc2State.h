@@ -419,6 +419,7 @@ namespace Sc2 {
 
 		std::vector<float> getFeatureVector();
 		double getCombatSuccessProbability() const;
+		double endProbabilityFunction(double successProb) const;
 		double getEndProbability() const;
 		void addEnemyUnit(){_enemy.takeAction(500, EnemyAction::addEnemyUnit);}
 

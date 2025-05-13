@@ -309,9 +309,7 @@ double Sc2::State::getCombatSuccessProbability() const {
     }
 }
 
-double Sc2::State::getEndProbability() const {
-    const double successProb = getCombatSuccessProbability();
-
+double Sc2::State::endProbabilityFunction(double successProb) const {
     switch (END_PROBABILITY_FUNCTION) {
         case 0:
             return std::pow(successProb - 0.5, 2) * 4;
@@ -322,6 +320,11 @@ double Sc2::State::getEndProbability() const {
         default:
             throw std::runtime_error("Unknown EndProbabilityFunction: " + std::to_string(END_PROBABILITY_FUNCTION));
     }
+}
+
+double Sc2::State::getEndProbability() const {
+    const double successProb = getCombatSuccessProbability();
+    return endProbabilityFunction(successProb);
 }
 
 void Sc2::State::addVespeneCollector() {
