@@ -214,7 +214,7 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		winProbabilities = predictWinProbabilities(featureVectors);
 
 		for (auto probability: winProbabilities) {
-			auto continueProb = state->endProbabilityFunction(probability);
+			auto continueProb = 1 - state->endProbabilityFunction(probability);
 			continueProbabilities.emplace_back(continueProb);
 		}
 	}

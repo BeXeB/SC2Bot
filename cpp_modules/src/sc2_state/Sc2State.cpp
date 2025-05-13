@@ -302,6 +302,8 @@ double Sc2::State::getCombatSuccessProbability() const {
             return getValueArmyPowerScaled();
         case ArmyValueFunction::MarinePower:
             return getValueMarines();
+        case ArmyValueFunction::CombatNN:
+            return 1;
         case ArmyValueFunction::None:
             throw std::invalid_argument("ArmyValueFunction::None");
         default:

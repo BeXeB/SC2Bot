@@ -8,6 +8,7 @@
 
 #include "Mcts.h"
 // #include "Sc2State.h"
+#include <torch/script.h>
 using namespace Sc2::Mcts;
 using namespace std::chrono;
 
@@ -517,7 +518,7 @@ std::vector<BenchmarkResult> RunBenchmarks(const unsigned int seed, const int en
 	int index = 0;
 	std::vector<BenchmarkResult> results = {};
 
-	results = BenchmarkSuite(seed, 5000, endTime, Sc2::ArmyValueFunction::AveragePower,0, index);
+	results = BenchmarkSuite(seed, 5000, endTime, Sc2::ArmyValueFunction::CombatNN,0, index);
 	allResults.insert(allResults.end(), results.begin(), results.end());
 
 	index += 8;
@@ -617,6 +618,25 @@ calculateAverageBenchmarks(const std::vector<std::vector<BenchmarkResult> > &ben
 }
 
 int main() {
+	// std::string path = "../../data/arena_model.pt";
+	// torch::jit::script::Module module;
+	// try {
+	// 	module = torch::jit::load(path);
+	// }
+	// catch (const c10::Error& e) {
+	// 	std::cerr << "Error loading the model" << std::endl;
+	// 	return -1;
+	// }
+	//
+	// std::vector<torch::jit::IValue> inputs;
+	// inputs.push_back(torch::randn({1, 76}));
+	//
+	// at::Tensor output = module.forward(inputs).toTensor();
+	// output = torch::exp(output);
+	//
+	// std::cout << "Output: " << output.slice(1,0,3) << std::endl;
+	// return 0;
+
 	unsigned int seed = 3942438310;
 	constexpr int numberOfRuns = 10;
 	constexpr int runTime = 480;

@@ -439,7 +439,7 @@ namespace Sc2 {
 		}
 
 		bool GameOver() const {
-			return endTimeReached() || getEndProbability() > 0.90;
+			return endTimeReached(); //|| getEndProbability() > 0.90;
 		}
 
 		int getCurrentTime() const { return _currentTime; }
