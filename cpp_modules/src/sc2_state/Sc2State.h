@@ -48,6 +48,7 @@ namespace Sc2 {
 		AveragePower,
 		ScaledPower,
 		MarinePower,
+		CombatNN,
 		None
 	};
 
@@ -416,6 +417,7 @@ namespace Sc2 {
 
 		std::tuple<double, double, double> getWinProbabilities();
 
+		std::vector<float> getFeatureVector();
 		double getCombatSuccessProbability() const;
 		double getEndProbability() const;
 		void addEnemyUnit(){_enemy.takeAction(500, EnemyAction::addEnemyUnit);}

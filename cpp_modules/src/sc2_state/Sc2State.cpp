@@ -260,6 +260,38 @@ std::tuple<double, double, double> Sc2::State::getWinProbabilities() {
     return {winProb, lossProb, continueProb};
 }
 
+std::vector<float> Sc2::State::getFeatureVector() {
+    std::vector<float> features = {};
+
+    for (int i = 0; i < static_cast<int>(PlayerUnitType::Last); i++) {
+        auto type = static_cast<PlayerUnitType>(i);
+        switch (type) {
+            case PlayerUnitType::SIEGETANK:
+                features.emplace_back(_tankPopulation);
+                break;
+            case PlayerUnitType::VIKINGFIGHTER:
+                features.emplace_back(_vikingPopulation);
+                break;
+            case PlayerUnitType::MARINE:
+                features.emplace_back(_marinePopulation);
+                break;
+            default:
+                features.emplace_back(0);
+                break;
+        }
+    }
+
+    for (int i = 0; i < static_cast<int>(EnemyUnitType::Last); i++) {
+        auto type = static_cast<EnemyUnitType>(i);
+        features.emplace_back(_enemy.units[type]);
+    }
+
+    // on_creep column always set to 0 in mcts
+    features.emplace_back(0);
+
+    return features;
+}
+
 double Sc2::State::getCombatSuccessProbability() const {
     switch (_armyValueFunction) {
         case ArmyValueFunction::AveragePower:
@@ -290,7 +322,6 @@ double Sc2::State::getEndProbability() const {
         default:
             throw std::runtime_error("Unknown EndProbabilityFunction: " + std::to_string(END_PROBABILITY_FUNCTION));
     }
-
 }
 
 void Sc2::State::addVespeneCollector() {
