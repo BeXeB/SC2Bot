@@ -158,11 +158,11 @@ class ArmyManager:
                     split_units = self.bot.units
 
                 for unit in split_units:
-                    print("unit with tag : " + str(unit.tag))
+                    print("unit with tag : " + str(unit.tag) + ", " + str(unit.type_id))
                     unit.attack(enemy_squad.center)
                 print("is now attacking enemy squad consisting of: ")
                 for enemy in enemy_squad:
-                    print(str(enemy.tag))
+                    print(str(enemy.tag) + ", " + str(enemy.type_id))
 
     def is_squad_cached_and_valid(self, enemy_squad: Units, alive_units: Units) -> bool:
         enemy_tags = set(unit.tag for unit in enemy_squad)
@@ -181,15 +181,19 @@ class ArmyManager:
 
 
     async def find_winning_composition(self, enemy_squad: Units) -> Units:
-        own_units = self.bot.units.exclude_type(self.unit_exclusion_list)
+        own_units = self.__units_to_include()
         win_prob = self.bot.information_manager.get_combat_win_probability(own_units, enemy_squad)
         own_units = list(own_units)
         final_units = own_units.copy()
         i = 0
 
 
-        if (win_prob < 0.5):
+        if (win_prob < 0.7):
             print("Army can't win")
+            # Currently, if the army can't win, we send EVERYTHING, SCV's included, at the enemy.
+            # For future purposes, we should probably still exclude this (Can be easily done), such that the
+            # SCV's could focus on retreating and gathering minerals somewhere. But for now, it is an alright way
+            # to handle stuff like worker rush
             return Units([], self.bot)
 
         while (i < len(final_units)):
@@ -197,8 +201,8 @@ class ArmyManager:
             test_units = final_units[:i] + final_units[i+1:]
 
             win_prob = self.bot.information_manager.get_combat_win_probability(Units(test_units, self.bot), enemy_squad)
-            if win_prob > 0.5:
-                # If our win probability is still above 50%, we keep the new list for further iterations
+            if win_prob > 0.7:
+                # If our win probability is still above 70%, we keep the new list for further iterations
                 final_units = test_units
             else:
                 i += 1
