@@ -1,9 +1,12 @@
+# How to set up
+
 ## Requirements
 
 - CMake
 - Visual Studio Build Tools 2022
 - Visual Studio, Rider or CLion
 - Python
+- torchlib (see [torch.md](./cpp_modules/externals/libtorch/torch.md).)
 - Docker (If it should be used against other bots through [local-play-bootstrap](https://github.com/aiarena/local-play-bootstrap))
 
 ## How to run the project on Windows
