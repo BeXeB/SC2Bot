@@ -1,3 +1,4 @@
 /vsstudio
 /cmake-build*
 /docker-build
+/externals/libtorch
