@@ -126,6 +126,7 @@ class ArmyManager:
         if nearest_enemy is None:
             return
 
+        # 10 is an arbitrary number. Could implement the recursive checking for closer units to the current closer units
         enemy_squad = self.bot.enemy_units.closer_than(10, nearest_enemy)
         enemy_tags = set(unit.tag for unit in enemy_squad)
 
