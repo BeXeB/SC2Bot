@@ -136,6 +136,8 @@ class ArmyManager:
         if self.is_squad_cached_and_valid(enemy_squad, alive_units):
             print("already cached that enemy squad")
             engagement = self.get_engagement_by_tags(enemy_tags)
+            # If the enemy squad is a subset, or the same set of enemies, we attack their center continuously, as
+            # the enemies will move around
             for unit in engagement.counter_units:
                 unit.attack(enemy_squad.center)
             return
@@ -144,21 +146,20 @@ class ArmyManager:
 
         for building in own_buildings:
             if enemy_squad.closer_than(10, building):
-                # Method 1
                 # If the new enemy squad is a superset of the cached one, augment the counter_forces instead of recalculating
-                # win_prob = self.bot.information_manager.get_combat_win_probability(own_units, enemy_squad)
                 split_units = await self.augment_current_counter_forces(enemy_squad)
 
-                # Method 2
                 # If the new enemy squad is completely new, recalculate
                 if split_units is None:
                     print("AUGMENTED WAS SKIPPED")
                     split_units = await self.recalculate_split(enemy_squad)
 
+                # If an empty list of units is returned, we assign all of our own units
                 if split_units.empty:
                     print("RECALCULATION WAS EMPTY")
                     split_units = self.bot.units
 
+                # Finally, attack the center of enemy squad with our counter forces
                 for unit in split_units:
                     print("unit with tag: " + str(unit.tag) + ", " + str(unit.type_id))
                     unit.attack(enemy_squad.center)
@@ -167,6 +168,7 @@ class ArmyManager:
                     print(str(enemy.tag) + ", " + str(enemy.type_id))
 
 
+    # Checks whether the enemy squad is already cached, and whether all of our split counter_units are still alive
     def is_squad_cached_and_valid(self, enemy_squad: Units, alive_units: Units):
         enemy_tags = set(unit.tag for unit in enemy_squad)
         alive_tags = set(unit.tag for unit in alive_units)
@@ -179,14 +181,15 @@ class ArmyManager:
             print("Lost counter unit(s) for squad: " + str(enemy_tags))
             return False
 
+    # Helper function to get the enemy tags of a specific split
     def get_engagement_by_tags(self, enemy_tags: set[int]):
         for engagement in self.cached_engagements:
             if set(engagement.cached_tags) == enemy_tags:
                 return engagement
         return None
 
-    # If the new enemy squad is a superset of the cached one, augment the counter_forces instead of recalculating
-    # win_prob = self.bot.information_manager.get_combat_win_probability(own_units, enemy_squad)
+    # Augments the counter forces of a split by adding unit after unit, and continuously checking the win prob
+    # if there isn't any more units, it returns None
     async def augment_current_counter_forces(self, enemy_squad: Units):
         enemy_tags = set(unit.tag for unit in enemy_squad)
         subset_engagement = self.get_subset_engagement(enemy_tags)
@@ -213,6 +216,10 @@ class ArmyManager:
             return None
 
         # Remove old subset engagement
+        # It finds the (optional) subset and removes it from our list of cached
+        # enemy squads - Meaning it removes the old subset, and replaces it with the
+        # new superset
+        # This version can be None, as the new enemy squad might not be a subset at all
         self.cached_engagements = [
             engagement for engagement in self.cached_engagements
             if set(engagement.cached_tags) != set(subset_engagement.cached_tags)
@@ -224,13 +231,15 @@ class ArmyManager:
         return Units(augmented_units, self.bot)
 
 
-
+    # Recalculates the split based on find_winning_composition
     async def recalculate_split(self, enemy_squad: Units):
         enemy_tags = set(unit.tag for unit in enemy_squad)
 
         split_units = await self.find_winning_composition(enemy_squad)
 
         # Prune outdated subsets
+        # Simply checks if the given enemy squad is a superset of any cached squads
+        # Returns all the cached enemy squads that are not subsets of the enemy squad
         self.cached_engagements = [
             engagement for engagement in self.cached_engagements
             if not set(engagement.cached_tags) < enemy_tags
@@ -241,12 +250,15 @@ class ArmyManager:
         return split_units
 
 
+    # Takes in an enemy squad, and checks if it is a superset of any cached enemy squads
     def get_subset_engagement(self, enemy_tags: set[int]):
         for engagement in self.cached_engagements:
             if set(engagement.cached_tags) < enemy_tags:
                 return engagement
         return None
 
+    # Attempts to find a winning composition against the enemy squad, based on our
+    # neural network's estimation
     async def find_winning_composition(self, enemy_squad: Units) -> Units:
         own_units = self.__units_to_include()
         win_prob = self.bot.information_manager.get_combat_win_probability(own_units, enemy_squad)
