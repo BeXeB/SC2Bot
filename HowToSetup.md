@@ -10,13 +10,18 @@
 
 ### Step 1.
 
+Download torchlib for the build configurations that you need and place them in the appropriate directories
+Detailed instructions can be seen in [torch.md](./cpp_modules/externals/libtorch/torch.md).
+
+### Step 2.
+
 - In /cppmodules/vsstudio/
   - Run generate_vs2022.bat
 
 This generates all the necessary Windows files, via Visual Studio Build Tools,
 such that the Pybind library can be utilized via Python.
 
-### Step 2.
+### Step 3.
 
 #### If you use Rider/Visual studio:
 
@@ -30,8 +35,9 @@ such that the Pybind library can be utilized via Python.
 - Right-click the file and press "**Load CMake Project**"
 - Change the configuration to "**sc2_mcts**" and press the build button
   - Note: You will not be able to run this by itself, but it can be built. In order to run it, it must be imported from the python application
+- Make sure that all cmake profiles uses the **visual studio** toolchain instead of **mingw**
 
-### Step 3.
+### Step 4.
 
 - If you built the project with a Release profile
   - there will be a file called sc2_mcts.{your system specs}.pyd
