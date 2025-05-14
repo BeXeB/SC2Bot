@@ -72,7 +72,6 @@ class MyBot(BotAI):
     base_worker = None
     busy_workers: dict[int, float] = {}
     actions_taken: dict[int, Action] = {}
-    waiting_for_techlab: bool = False
 
     # Completed_bases is used to keep track of processed vespene extractors
     def __init__(self,
