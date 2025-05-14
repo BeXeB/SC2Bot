@@ -211,6 +211,10 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	}
 
 	if (_armyValueFunction == ArmyValueFunction::CombatNN) {
+		if (featureVectors.empty()) {
+			featureVectors.emplace_back(state->getFeatureVector());
+		}
+
 		winProbabilities = predictWinProbabilities(featureVectors);
 
 		for (auto probability: winProbabilities) {
@@ -218,8 +222,6 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 			continueProbabilities.emplace_back(continueProb);
 		}
 	}
-
-
 
 	return calculateTotalWinProbability(winProbabilities, continueProbabilities);
 }
