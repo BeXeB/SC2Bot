@@ -89,6 +89,7 @@ target_include_directories(
 add_executable(MCTS_graphs
         ${GRAPHS_SOURCE}/graph_data.cpp
         ${STATE_SOURCE}/Sc2State.cpp
+        ${STATE_SOURCE}/enemy/enemy.cpp
         ${STATE_SOURCE}/Construction.cpp
         ${MCTS_SOURCE}/Mcts.cpp
 )
@@ -96,6 +97,7 @@ add_executable(MCTS_graphs
 target_include_directories(
         MCTS_graphs
         PRIVATE ${STATE_SOURCE}
+        PRIVATE ${STATE_SOURCE}/enemy
         PRIVATE ${MCTS_SOURCE}
 )
 ## torchlib

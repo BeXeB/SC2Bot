@@ -72,7 +72,7 @@ namespace Sc2::Mcts {
 			return str.str();
 		}
 
-		std::string toDotString(int topChildCount = 2, const int depth = 4 , const std::string &parentId = "", const std::string &id = "0") {
+		std::string toDotString(int topChildCount = 2, const int depth = 4, const std::string& graphName = "G",  const std::string &parentId = "", const std::string &id = "0") {
 			std::ostringstream str;
 
 			if (depth == 0) {
@@ -81,7 +81,7 @@ namespace Sc2::Mcts {
 
 			//if there is no parent it the root
 			if (getParent() == nullptr) {
-				str << "digraph G {" << std::endl;
+				str << "digraph " << graphName << " {" << std::endl;
 			}
 
 			str << id << " [shape=none, margin=0, label=<"
@@ -113,7 +113,7 @@ namespace Sc2::Mcts {
 				if (i >= topChildCount) {
 					break;
 				}
-				str << child->toDotString(topChildCount, depth-1,id, id + std::to_string(i));
+				str << child->toDotString(topChildCount, depth-1,graphName,id, id + std::to_string(i));
 				i++;
 			}
 
