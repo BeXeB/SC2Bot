@@ -203,6 +203,10 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		continueProbabilities.emplace_back(continueProb);
 	}
 
+	auto lastWin = winProbabilities.back();
+	winProbabilities.back() = lastWin * (1 / (lastWin + (1 - lastWin - continueProbabilities.back())));
+	continueProbabilities.back() = 0;
+
 	return calculateTotalWinProbability(winProbabilities, continueProbabilities);
 }
 
