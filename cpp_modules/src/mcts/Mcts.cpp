@@ -204,14 +204,15 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	}
 
 	const auto lastWin = winProbabilities.back();
-	const auto lastLose = 1 - lastWin - continueProbabilities.back();
-	winProbabilities.back() = lastWin * (1 / (lastWin + lastLose));
+	const auto lastLoss = 1 - lastWin - continueProbabilities.back();
+	winProbabilities.back() = lastWin + lastLoss == 0 ? 0.5 : lastWin * (1 / (lastWin + lastLoss));
 	continueProbabilities.back() = 0;
 
 	return calculateTotalWinProbability(winProbabilities, continueProbabilities);
 }
 
-void Mcts::backPropagate(std::shared_ptr<Node> node, double outcome) {
+void Mcts::backPropagate(std::shared_ptr<Node> node, const double initialOutcome) {
+	auto outcome = initialOutcome;
 	while (node != nullptr) {
 		const auto [winProb, loseProb, continueProb] = node->getState()->getWinProbabilities();
 		outcome = winProb * 1 + continueProb * outcome;
