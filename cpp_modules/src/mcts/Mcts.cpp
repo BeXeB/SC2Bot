@@ -206,8 +206,13 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	return calculateTotalWinProbability(winProbabilities, continueProbabilities);
 }
 
-void Mcts::backPropagate(std::shared_ptr<Node> node, const double outcome) {
+void Mcts::backPropagate(std::shared_ptr<Node> node,const double initialOutcome) {
+	auto outcome = initialOutcome;
+
 	while (node != nullptr) {
+		const auto [winProb, loseProb, continueProb] = node->getState()->getWinProbabilities();
+		outcome = winProb * 1 + loseProb * 0 + continueProb * outcome;
+
 		const auto oldMean = node->N == 0 ? 0 : node->Q / node->N;
 
 		node->N += 1;

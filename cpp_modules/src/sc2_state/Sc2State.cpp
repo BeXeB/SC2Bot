@@ -60,52 +60,7 @@ void Sc2::State::advanceOccupiedWorkers() {
 }
 
 void Sc2::State::advanceEnemyAction() {
-    const auto action = generateEnemyAction();
-
-    switch (action) {
-        case Action::addEnemyUnit:
-            if (_currentTime < 90) {
-                break;
-            }
-            addEnemyUnit();
-            break;
-        case Action::attackPlayer:
-            if (_currentTime < 140) {
-                break;
-            }
-            if (_onRollout) {
-                attackPlayer();
-            }
-            break;
-        case Action::addEnemyGroundPower:
-            if (_currentTime < 90) {
-                break;
-            }
-            addEnemyGroundPower();
-            break;
-        case Action::addEnemyAirPower:
-            if (_currentTime < 120) {
-                break;
-            }
-            addEnemyAirPower();
-            break;
-        case Action::addEnemyGroundProduction:
-            if (_currentTime < 90) {
-                break;
-            }
-            addEnemyGroundProduction();
-            break;
-        case Action::addEnemyAirProduction:
-            if (_currentTime < 120) {
-                break;
-            }
-            addEnemyAirProduction();
-            break;
-        case Action::none:
-            return;
-        default:
-            throw std::invalid_argument("invalid action");
-    }
+    _enemy.takeAction(_currentTime);
 }
 
 void Sc2::State::advanceTime() {

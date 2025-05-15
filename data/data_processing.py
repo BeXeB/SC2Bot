@@ -53,7 +53,9 @@ if __name__ == '__main__':
     # reading csv file
     df = pd.read_csv(filepath)
 
-    # Remap result labels: -1 → 0 (loss), 0 → 1 (tie), 1 → 2 (win)
+    # Remap Creep feature: False -> 0, True -> 1
+    df['on_creep'] = df['on_creep'].map({False: 0, True: 1})
+    # Remap result labels: -1 -> 0 (loss), 0 -> 1 (tie), 1 -> 2 (win)
     df['result'] = df['result'].map({-1: 0, 0: 1, 1: 2})
 
     print(df)
@@ -109,4 +111,9 @@ if __name__ == '__main__':
 
     print(f'Accuracy of the neural network on the {total} test battles: {100 * correct / total}%')
 
+    example_input = test_loader.dataset[0][0].unsqueeze(0)
+    traced_model = torch.jit.trace(model, example_input)
+
+    traced_model.save("arena_model.pt")
     torch.save(model.state_dict(), 'arena_model.pth')
+

@@ -1,10 +1,11 @@
-﻿import copy
+import copy
 import csv
 import os
 from enum import Enum
 from typing import List
 
 import pandas as pd
+from sc2.data import Result
 
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
@@ -24,6 +25,7 @@ class Matchup():
     player_units: List[Unit]
     enemy_units: List[Unit]
     result: MatchupResult
+    on_creep: bool
 
     def __init__(self):
         pass
@@ -67,15 +69,17 @@ class BattleBot(MyBot):
     async def on_unit_created(self, unit: Unit):
         pass
 
-    async def on_end(self, game_result: MatchupResult):
+    async def on_end(self, game_result: Result):
         filepath = 'data/micro_arena.csv'
         player = "player"
         enemy = "enemy"
         result = "result"
+        on_creep = "on_creep"
 
         fieldnames = [player + ":" + u_type for u_type in UnitTypeId._member_names_]
         fieldnames.extend([enemy + ":" + u_type for u_type in UnitTypeId._member_names_])
         fieldnames.append(result)
+        fieldnames.append(on_creep)
 
         data : List[dict] = []
 
@@ -83,6 +87,7 @@ class BattleBot(MyBot):
             player_unit_dict = self.get_units_for(player, matchup.player_units)
             enemy_unit_dict = self.get_units_for(enemy, matchup.enemy_units)
             match_dict = player_unit_dict | enemy_unit_dict # merge dictionaries
+            match_dict.update({on_creep: matchup.on_creep})
             match_dict.update({result: matchup.result.value})
             data.append(match_dict)
 
@@ -133,6 +138,7 @@ class BattleBot(MyBot):
         self.game_is_running = True
         self.current_matchup.enemy_units = self.enemy_units
         self.current_matchup.player_units = self.units
+        self.current_matchup.on_creep = self.has_creep(self.units.random.position)
 
     async def end_round(self):
         await self.chat_send("Ending round")
