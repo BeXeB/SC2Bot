@@ -149,24 +149,8 @@ class ArmyManager:
             if enemy_squad.closer_than(10, building):
                 await self.augment_or_recalculate_units(enemy_squad)
 
-
-
-    # Checks whether the enemy squad is already cached, and whether all of our split counter_units are still alive
-    def is_squad_cached_and_valid(self, enemy_squad: Units, alive_units: Units):
-        enemy_tags = set(unit.tag for unit in enemy_squad)
-        alive_tags = set(unit.tag for unit in alive_units)
-
-        for engagement in self.cached_engagements:
-            if set(engagement.cached_tags) != enemy_tags:
-                continue
-            if all(unit.tag in alive_tags for unit in engagement.counter_units):
-                return True
-            print("Lost counter unit(s) for squad: " + str(enemy_tags))
-            return False
-
     # Helper function to get the enemy tags of a specific split
     def get_engagement_by_tags(self, enemy_tags: set[int], alive_units: Units):
-        self.is_squad_cached_and_valid(alive_units, alive_units)
         for engagement in self.cached_engagements:
             if set(engagement.cached_tags) == enemy_tags:
                 return engagement
@@ -183,10 +167,6 @@ class ArmyManager:
         if split_units is None:
             print("AUGMENTED WAS SKIPPED")
             split_units = await self.recalculate_split(enemy_squad)
-
-        if split_units.empty:
-            print("RECALCULATION WAS EMPTY")
-            split_units = self.bot.units
 
         for unit in split_units:
             print("unit with tag: " + str(unit.tag) + ", " + str(unit.type_id))
@@ -221,7 +201,7 @@ class ArmyManager:
         # If we still cannot completely beat the enemy squad, fall back to full recalculation
         final_win_prob = self.bot.information_manager.get_combat_win_probability(Units(augmented_units, self.bot), enemy_squad)
         if final_win_prob < 0.7:
-            return None
+            return self.bot.units
 
         # Remove old subset engagement
         # It finds the (optional) subset and removes it from our list of cached
