@@ -209,11 +209,11 @@ class ArmyManager:
         used_tags = {unit.tag for unit in subset_engagement.counter_units}
         available_units = [unit for unit in self.__units_to_include() if unit.tag not in used_tags]
 
-        augmented_units = list(subset_engagement.counter_units)
+        augmented_units = set(subset_engagement.counter_units)
 
         # Recalculate the winprob with new augmented units
         for unit in available_units:
-            augmented_units.append(unit)
+            augmented_units.add(unit)
             win_prob = self.bot.information_manager.get_combat_win_probability(Units(augmented_units, self.bot), enemy_squad)
             if win_prob > 0.7:
                 break
@@ -234,7 +234,7 @@ class ArmyManager:
         ]
 
         # Cache the augmented set
-        self.cached_engagements.append(CachedEngagements(list(enemy_tags), augmented_units))
+        self.cached_engagements.append(CachedEngagements(set(enemy_tags), set(augmented_units)))
 
         return Units(augmented_units, self.bot)
 
@@ -253,7 +253,7 @@ class ArmyManager:
             if not set(engagement.cached_tags) < enemy_tags
         ]
 
-        self.cached_engagements.append(CachedEngagements(list(enemy_tags), list(split_units)))
+        self.cached_engagements.append(CachedEngagements(set(enemy_tags), set(split_units)))
 
         return split_units
 
@@ -270,7 +270,7 @@ class ArmyManager:
     async def find_winning_composition(self, enemy_squad: Units) -> Units:
         own_units = self.__units_to_include()
         win_prob = self.bot.information_manager.get_combat_win_probability(own_units, enemy_squad)
-        own_units = list(own_units)
+        own_units = set(own_units)
         final_units = own_units.copy()
         i = 0
 
@@ -307,10 +307,10 @@ class ArmyManager:
 
 
 class CachedEngagements:
-    cached_tags: list[Unit.tag]
-    counter_units: list[Unit]
+    cached_tags: set[Unit.tag]
+    counter_units: set[Unit]
 
-    def __init__(self, cached_tags: list[Unit.tag], counter_units: list[Unit]):
+    def __init__(self, cached_tags: set[Unit.tag], counter_units: set[Unit]):
         self.cached_tags = cached_tags
         self.counter_units = counter_units
 
