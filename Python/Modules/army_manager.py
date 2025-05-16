@@ -172,6 +172,30 @@ class ArmyManager:
                 return engagement
         return None
 
+    async def augment_or_recalculate_units(self, enemy_squad: Units):
+        # Method 1
+        # If the new enemy squad is a superset of the cached one, augment the counter_forces instead of recalculating
+        # win_prob = self.bot.information_manager.get_combat_win_probability(own_units, enemy_squad)
+        split_units = await self.augment_current_counter_forces(enemy_squad)
+
+        # Method 2
+        # If the new enemy squad is completely new, recalculate
+        if split_units is None:
+            print("AUGMENTED WAS SKIPPED")
+            split_units = await self.recalculate_split(enemy_squad)
+
+        if split_units.empty:
+            print("RECALCULATION WAS EMPTY")
+            split_units = self.bot.units
+
+        for unit in split_units:
+            print("unit with tag: " + str(unit.tag) + ", " + str(unit.type_id))
+            unit.attack(enemy_squad.center)
+        print("is now attacking enemy squad consisting of: ")
+        for enemy in enemy_squad:
+            print(str(enemy.tag) + ", " + str(enemy.type_id))
+
+
     # Augments the counter forces of a split by adding unit after unit, and continuously checking the win prob
     # if there isn't any more units, it returns None
     async def augment_current_counter_forces(self, enemy_squad: Units):
@@ -280,29 +304,6 @@ class ArmyManager:
             print(unit.type_id)
 
         return Units(final_units, self.bot)
-
-    async def augment_or_recalculate_units(self, enemy_squad: Units):
-        # Method 1
-        # If the new enemy squad is a superset of the cached one, augment the counter_forces instead of recalculating
-        # win_prob = self.bot.information_manager.get_combat_win_probability(own_units, enemy_squad)
-        split_units = await self.augment_current_counter_forces(enemy_squad)
-
-        # Method 2
-        # If the new enemy squad is completely new, recalculate
-        if split_units is None:
-            print("AUGMENTED WAS SKIPPED")
-            split_units = await self.recalculate_split(enemy_squad)
-
-        if split_units.empty:
-            print("RECALCULATION WAS EMPTY")
-            split_units = self.bot.units
-
-        for unit in split_units:
-            print("unit with tag: " + str(unit.tag) + ", " + str(unit.type_id))
-            unit.attack(enemy_squad.center)
-        print("is now attacking enemy squad consisting of: ")
-        for enemy in enemy_squad:
-            print(str(enemy.tag) + ", " + str(enemy.type_id))
 
 
 class CachedEngagements:
