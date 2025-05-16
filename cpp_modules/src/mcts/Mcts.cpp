@@ -215,7 +215,7 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 
 void Mcts::backPropagate(std::shared_ptr<Node> node, double outcome) {
 	while (node != nullptr) {
-		const auto [winProb, loseProb, continueProb] = node->winProbabilities;
+		const auto [winProb, _, continueProb] = node->winProbabilities;
 		outcome = winProb * 1 + continueProb * outcome;
 
 		const auto oldMean = node->N == 0 ? 0 : node->Q / node->N;
