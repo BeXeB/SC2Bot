@@ -11,24 +11,9 @@
 #include "Construction.h"
 #include "ActionEnum.h"
 #include "UnitPower.h"
+#include "Enemy.h"
 
 namespace Sc2 {
-	struct Enemy {
-		int groundPower = 0;
-		int airPower = 0;
-		double groundProduction = 1;
-		double airProduction = 0;
-
-		Enemy(const int groundPower, const int airPower, const double groundProduction, const double airProduction) {
-			this->groundPower = groundPower;
-			this->airPower = airPower;
-			this->groundProduction = groundProduction;
-			this->airProduction = airProduction;
-		}
-
-		Enemy() = default;
-	};
-
 	struct StateBuilderParams {
 		const int minerals = 0;
 		const int vespene = 0;
@@ -49,7 +34,6 @@ namespace Sc2 {
 		std::vector<int> &occupiedWorkerTimers;
 		const int currentTime = 0;
 		const int endTime = 0;
-		const int enemyCombatUnits = 0;
 		const bool hasHouse = false;
 		const bool incomingHouse = false;
 		const bool incomingBarracks = false;
@@ -119,7 +103,6 @@ namespace Sc2 {
 		std::vector<int> _occupiedWorkerTimers{};
 		std::mt19937 _rng;
 
-		int _enemyCombatUnits = 0;
 		Enemy _enemy;
 
 		const int _endTime;
@@ -261,8 +244,8 @@ namespace Sc2 {
 		[[nodiscard]] int getTankPopulation() const { return _tankPopulation; }
 		[[nodiscard]] int getVikingPopulation() const { return _vikingPopulation; }
 		[[nodiscard]] int getOccupiedPopulation() const { return static_cast<int>(_occupiedWorkerTimers.size()); }
-		[[nodiscard]] int getEnemyCombatUnits() const { return _enemyCombatUnits; }
-		[[nodiscard]] Enemy getEnemy() const { return _enemy; }
+		[[nodiscard]] int getEnemyCombatUnits() const { return _enemy.enemyCombatUnits; }
+		[[nodiscard]] Enemy getEnemy() { return _enemy; }
 		[[nodiscard]] std::list<Construction> getConstructions() const { return _constructions; }
 		[[nodiscard]] std::vector<Base> getBases() const { return _bases; }
 		[[nodiscard]] int getBarracksAmount() const { return _barracksAmount; }
@@ -309,11 +292,6 @@ namespace Sc2 {
 		void buildMarine();
 		void buildTank();
 		void buildViking();
-		void addEnemyUnit() { _enemyCombatUnits += 1; }
-		void addEnemyGroundPower() { _enemy.groundPower += std::floor(_enemy.groundProduction); }
-		void addEnemyAirPower() { _enemy.airPower += std::floor(_enemy.airProduction); }
-		void addEnemyGroundProduction() { _enemy.groundProduction += 0.1; }
-		void addEnemyAirProduction() { _enemy.airProduction += 0.1; }
 
 		void attackPlayer() {
 			auto temp = getValue();
@@ -361,8 +339,6 @@ namespace Sc2 {
 					buildStarPort();
 					break;
 				case Action::none:
-				case Action::attackPlayer:
-				case Action::addEnemyUnit:
 					break;
 				default:
 					throw std::runtime_error("Could not perform action: " + actionToString(action));
@@ -374,7 +350,7 @@ namespace Sc2 {
 
 		double getValueMarines() const {
 			return softmax(std::vector{
-				               static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemyCombatUnits) / 4
+				               static_cast<double>(_marinePopulation) / 4, static_cast<double>(_enemy.enemyCombatUnits) / 4
 			               }, 0);
 		}
 
@@ -435,13 +411,14 @@ namespace Sc2 {
 		}
 
 		double getValue() const {
-			return getValueMinArmyPower();
+			return getCombatSuccessProbability();
 		}
 
 		std::tuple<double, double, double> getWinProbabilities();
 
 		double getCombatSuccessProbability() const;
 		double getEndProbability() const;
+		void addEnemyUnit(){_enemy.takeAction(500, EnemyAction::addEnemyUnit);}
 
 		static double softmax(std::vector<double> vector, const int index) {
 			double sum = 0;
@@ -464,48 +441,6 @@ namespace Sc2 {
 
 		int getCurrentTime() const { return _currentTime; }
 		void resetCurrentTime() { _currentTime = 0; }
-
-		Action generateEnemyAction() {
-			// Over the span of 60 seconds we assume that the enemy:
-			// Specifies how many enemy units will be built
-			constexpr double buildUnitAction = 8;
-			// Specifies how much ground power the enemy gets per production
-			constexpr double groundPowerIncrease = 5;
-			// Specifies how much air power the enemy gets per production
-			constexpr double airPowerIncrease = 5;
-			// Specifies how much ground production the enemy builds
-			constexpr double groundProductionIncrease = 3;
-			// Specifies how much air production the enemy builds
-			constexpr double airProductionIncrease = 3;
-			// Specifies how many times the enemy will attack
-			constexpr double attackAction = 0.3;
-			// Specifies how many times the enemy will do nothing
-			constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease -
-			                              groundProductionIncrease - airProductionIncrease;
-
-			const auto actionWeights = {
-				noneAction, buildUnitAction, attackAction, groundPowerIncrease, airPowerIncrease,
-				groundProductionIncrease, airProductionIncrease
-			};
-			std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
-			// 0: None, 1: Build unit, 2: Attack, 3: GroundPowerIncrease, 4: AirPowerIncrease, 5: Ground Production, 6: Air Production
-			switch (dist(_rng)) {
-				case 1:
-					return Action::addEnemyUnit;
-				case 2:
-					return Action::attackPlayer;
-				case 3:
-					return Action::addEnemyGroundPower;
-				case 4:
-					return Action::addEnemyAirPower;
-				case 5:
-					return Action::addEnemyGroundProduction;
-				case 6:
-					return Action::addEnemyAirProduction;
-				default:
-					return Action::none;
-			}
-		}
 
 		void setEndProbabilityFunction(const int endProbabilityFunction) {
 			END_PROBABILITY_FUNCTION = endProbabilityFunction;
@@ -535,7 +470,6 @@ namespace Sc2 {
 		                                           std::vector<int> &occupiedWorkerTimers,
 		                                           const int currentTime,
 		                                           const int endTime,
-		                                           const int enemyCombatUnits,
 		                                           const bool hasHouse,
 		                                           const bool incomingHouse,
 		                                           const bool incomingBarracks,
@@ -565,7 +499,6 @@ namespace Sc2 {
 				occupiedWorkerTimers,
 				currentTime,
 				endTime,
-				enemyCombatUnits,
 				hasHouse,
 				incomingHouse,
 				incomingBarracks,
@@ -617,7 +550,7 @@ namespace Sc2 {
 		                     _constructions(std::list<Construction>()),
 		                     _occupiedWorkerTimers(
 			                     std::move(params.occupiedWorkerTimers)),
-		                     _enemyCombatUnits(params.enemyCombatUnits),
+		                     _enemy(params.enemy),
 		                     _endTime(params.endTime),
 		                     _currentTime(params.currentTime),
 		                     _hasHouse(params.hasHouse),
@@ -666,7 +599,7 @@ namespace Sc2 {
 			_constructions = std::list<Construction>();
 			_occupiedWorkerTimers = state._occupiedWorkerTimers;
 
-			_enemyCombatUnits = state._enemyCombatUnits;
+			_enemy = state._enemy;
 
 			_rng = state._rng;
 
@@ -705,7 +638,7 @@ namespace Sc2 {
 					<< "    Number of bases: " << _bases.size() << "\n"
 					<< "    Number of barracks: " << _barracksAmount << "\n"
 					<< "    Number of constructions: " << _constructions.size() << "\n"
-					<< "    Enemy combat units: " << _enemyCombatUnits << "\n"
+					<< "    Enemy combat units: " << _enemy.enemyCombatUnits << "\n"
 					<< "    current_time: " << _currentTime << "\n"
 					<< "    EndTime: " << _endTime << "\n"
 					<< "    HasHouse: " << _hasHouse << "\n"

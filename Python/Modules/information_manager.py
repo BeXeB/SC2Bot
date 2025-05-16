@@ -1,4 +1,5 @@
 import math
+import os
 import typing
 from collections import namedtuple
 from enum import Enum
@@ -105,16 +106,22 @@ class InformationManager:
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
 
-        # Columns names of the feature vector
-        self.column_names = pd.read_csv('data/micro_arena.csv').drop('result', axis=1).columns
+        filepath = 'data/micro_arena.csv'
+        if os.path.exists(filepath) and bot.game_mode is not bot.GameMode.micro_arena:
+            # Columns names of the feature vector
+            self.column_names = pd.read_csv(filepath).drop('result', axis=1).columns
 
-        self.combat_model = ArenaNetwork(input_size=len(self.column_names))
-        self.combat_model.load_state_dict(torch.load('data/arena_model.pth'))
-        self.combat_model.eval()
+            self.combat_model = ArenaNetwork(input_size=len(self.column_names))
+            self.combat_model.load_state_dict(torch.load('data/arena_model.pth'))
+            self.combat_model.eval()
+        else:
+            print('combat data not found.')
 
         if bot.game_mode != bot.GameMode.micro_arena:
             self.expansion_locations = {el: el.distance_to(self.bot.start_location) < 15
                 for el in self.bot.expansion_locations_list}
+        else:
+            self.expansion_locations = {}
         self.worker_data = {worker.tag: WorkerData(WorkerRole.IDLE, worker.tag)
             for worker in self.bot.workers}
 
@@ -356,6 +363,8 @@ class InformationManager:
 
     def handle_structure_destroyed(self, tag: int) -> None:
         if tag not in self.structures_data:
+            return
+        if self.structures_data[tag].structure_type not in self.building_type_to_placement_type:
             return
         position = self.structures_data[tag].position
         self.bot.map_analyzer.make_location_buildable(position, self.building_type_to_placement_type[self.structures_data[tag].structure_type])

@@ -249,7 +249,6 @@ def translate_state(bot: 'MyBot') -> State:
         occupied_worker_timers=[math.ceil(time) for time in bot.busy_workers.values()],
         current_time=math.floor(bot.time),
         end_time=math.floor(bot.time) + bot.time_limit,
-        enemy_combat_units=enemy_combat_units,
         has_house=bot.tech_requirement_progress(UnitTypeId.BARRACKS) >= 1,
         incoming_house=math.floor(bot.already_pending(UnitTypeId.SUPPLYDEPOT)) > 0,
         incoming_barracks=math.floor(bot.already_pending(UnitTypeId.BARRACKS)) > 0,
