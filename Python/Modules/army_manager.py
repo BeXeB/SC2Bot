@@ -134,9 +134,9 @@ class ArmyManager:
 
 
         # Checks whether enemy_squad is a subset of the cached enemy_squad
-        if self.is_squad_cached_and_valid(enemy_squad, alive_units):
+        engagement = self.get_engagement_by_tags(enemy_tags, alive_units)
+        if engagement is not None:
             print("already cached that enemy squad")
-            engagement = self.get_engagement_by_tags(enemy_tags)
             # If the enemy squad is a subset, or the same set of enemies, we attack their center continuously, as
             # the enemies will move around
             for unit in engagement.counter_units:
@@ -165,7 +165,8 @@ class ArmyManager:
             return False
 
     # Helper function to get the enemy tags of a specific split
-    def get_engagement_by_tags(self, enemy_tags: set[int]):
+    def get_engagement_by_tags(self, enemy_tags: set[int], alive_units: Units):
+        self.is_squad_cached_and_valid(alive_units, alive_units)
         for engagement in self.cached_engagements:
             if set(engagement.cached_tags) == enemy_tags:
                 return engagement
