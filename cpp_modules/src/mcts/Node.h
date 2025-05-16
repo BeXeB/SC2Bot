@@ -31,6 +31,8 @@ namespace Sc2::Mcts {
 		// used to calculate variance, which is needed for UCB1normal2
 		double M2 = 0;
 
+		std::tuple<double, double, double> winProbabilities;
+
 		double getSampleVariance() const {
 			return M2 / N - 1;
 		}
@@ -136,6 +138,7 @@ namespace Sc2::Mcts {
 		Node(const Action action, const std::shared_ptr<Node> &parent, std::shared_ptr<State> state) : _action(action),
 			_parent(parent), _state(std::move(state)) {
 			_state->performAction(action);
+			winProbabilities = _state->getWinProbabilities();
 		}
 	};
 
