@@ -374,8 +374,8 @@ class InformationManager:
             return self.worker_data
         return {key: value for key, value in self.worker_data.items() if value.role == worker_role}
 
-    def get_combat_win_probability(self, player_units: Units, enemy_units: Units) -> float:
-        features = self.__get_features(player_units, enemy_units)
+    def get_combat_win_probability(self, player_units: Units, enemy_units: Units, on_creep: bool = False) -> float:
+        features = self.__get_features(player_units, enemy_units, on_creep)
         with torch.no_grad():
             outputs = self.combat_model(features)
             probs = torch.exp(outputs) # Outputs is log probabilities, this converts them to regular probabilities
@@ -383,10 +383,10 @@ class InformationManager:
 
         return win_prob
 
-    def __get_features(self, player_units: Units, enemy_units: Units) -> torch.Tensor:
+    def __get_features(self, player_units: Units, enemy_units: Units, on_creep:bool) -> torch.Tensor:
         player_unit_dict = self.__get_units_for("player", player_units)
         enemy_unit_dict = self.__get_units_for("enemy", enemy_units)
-        unit_dict = player_unit_dict | enemy_unit_dict
+        unit_dict = player_unit_dict | enemy_unit_dict | {"on_creep": 1 if on_creep else 0}
 
         df = pd.DataFrame([unit_dict])
         df = df[self.column_names] # only keep the columns which exist in the dataset

@@ -109,7 +109,6 @@ class ArmyManager:
 
         # Check if any enemies exist
         if all_enemies.empty:
-            print("No enemies to split against")
             return
 
         # I'm not completely sure why, but sometimes checking whether enemies is empty or not is not enough
