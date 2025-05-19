@@ -2,6 +2,7 @@
 import typing
 from typing import Optional, Set
 
+from sc2.bot_ai import BotAI
 from sc2.unit import Unit
 
 from sc2.position import Point2
@@ -21,6 +22,7 @@ class ArmyManager:
     attacking: bool
     viking_manager: VikingFighterCombat
     tank_manager: SiegeTankCombat
+    dummy_bot: BotAI
 
     def __init__(self, bot: 'MyBot') -> None:
         self.bot = bot
@@ -30,6 +32,7 @@ class ArmyManager:
         self.attacking = False
         self.set_initial_rally_point()
         self.cached_engagements: list[CachedEngagements] = []#: list[tuple[set[int], list[Unit]]] = []
+        self.dummy_bot = BotAI()
 
     def set_initial_rally_point(self):
         closest: Optional[Point2] = None
@@ -56,7 +59,11 @@ class ArmyManager:
         return self.bot.units.exclude_type(self.unit_exclusion_list)
 
     async def manage_army(self) -> None:
-        if self.__units_to_include().amount > 20 or self.attacking:
+        enemy_units = Units([unit.entity for unit in self.bot.information_manager.enemy_units.values()], self.dummy_bot)
+        player_units = self.bot.units
+        win_probability = self.bot.information_manager.get_combat_win_probability(player_units, enemy_units, True)
+
+        if win_probability > 0.7:
             self.attacking = True
             self.attack_enemy_base()
 
