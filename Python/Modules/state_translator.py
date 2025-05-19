@@ -187,8 +187,6 @@ def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
 
 
 def get_enemy(bot: 'MyBot') -> Enemy:
-
-
     enemy_air_power, enemy_ground_power = get_enemy_power(bot)
 
     enemy_air_production, enemy_ground_production = get_enemy_production(bot)
