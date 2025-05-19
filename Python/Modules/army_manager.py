@@ -65,7 +65,7 @@ class ArmyManager:
             self.attacking = True
             self.attack_enemy_base()
 
-        if self.__units_to_include().amount < 10 and self.attacking:
+        if win_probability < 0.3:
             self.attacking = False
             for unit in self.__units_to_include():
                 unit.move(self.rally_point)

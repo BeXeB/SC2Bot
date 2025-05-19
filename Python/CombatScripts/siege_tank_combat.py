@@ -24,6 +24,8 @@ class SiegeTankCombat:
             self.__disable_siege_mode(unit)
         elif self.bot.enemy_units.closer_than(14, unit).exists:
             self.__enable_siege_mode(unit)
+        elif self.bot.enemy_structures.closer_than(10, unit).exists:
+            self.__enable_siege_mode(unit)
         else:
             self.__disable_siege_mode(unit)
 
