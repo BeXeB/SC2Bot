@@ -435,10 +435,11 @@ Action Mcts::getBestAction() {
 void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	_mctsRequestsPending = true;
 	_mctsMutex.lock();
-	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, State::DeepCopy(*state)));
+	auto rootState = State::DeepCopy(*state);
+	rootState->setArmyValueFunction(_armyValueFunction);
+	rootState->setEndProbabilityFunction(END_PROBABILITY_FUNCTION);
+	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, std::move(rootState)));
 	_numberOfRollouts = 0;
-	_rootNode->getState()->setArmyValueFunction(_armyValueFunction);
-	_rootNode->getState()->setEndProbabilityFunction(END_PROBABILITY_FUNCTION);
 	_mctsMutex.unlock();
 	_mctsRequestsPending = false;
 }
