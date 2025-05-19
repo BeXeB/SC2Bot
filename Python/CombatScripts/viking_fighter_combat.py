@@ -34,6 +34,5 @@ class VikingFighterCombat:
             self.bot.do(viking(AbilityId.MORPH_VIKINGFIGHTERMODE))
 
     def __disable_fighter_mode(self, viking: Unit):
-        print(viking.type_id)
         if viking.type_id == UnitTypeId.VIKINGFIGHTER:
             self.bot.do(viking(AbilityId.MORPH_VIKINGASSAULTMODE))
