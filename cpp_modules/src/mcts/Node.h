@@ -85,12 +85,13 @@ namespace Sc2::Mcts {
 			if (getParent() == nullptr) {
 				str << "digraph " << graphName << " {" << std::endl;
 			}
-
+			auto [w,l,c] = winProbabilities;
 			str << id << " [shape=none, margin=0, label=<"
 					"<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">"
-					"<TR><TD COLSPAN=\"2\">" << actionToString(_action) << "</TD></TR>"
-					"<TR><TD> N: " << N << "</TD><TD> Q: " << Q << " </TD></TR>"
-					"<TR><TD COLSPAN=\"2\"> Avg: " << Q/N << " </TD></TR>"
+					"<TR><TD COLSPAN=\"6\">" << actionToString(_action) << "</TD></TR>"
+					"<TR><TD COLSPAN=\"3\"> N: " << N << "</TD><TD COLSPAN=\"3\"> Q: " << Q << " </TD></TR>"
+					"<TR><TD COLSPAN=\"6\"> Avg: " << Q/N << " </TD></TR>"
+					"<TR><TD COLSPAN=\"2\"> W: " << w << " </TD><TD COLSPAN=\"2\"> C: " << c << " </TD><TD COLSPAN=\"2\"> L: " << l << " </TD></TR>"
 					"</TABLE>>];" << std::endl;
 
 			if (getParent() != nullptr) {

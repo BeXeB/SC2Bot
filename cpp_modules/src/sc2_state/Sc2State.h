@@ -48,8 +48,28 @@ namespace Sc2 {
 		AveragePower,
 		ScaledPower,
 		MarinePower,
+		Test,
 		None
 	};
+
+	inline std::string armyValueFunctionToString(ArmyValueFunction armyValueFunction) {
+		switch (armyValueFunction) {
+			case ArmyValueFunction::MinPower:
+				return "MinPower";
+			case ArmyValueFunction::AveragePower:
+				return "AveragePower";
+			case ArmyValueFunction::ScaledPower:
+				return "ScaledPower";
+			case ArmyValueFunction::MarinePower:
+				return "MarinePower";
+			case ArmyValueFunction::Test:
+				return "Test";
+			case ArmyValueFunction::None:
+				return "None";
+			default:
+				return "Unknown";
+		}
+	}
 
 	inline std::ostream &operator<<(std::ostream &os, const ArmyValueFunction &armyValueFunction) {
 		switch (armyValueFunction) {
@@ -68,6 +88,8 @@ namespace Sc2 {
 			case ArmyValueFunction::MarinePower:
 				os << "MarinePower";
 				break;
+			case ArmyValueFunction::Test:
+				os << "Test";
 			default:
 				os << "Unknown";
 		}
@@ -430,7 +452,7 @@ namespace Sc2 {
 			const auto armyValue = getValueMinArmyPower();
 			const auto floatingValue = calculateFloatingResourcesValue();
 			const auto resourceValue = calculateResourceGatheredValue();
-			return armyValue * .5 + floatingValue * .1 + resourceValue * .4;
+			return armyValue * .4 + floatingValue * .2 + resourceValue * .4;
 		}
 
 		double getValue() const {
