@@ -15,7 +15,7 @@ class VikingFighterCombat:
         self.bot = bot
 
     def manage_unit(self, unit) -> None:
-        nearby_enemies = self.bot.enemy_units.closer_than(10, unit)
+        nearby_enemies = self.bot.enemy_units.closer_than(20, unit)
         nearby_flying_enemies = nearby_enemies.filter(lambda u: u.is_flying)
         nearby_ground_enemies = nearby_enemies.filter(lambda u: not u.is_flying)
 
