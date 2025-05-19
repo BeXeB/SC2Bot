@@ -84,7 +84,7 @@ class MyBot(BotAI):
                  action_selection: ActionSelection = ActionSelection.BestAction,
                  future_action_queue_length: int = 1,
                  minimum_search_rollouts: int = 5000) -> None:
-        self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics, end_probability_function=1, army_value_function=ArmyValueFunction.marine_power)
+        self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics, end_probability_function=1, army_value_function=ArmyValueFunction.min_power)
         self.mcts_settings = [
             mcts_seed,
             mcts_rollout_end_time,
@@ -362,7 +362,7 @@ class MyBot(BotAI):
     async def on_end(self, game_result: Result):
         self.mcts.stop_search()
         end_state = translate_state(self)
-        save_result(self, end_state, self.time)
+        # save_result(self, end_state, self.time)
         self.future_action_queue.queue.clear()
 
     def get_best_action(self) -> None:

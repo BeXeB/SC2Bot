@@ -54,8 +54,8 @@ namespace Sc2::Mcts {
 		void threadedSearchRollout(int numberOfRollouts);
 
 	public:
-		ArmyValueFunction _armyValueFunction = ArmyValueFunction::MinPower;
-		int END_PROBABILITY_FUNCTION = 0;
+		const ArmyValueFunction _armyValueFunction = ArmyValueFunction::MinPower;
+		const int END_PROBABILITY_FUNCTION = 0;
 		[[nodiscard]] std::shared_ptr<Node> getRootNode() {
 			_mctsMutex.lock();
 			auto node = _rootNode;
