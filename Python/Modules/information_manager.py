@@ -20,9 +20,71 @@ if typing.TYPE_CHECKING:
 
 STEPS_PER_SECOND = 22.4
 
+unit_construction_building = {
+    # Terran
+    UnitTypeId.COLOSSUS : UnitTypeId.ROBOTICSFACILITY,
+    UnitTypeId.SIEGETANK : UnitTypeId.FACTORY,
+    UnitTypeId.VIKINGFIGHTER : UnitTypeId.STARPORT,
+    UnitTypeId.MARINE : UnitTypeId.BARRACKS,
+    UnitTypeId.REAPER : UnitTypeId.BARRACKS,
+    UnitTypeId.GHOST : UnitTypeId.BARRACKS,
+    UnitTypeId.MARAUDER : UnitTypeId.BARRACKS,
+    UnitTypeId.THOR : UnitTypeId.FACTORY,
+    UnitTypeId.HELLION : UnitTypeId.FACTORY,
+    UnitTypeId.MEDIVAC : UnitTypeId.STARPORT,
+    UnitTypeId.BANSHEE : UnitTypeId.STARPORT,
+    UnitTypeId.RAVEN : UnitTypeId.STARPORT,
+    UnitTypeId.BATTLECRUISER : UnitTypeId.STARPORT,
+    UnitTypeId.HELLIONTANK : UnitTypeId.FACTORY,
+    UnitTypeId.WIDOWMINE : UnitTypeId.FACTORY,
+    UnitTypeId.CYCLONE : UnitTypeId.FACTORY,
+    UnitTypeId.DISRUPTOR : UnitTypeId.ROBOTICSFACILITY,
+    #Protoss
+    UnitTypeId.ZEALOT : UnitTypeId.GATEWAY,
+    UnitTypeId.STALKER : UnitTypeId.GATEWAY,
+    UnitTypeId.HIGHTEMPLAR : UnitTypeId.GATEWAY,
+    UnitTypeId.DARKTEMPLAR : UnitTypeId.GATEWAY,
+    UnitTypeId.SENTRY : UnitTypeId.GATEWAY,
+    UnitTypeId.PHOENIX : UnitTypeId.STARGATE,
+    UnitTypeId.CARRIER : UnitTypeId.STARGATE,
+    UnitTypeId.VOIDRAY : UnitTypeId.STARGATE,
+    UnitTypeId.ARCHON : UnitTypeId.GATEWAY,
+    UnitTypeId.WARPPRISM : UnitTypeId.ROBOTICSFACILITY,
+    UnitTypeId.OBSERVER : UnitTypeId.ROBOTICSFACILITY,
+    UnitTypeId.IMMORTAL : UnitTypeId.ROBOTICSFACILITY,
+    UnitTypeId.ADEPT : UnitTypeId.GATEWAY,
+    UnitTypeId.ORACLE : UnitTypeId.STARGATE,
+    UnitTypeId.TEMPEST : UnitTypeId.STARGATE,
+    UnitTypeId.LIBERATOR : UnitTypeId.STARPORT,
+    #Zerg
+    UnitTypeId.ZERGLING : UnitTypeId.SPAWNINGPOOL,
+    UnitTypeId.BANELING : UnitTypeId.BANELINGNEST,
+    UnitTypeId.HYDRALISK : UnitTypeId.HYDRALISKDEN,
+    UnitTypeId.MUTALISK : UnitTypeId.SPIRE,
+    UnitTypeId.ULTRALISK : UnitTypeId.ULTRALISKCAVERN,
+    UnitTypeId.ROACH : UnitTypeId.ROACHWARREN,
+    UnitTypeId.INFESTOR : UnitTypeId.INFESTATIONPIT,
+    UnitTypeId.CORRUPTOR : UnitTypeId.SPIRE,
+    UnitTypeId.BROODLORD : UnitTypeId.GREATERSPIRE,
+    UnitTypeId.BROODLING : UnitTypeId.GREATERSPIRE,
+    UnitTypeId.LOCUSTMP : UnitTypeId.INFESTATIONPIT,
+    UnitTypeId.SWARMHOSTMP : UnitTypeId.INFESTATIONPIT,
+    UnitTypeId.VIPER : UnitTypeId.INFESTATIONPIT,
+    UnitTypeId.LURKERMP : UnitTypeId.LURKERDEN,
+    UnitTypeId.RAVAGER : UnitTypeId.ROACHWARREN,
+    UnitTypeId.LOCUSTMPFLYING : UnitTypeId.INFESTATIONPIT,
+}
+
 CombatPower = namedtuple('CombatPower', ['ground_power', 'air_power'])
 ProductionPower = namedtuple('ProductionPower', ['ground_production', 'air_production'])
-EnemyEntity = namedtuple('EnemyEntity', ['entity', 'last_seen'])
+class EnemyEntity:# = namedtuple('EnemyEntity', ['entity', 'last_seen'])
+    entity: Unit
+    last_seen: int
+
+    def __init__(self, entity: Unit, last_seen: int, inferred: bool = False):
+        self.entity = entity
+        self.last_seen = last_seen
+
 
 class WorkerRole(Enum):
     IDLE = 0
@@ -102,6 +164,7 @@ class InformationManager:
     units_to_ignore_for_army: Set[UnitTypeId]
     combat_powers: Dict[UnitTypeId, CombatPower]
     production_powers: Dict[UnitTypeId, ProductionPower]
+    inferred_structures: Dict[UnitTypeId, bool]
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
@@ -129,6 +192,7 @@ class InformationManager:
         self.structure_list = self.bot.structures.filter(lambda s: s.type_id in self.structures_to_init)
         self.structures_data = {structure.tag: StructureData(structure.position, structure.tag, structure.type_id)
                     for structure in self.structure_list}
+        self.inferred_structures = {}
         self.unit_data = {}
 
         self.townhall_data = {townhall.tag: TownhallData(townhall.position, townhall.tag)
@@ -404,3 +468,14 @@ class InformationManager:
         for unit in units:
             res[player + ":" + unit.type_id.name] += 1
         return res
+
+    def update_enemy_units(self, enemy_tag:int, enemy:EnemyEntity) -> None:
+        self.enemy_units.update({enemy_tag: enemy})
+
+        construction_building = unit_construction_building.get(enemy.entity.type_id, None)
+        if construction_building is None:
+            return
+
+        self.inferred_structures[construction_building] = True
+
+
