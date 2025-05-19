@@ -3,6 +3,7 @@ import typing
 from typing import Optional, Set
 
 from sc2.bot_ai import BotAI
+from sc2.data import Race
 from sc2.unit import Unit
 
 from sc2.position import Point2
@@ -61,13 +62,17 @@ class ArmyManager:
     async def manage_army(self) -> None:
         enemy_units = Units([unit.entity for unit in self.bot.information_manager.enemy_units.values()], self.dummy_bot)
         player_units = self.bot.units
-        win_probability = self.bot.information_manager.get_combat_win_probability(player_units, enemy_units, True)
+        on_creep = self.bot.enemy_race == Race.Zerg
+
+        win_probability = self.bot.information_manager.get_combat_win_probability(player_units, enemy_units, on_creep)
+
+        # print("number of enemies: " + str(len(enemy_units)))
 
         if win_probability > 0.7:
             self.attacking = True
             self.attack_enemy_base()
 
-        if win_probability < 0.3:
+        if win_probability < 0.2:
             self.attacking = False
             for unit in self.__units_to_include():
                 unit.move(self.rally_point)
@@ -265,7 +270,7 @@ class ArmyManager:
             # For future purposes, we should probably still exclude this (Can be easily done), such that the
             # SCV's could focus on retreating and gathering minerals somewhere. But for now, it is an alright way
             # to handle stuff like worker rush
-            return Units([], self.bot)
+            return self.__units_to_include()
 
         while (i < len(final_units)):
             # Takes the elements before index i and the elements after index i, excluding element i
