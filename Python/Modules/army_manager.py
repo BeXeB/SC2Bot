@@ -3,6 +3,7 @@ import typing
 from typing import Optional, Set
 
 from sc2.bot_ai import BotAI
+from sc2.data import Race
 from sc2.unit import Unit
 
 from sc2.position import Point2
@@ -61,13 +62,17 @@ class ArmyManager:
     async def manage_army(self) -> None:
         enemy_units = Units([unit.entity for unit in self.bot.information_manager.enemy_units.values()], self.dummy_bot)
         player_units = self.bot.units
-        win_probability = self.bot.information_manager.get_combat_win_probability(player_units, enemy_units, True)
+        on_creep = self.bot.enemy_race == Race.Zerg
 
-        if win_probability > 0.7:
+        win_probability = self.bot.information_manager.get_combat_win_probability(player_units, enemy_units, on_creep)
+
+        # print("number of enemies: " + str(len(enemy_units)))
+
+        if win_probability > 0.7 or self.attacking:
             self.attacking = True
             self.attack_enemy_base()
 
-        if self.__units_to_include().amount < 10 and self.attacking:
+        if win_probability < 0.3 and self.attacking:
             self.attacking = False
             for unit in self.__units_to_include():
                 unit.move(self.rally_point)
