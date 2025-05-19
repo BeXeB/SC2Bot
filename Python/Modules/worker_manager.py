@@ -1,10 +1,10 @@
 import math
 import typing
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
-from sc2.unit import Unit
+from sc2.unit import Unit, UnitOrder
 from sc2.units import Units
 
 from Python.Modules.information_manager import (WorkerRole, WorkerData, GasBuildingData, TownhallData,
@@ -14,6 +14,7 @@ if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
 
 MINING_RADIUS = 1.325
+
 
 class WorkerManager:
     bot: 'MyBot'
@@ -28,7 +29,8 @@ class WorkerManager:
     # Fills up the gas first, then the minerals
     def distribute_workers(self) -> None:
         def __try_assign_to_gas(worker: Unit) -> bool:
-            for geyser in self.bot.gas_buildings.filter(lambda g: g.build_progress == 1).sorted(lambda g: g.distance_to(worker)):
+            for geyser in self.bot.gas_buildings.filter(lambda g: g.build_progress == 1).sorted(
+                    lambda g: g.distance_to(worker)):
                 geyser_data: GasBuildingData = self.bot.information_manager.gas_data[geyser.tag]
                 if geyser_data.current_harvesters < geyser.ideal_harvesters:
                     self.assign_worker(worker.tag, WorkerRole.GAS, geyser.tag)
@@ -37,7 +39,8 @@ class WorkerManager:
             return False
 
         def __try_assign_to_minerals(worker: Unit) -> bool:
-            for townhall in self.bot.townhalls.filter(lambda t: t.build_progress == 1).sorted(lambda t: t.distance_to(worker)):
+            for townhall in self.bot.townhalls.filter(lambda t: t.build_progress == 1).sorted(
+                    lambda t: t.distance_to(worker)):
                 townhall_data: TownhallData = self.bot.information_manager.townhall_data[townhall.tag]
                 if townhall_data is None:
                     continue
@@ -61,7 +64,8 @@ class WorkerManager:
             for structure in structures:
                 structure_data: Union[TownhallData, GasBuildingData] = data_dict[structure.tag]
                 if structure_data.current_harvesters > structure.ideal_harvesters:
-                    workers: Units = self.bot.workers.filter(lambda w: self.bot.information_manager.worker_data[w.tag].assigned_to_tag == structure.tag)
+                    workers: Units = self.bot.workers.filter(
+                        lambda w: self.bot.information_manager.worker_data[w.tag].assigned_to_tag == structure.tag)
                     count: int = 0
                     for worker in workers:
                         count += 1
@@ -77,6 +81,26 @@ class WorkerManager:
                 self.assign_worker(worker.tag, WorkerRole.GAS, gas_data.tag)
                 worker(AbilityId.SMART, gas, queue=False)
                 return
+
+        def __fix_afk_workers(data: WorkerData, worker: Unit) -> None:
+            # Only happens if the worker is a mineral worker
+            if data.role != WorkerRole.MINERALS:
+                return
+            # Only happens if the worker's order is move
+            orders: Tuple[UnitOrder, ...] = worker.orders
+            if len(orders) == 0 or orders[0].ability.id != AbilityId.MOVE:
+                return
+            prev_unit: Optional[Unit] = self.bot._units_previous_map.get(data.tag, None)
+            # If the worker is newly created, we return
+            if prev_unit is None:
+                return
+            prev_loc: Point2 = prev_unit.position
+            # If the worker is moving, we return
+            if worker.position != prev_loc:
+                return
+            # The worker is not moving, so we stop it and assign it to idle
+            worker(AbilityId.STOP_STOP)
+            self.assign_worker(worker.tag, WorkerRole.IDLE, None)
 
         for worker in self.bot.workers:
             data: WorkerData = self.bot.information_manager.worker_data[worker.tag]
@@ -106,12 +130,15 @@ class WorkerManager:
             if data.role == WorkerRole.MINERALS:
                 __assign_to_gas_if_needed(worker)
 
+            __fix_afk_workers(data, worker)
 
         # If there are too many workers mining a gas geyser, try to reallocate them
-        __reallocate_workers(self.bot.gas_buildings.filter(lambda g: g.build_progress == 1), self.bot.information_manager.gas_data)
+        __reallocate_workers(self.bot.gas_buildings.filter(lambda g: g.build_progress == 1),
+                             self.bot.information_manager.gas_data)
 
         # If there are too many workers assigned to a base, try to reallocate them
-        __reallocate_workers(self.bot.townhalls.filter(lambda t: t.build_progress == 1), self.bot.information_manager.townhall_data)
+        __reallocate_workers(self.bot.townhalls.filter(lambda t: t.build_progress == 1),
+                             self.bot.information_manager.townhall_data)
 
     # This method makes workers mine minerals faster
     def speed_mine(self) -> None:
@@ -136,7 +163,8 @@ class WorkerManager:
         if len(worker.orders) == 0:
             mineral_field: Unit = self.bot.mineral_field.closer_than(10, townhall).random
             if not self.mineral_targets.__contains__(mineral_field.tag):
-                self.mineral_targets.update({mineral_field.tag: mineral_field.position.towards(townhall, MINING_RADIUS)})
+                self.mineral_targets.update(
+                    {mineral_field.tag: mineral_field.position.towards(townhall, MINING_RADIUS)})
             target: Point2 = self.mineral_targets[mineral_field.tag]
             worker.move(target)
             worker(AbilityId.SMART, mineral_field, queue=True)
@@ -152,7 +180,8 @@ class WorkerManager:
                 mineral_field: Unit = self.bot.mineral_field.by_tag(worker.order_target)
                 if mineral_field is not None and mineral_field.is_mineral_field:
                     if not self.mineral_targets.__contains__(mineral_field.tag):
-                        self.mineral_targets.update({mineral_field.tag: mineral_field.position.towards(townhall, MINING_RADIUS)})
+                        self.mineral_targets.update(
+                            {mineral_field.tag: mineral_field.position.towards(townhall, MINING_RADIUS)})
                     target = self.mineral_targets[mineral_field.tag]
                     __move_worker_to_target(worker, mineral_field, target)
 
@@ -163,6 +192,7 @@ class WorkerManager:
                 return False
             data: WorkerData = self.bot.information_manager.worker_data[worker.tag]
             return data.role == WorkerRole.MINERALS
+
         return self.bot.workers.filter(__mineral_filter)
 
     # This method assigns a role to a worker
@@ -187,7 +217,6 @@ class WorkerManager:
             if assigned_to_tag in gas_data:
                 gas_data[assigned_to_tag].current_harvesters += 1
         worker_data[worker_tag].assign_to(assigned_to_tag, role)
-
 
     # This method selects a worker to do a task
     # It selects the closest worker to the location
