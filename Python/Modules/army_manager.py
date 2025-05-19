@@ -68,11 +68,11 @@ class ArmyManager:
 
         # print("number of enemies: " + str(len(enemy_units)))
 
-        if win_probability > 0.7:
+        if win_probability > 0.7 or self.attacking:
             self.attacking = True
             self.attack_enemy_base()
 
-        if win_probability < 0.2:
+        if win_probability < 0.3 and self.attacking:
             self.attacking = False
             for unit in self.__units_to_include():
                 unit.move(self.rally_point)
@@ -270,7 +270,7 @@ class ArmyManager:
             # For future purposes, we should probably still exclude this (Can be easily done), such that the
             # SCV's could focus on retreating and gathering minerals somewhere. But for now, it is an alright way
             # to handle stuff like worker rush
-            return self.__units_to_include()
+            return Units([], self.bot)
 
         while (i < len(final_units)):
             # Takes the elements before index i and the elements after index i, excluding element i
