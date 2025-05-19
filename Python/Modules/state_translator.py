@@ -187,24 +187,12 @@ def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
 
 
 def get_enemy(bot: 'MyBot') -> Enemy:
-    enemy_ground_power = 0
-    enemy_air_power = 0
-    for enemy_entity in bot.information_manager.enemy_units.values():
-        unit_type = enemy_entity.entity.type_id
-        if unit_type not in bot.information_manager.combat_powers:
-            continue
-        unit_power = bot.information_manager.combat_powers[unit_type]
-        enemy_ground_power += unit_power.ground_power
-        enemy_air_power += unit_power.air_power
-    enemy_ground_production = 0
-    enemy_air_production = 0
-    for enemy_entity in bot.information_manager.enemy_structures.values():
-        structure_type = enemy_entity.entity.type_id
-        if structure_type not in bot.information_manager.production_powers:
-            continue
-        structure_production_power = bot.information_manager.production_powers[structure_type]
-        enemy_ground_production += structure_production_power.ground_production
-        enemy_air_production += structure_production_power.air_production
+
+
+    enemy_air_power, enemy_ground_power = get_enemy_power(bot)
+
+    enemy_air_production, enemy_ground_production = get_enemy_production(bot)
+
     enemy = Enemy(math.floor(enemy_ground_power),
                   math.floor(enemy_air_power),
                   enemy_ground_production,
@@ -212,10 +200,65 @@ def get_enemy(bot: 'MyBot') -> Enemy:
     return enemy
 
 
+def get_enemy_production(bot):
+    enemy_air_production, enemy_ground_production = get_production_from_structures(bot)
+
+    air_production, ground_production = get_inferred_production(bot)
+    enemy_air_production += air_production
+    enemy_ground_production += ground_production
+
+    return enemy_air_production, enemy_ground_production
+
+
+def get_inferred_production(bot):
+    enemy_structures = bot.information_manager.enemy_structures
+    production_powers = bot.information_manager.production_powers
+    inferred_structures = bot.information_manager.inferred_structures
+    enemy_ground_production = 0
+    enemy_air_production = 0
+    for structure_type, is_inferred in inferred_structures.items():
+        structures = [enemy_entity.entity.type_id for enemy_entity in enemy_structures.values()]
+
+        if is_inferred and structure_type not in structures:
+            structure_production_power = production_powers[structure_type]
+            enemy_ground_production += structure_production_power.ground_production
+            enemy_air_production += structure_production_power.air_production
+    return enemy_air_production, enemy_ground_production
+
+
+def get_production_from_structures(bot):
+    enemy_ground_production = 0
+    enemy_air_production = 0
+    enemy_structures = bot.information_manager.enemy_structures
+    production_powers = bot.information_manager.production_powers
+
+    for enemy_entity in enemy_structures.values():
+        structure_type = enemy_entity.entity.type_id
+        if structure_type not in production_powers:
+            continue
+        structure_production_power = production_powers[structure_type]
+        enemy_ground_production += structure_production_power.ground_production
+        enemy_air_production += structure_production_power.air_production
+
+    return enemy_air_production, enemy_ground_production
+
+def get_enemy_power(bot) -> (int, int):
+    enemy_ground_power: int = 0
+    enemy_air_power: int = 0
+    for enemy_entity in bot.information_manager.enemy_units.values():
+        unit_type = enemy_entity.entity.type_id
+        if unit_type not in bot.information_manager.combat_powers:
+            continue
+        unit_power = bot.information_manager.combat_powers[unit_type]
+        enemy_ground_power += unit_power.ground_power
+        enemy_air_power += unit_power.air_power
+    return enemy_air_power, enemy_ground_power
+
+
 def count_enemy_combat_units(bot: 'MyBot') -> int:
     enemy_combat_units = 0
-    for unit, _ in bot.information_manager.enemy_units.values():
-        if unit.type_id not in bot.information_manager.units_to_ignore_for_army:
+    for unit in bot.information_manager.enemy_units.values():
+        if unit.entity.type_id not in bot.information_manager.units_to_ignore_for_army:
             enemy_combat_units += 1
     return enemy_combat_units
 
