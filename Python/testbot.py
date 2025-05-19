@@ -347,8 +347,6 @@ class MyBot(BotAI):
                 {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
         else:
             self.information_manager.update_enemy_units(unit.tag, EnemyEntity(entity=unit, last_seen=math.floor(self.time)))
-            # self.information_manager.enemy_units.update(
-            #     {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
 
     async def on_unit_created(self, unit: Unit):
         match unit.type_id:
