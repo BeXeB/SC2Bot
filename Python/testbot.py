@@ -205,7 +205,11 @@ class MyBot(BotAI):
 
         for worker in self.workers:
             data = self.information_manager.worker_data[worker.tag]
-            self.client.debug_text_3d(f"Role: {data.role}\nAssigned: {data.assigned_to_tag}", Point3((worker.position.x, worker.position.y, self.get_terrain_z_height(worker.position) + 0.2)))
+            height = self.get_terrain_z_height(worker.position) + 0.2
+            self.client.debug_text_3d(f"Role: {data.role}\n"
+                                      f"Orders: {len(worker.orders)}\n"
+                                      f"Is Idle: {worker.is_idle}",
+                                      Point3((worker.position.x, worker.position.y, height)))
 
         thlocs = self.information_manager.expansion_locations
         for thloc in thlocs:
