@@ -7,6 +7,7 @@ from typing import Optional, Dict, Set, List, Tuple
 import pandas as pd
 import torch
 
+from sc2.data import Race
 from sc2.unit import Unit
 
 from sc2.ids.ability_id import AbilityId
@@ -169,13 +170,26 @@ class InformationManager:
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
 
-        filepath = 'data/micro_arena.csv'
-        if os.path.exists(filepath) and bot.game_mode is not bot.GameMode.micro_arena:
-            # Columns names of the feature vector
-            self.column_names = pd.read_csv(filepath).drop('result', axis=1).columns
+        csv_path = ""
+        model_path = ""
+        match self.bot.enemy_race:
+            case Race.Terran:
+                csv_path = 'data/terran_micro_arena.csv'
+                model_path = 'data/terran_arena_model.pth'
+            case Race.Protoss:
+                csv_path = 'data/protoss_micro_arena.csv'
+                model_path = 'data/protoss_arena_model.pth'
+            case Race.Zerg:
+                csv_path = 'data/zerg_micro_arena.csv'
+                model_path = 'data/zerg_arena_model.pth'
 
+        if os.path.exists(csv_path) and bot.game_mode is not bot.GameMode.micro_arena:
+
+            # Columns names of the feature vector
+            self.column_names = pd.read_csv(csv_path).drop('result', axis=1).columns
+            print(self.bot.enemy_race)
             self.combat_model = ArenaNetwork(input_size=len(self.column_names))
-            self.combat_model.load_state_dict(torch.load('data/arena_model.pth'))
+            self.combat_model.load_state_dict(torch.load(model_path))
             self.combat_model.eval()
         else:
             print('combat data not found.')
