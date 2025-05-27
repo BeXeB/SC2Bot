@@ -47,11 +47,14 @@ class ArenaNetwork(nn.Module):
         x = F.log_softmax(self.output(x), dim=1)
         return x
 
-if __name__ == '__main__':
-    filepath = "micro_arena.csv"
+def createNN(race: str):
+    filepath = race + "_micro_arena.csv"
 
     # reading csv file
     df = pd.read_csv(filepath)
+
+    # Shuffle the data
+    df = df.sample(frac=1).reset_index(drop=True)
 
     # Remap Creep feature: False -> 0, True -> 1
     df['on_creep'] = df['on_creep'].map({False: 0, True: 1})
@@ -114,6 +117,11 @@ if __name__ == '__main__':
     example_input = test_loader.dataset[0][0].unsqueeze(0)
     traced_model = torch.jit.trace(model, example_input)
 
-    traced_model.save("arena_model.pt")
-    torch.save(model.state_dict(), 'arena_model.pth')
 
+    traced_model.save(race + "_arena_model.pt")
+    torch.save(model.state_dict(), (race + '_arena_model.pth'))
+
+if __name__ == "__main__":
+    createNN("terran")
+    createNN("protoss")
+    createNN("zerg")
