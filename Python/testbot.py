@@ -84,7 +84,7 @@ class MyBot(BotAI):
                  action_selection: ActionSelection = ActionSelection.BestAction,
                  future_action_queue_length: int = 1,
                  minimum_search_rollouts: int = 5000) -> None:
-        self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics, end_probability_function=1, army_value_function=ArmyValueFunction.marine_power)
+        self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics, end_probability_function=1, army_value_function=ArmyValueFunction.min_power)
         self.mcts_settings = [
             mcts_seed,
             mcts_rollout_end_time,
@@ -134,9 +134,11 @@ class MyBot(BotAI):
 
         self.update_busy_workers()
         self.manage_workers()
-        self.army_manager.manage_army()
+        await self.army_manager.manage_army()
         self.scout_manager.manage_scouts()
         self.update_enemy_units_and_structures()
+        #await self.army_manager.split_combat_units()
+
 
         if self.structures(UnitTypeId.FACTORY).ready.filter(lambda sr: sr.has_techlab == False):
             await self.factory_builder.build_tech_lab()
@@ -183,6 +185,9 @@ class MyBot(BotAI):
                     case ActionSelection.MultiBestActionMin:
                         self.get_multi_best_action_min()
 
+
+
+
     async def draw_debug(self):
         def draw_box(loc: Point2, start_loc: Tuple[int, int], end_loc: Tuple[int, int], color:Tuple[int, int, int]):
             height = self.get_terrain_z_height(loc) + 0.1
@@ -200,7 +205,11 @@ class MyBot(BotAI):
 
         for worker in self.workers:
             data = self.information_manager.worker_data[worker.tag]
-            self.client.debug_text_3d(f"Role: {data.role}\nAssigned: {data.assigned_to_tag}", Point3((worker.position.x, worker.position.y, self.get_terrain_z_height(worker.position) + 0.2)))
+            height = self.get_terrain_z_height(worker.position) + 0.2
+            self.client.debug_text_3d(f"Role: {data.role}\n"
+                                      f"Orders: {len(worker.orders)}\n"
+                                      f"Is Idle: {worker.is_idle}",
+                                      Point3((worker.position.x, worker.position.y, height)))
 
         thlocs = self.information_manager.expansion_locations
         for thloc in thlocs:
@@ -341,8 +350,7 @@ class MyBot(BotAI):
             self.information_manager.enemy_structures.update(
                 {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
         else:
-            self.information_manager.enemy_units.update(
-                {unit.tag: EnemyEntity(entity=unit, last_seen=math.floor(self.time))})
+            self.information_manager.update_enemy_units(unit.tag, EnemyEntity(entity=unit, last_seen=math.floor(self.time)))
 
     async def on_unit_created(self, unit: Unit):
         match unit.type_id:
@@ -358,7 +366,7 @@ class MyBot(BotAI):
     async def on_end(self, game_result: Result):
         self.mcts.stop_search()
         end_state = translate_state(self)
-        save_result(self, end_state, self.time)
+        # save_result(self, end_state, self.time)
         self.future_action_queue.queue.clear()
 
     def get_best_action(self) -> None:

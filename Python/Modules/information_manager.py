@@ -7,6 +7,7 @@ from typing import Optional, Dict, Set, List, Tuple
 import pandas as pd
 import torch
 
+from sc2.data import Race
 from sc2.unit import Unit
 
 from sc2.ids.ability_id import AbilityId
@@ -20,9 +21,71 @@ if typing.TYPE_CHECKING:
 
 STEPS_PER_SECOND = 22.4
 
+unit_construction_building = {
+    # Terran
+    UnitTypeId.COLOSSUS : UnitTypeId.ROBOTICSFACILITY,
+    UnitTypeId.SIEGETANK : UnitTypeId.FACTORY,
+    UnitTypeId.VIKINGFIGHTER : UnitTypeId.STARPORT,
+    UnitTypeId.MARINE : UnitTypeId.BARRACKS,
+    UnitTypeId.REAPER : UnitTypeId.BARRACKS,
+    UnitTypeId.GHOST : UnitTypeId.BARRACKS,
+    UnitTypeId.MARAUDER : UnitTypeId.BARRACKS,
+    UnitTypeId.THOR : UnitTypeId.FACTORY,
+    UnitTypeId.HELLION : UnitTypeId.FACTORY,
+    UnitTypeId.MEDIVAC : UnitTypeId.STARPORT,
+    UnitTypeId.BANSHEE : UnitTypeId.STARPORT,
+    UnitTypeId.RAVEN : UnitTypeId.STARPORT,
+    UnitTypeId.BATTLECRUISER : UnitTypeId.STARPORT,
+    UnitTypeId.HELLIONTANK : UnitTypeId.FACTORY,
+    UnitTypeId.WIDOWMINE : UnitTypeId.FACTORY,
+    UnitTypeId.CYCLONE : UnitTypeId.FACTORY,
+    UnitTypeId.DISRUPTOR : UnitTypeId.ROBOTICSFACILITY,
+    #Protoss
+    UnitTypeId.ZEALOT : UnitTypeId.GATEWAY,
+    UnitTypeId.STALKER : UnitTypeId.GATEWAY,
+    UnitTypeId.HIGHTEMPLAR : UnitTypeId.GATEWAY,
+    UnitTypeId.DARKTEMPLAR : UnitTypeId.GATEWAY,
+    UnitTypeId.SENTRY : UnitTypeId.GATEWAY,
+    UnitTypeId.PHOENIX : UnitTypeId.STARGATE,
+    UnitTypeId.CARRIER : UnitTypeId.STARGATE,
+    UnitTypeId.VOIDRAY : UnitTypeId.STARGATE,
+    UnitTypeId.ARCHON : UnitTypeId.GATEWAY,
+    UnitTypeId.WARPPRISM : UnitTypeId.ROBOTICSFACILITY,
+    UnitTypeId.OBSERVER : UnitTypeId.ROBOTICSFACILITY,
+    UnitTypeId.IMMORTAL : UnitTypeId.ROBOTICSFACILITY,
+    UnitTypeId.ADEPT : UnitTypeId.GATEWAY,
+    UnitTypeId.ORACLE : UnitTypeId.STARGATE,
+    UnitTypeId.TEMPEST : UnitTypeId.STARGATE,
+    UnitTypeId.LIBERATOR : UnitTypeId.STARPORT,
+    #Zerg
+    UnitTypeId.ZERGLING : UnitTypeId.SPAWNINGPOOL,
+    UnitTypeId.BANELING : UnitTypeId.BANELINGNEST,
+    UnitTypeId.HYDRALISK : UnitTypeId.HYDRALISKDEN,
+    UnitTypeId.MUTALISK : UnitTypeId.SPIRE,
+    UnitTypeId.ULTRALISK : UnitTypeId.ULTRALISKCAVERN,
+    UnitTypeId.ROACH : UnitTypeId.ROACHWARREN,
+    UnitTypeId.INFESTOR : UnitTypeId.INFESTATIONPIT,
+    UnitTypeId.CORRUPTOR : UnitTypeId.SPIRE,
+    UnitTypeId.BROODLORD : UnitTypeId.GREATERSPIRE,
+    UnitTypeId.BROODLING : UnitTypeId.GREATERSPIRE,
+    UnitTypeId.LOCUSTMP : UnitTypeId.INFESTATIONPIT,
+    UnitTypeId.SWARMHOSTMP : UnitTypeId.INFESTATIONPIT,
+    UnitTypeId.VIPER : UnitTypeId.INFESTATIONPIT,
+    UnitTypeId.LURKERMP : UnitTypeId.LURKERDEN,
+    UnitTypeId.RAVAGER : UnitTypeId.ROACHWARREN,
+    UnitTypeId.LOCUSTMPFLYING : UnitTypeId.INFESTATIONPIT,
+}
+
 CombatPower = namedtuple('CombatPower', ['ground_power', 'air_power'])
 ProductionPower = namedtuple('ProductionPower', ['ground_production', 'air_production'])
-EnemyEntity = namedtuple('EnemyEntity', ['entity', 'last_seen'])
+class EnemyEntity:# = namedtuple('EnemyEntity', ['entity', 'last_seen'])
+    entity: Unit
+    last_seen: int
+
+    def __init__(self, entity: Unit, last_seen: int, inferred: bool = False):
+        self.entity = entity
+        self.last_seen = last_seen
+
 
 class WorkerRole(Enum):
     IDLE = 0
@@ -102,17 +165,31 @@ class InformationManager:
     units_to_ignore_for_army: Set[UnitTypeId]
     combat_powers: Dict[UnitTypeId, CombatPower]
     production_powers: Dict[UnitTypeId, ProductionPower]
+    inferred_structures: Dict[UnitTypeId, bool]
 
     def __init__(self, bot: 'MyBot'):
         self.bot = bot
 
-        filepath = 'data/micro_arena.csv'
-        if os.path.exists(filepath) and bot.game_mode is not bot.GameMode.micro_arena:
-            # Columns names of the feature vector
-            self.column_names = pd.read_csv(filepath).drop('result', axis=1).columns
+        csv_path = ""
+        model_path = ""
+        match self.bot.enemy_race:
+            case Race.Terran:
+                csv_path = 'data/terran_micro_arena.csv'
+                model_path = 'data/terran_arena_model.pth'
+            case Race.Protoss:
+                csv_path = 'data/protoss_micro_arena.csv'
+                model_path = 'data/protoss_arena_model.pth'
+            case Race.Zerg:
+                csv_path = 'data/zerg_micro_arena.csv'
+                model_path = 'data/zerg_arena_model.pth'
 
+        if os.path.exists(csv_path) and bot.game_mode is not bot.GameMode.micro_arena:
+
+            # Columns names of the feature vector
+            self.column_names = pd.read_csv(csv_path).drop('result', axis=1).columns
+            print(self.bot.enemy_race)
             self.combat_model = ArenaNetwork(input_size=len(self.column_names))
-            self.combat_model.load_state_dict(torch.load('data/arena_model.pth'))
+            self.combat_model.load_state_dict(torch.load(model_path))
             self.combat_model.eval()
         else:
             print('combat data not found.')
@@ -129,6 +206,7 @@ class InformationManager:
         self.structure_list = self.bot.structures.filter(lambda s: s.type_id in self.structures_to_init)
         self.structures_data = {structure.tag: StructureData(structure.position, structure.tag, structure.type_id)
                     for structure in self.structure_list}
+        self.inferred_structures = {}
         self.unit_data = {}
 
         self.townhall_data = {townhall.tag: TownhallData(townhall.position, townhall.tag)
@@ -374,8 +452,8 @@ class InformationManager:
             return self.worker_data
         return {key: value for key, value in self.worker_data.items() if value.role == worker_role}
 
-    def get_combat_win_probability(self, player_units: Units, enemy_units: Units) -> float:
-        features = self.__get_features(player_units, enemy_units)
+    def get_combat_win_probability(self, player_units: Units, enemy_units: Units, on_creep: bool = False) -> float:
+        features = self.__get_features(player_units, enemy_units, on_creep)
         with torch.no_grad():
             outputs = self.combat_model(features)
             probs = torch.exp(outputs) # Outputs is log probabilities, this converts them to regular probabilities
@@ -383,10 +461,10 @@ class InformationManager:
 
         return win_prob
 
-    def __get_features(self, player_units: Units, enemy_units: Units) -> torch.Tensor:
+    def __get_features(self, player_units: Units, enemy_units: Units, on_creep:bool) -> torch.Tensor:
         player_unit_dict = self.__get_units_for("player", player_units)
         enemy_unit_dict = self.__get_units_for("enemy", enemy_units)
-        unit_dict = player_unit_dict | enemy_unit_dict
+        unit_dict = player_unit_dict | enemy_unit_dict | {"on_creep": 1 if on_creep else 0}
 
         df = pd.DataFrame([unit_dict])
         df = df[self.column_names] # only keep the columns which exist in the dataset
@@ -404,3 +482,14 @@ class InformationManager:
         for unit in units:
             res[player + ":" + unit.type_id.name] += 1
         return res
+
+    def update_enemy_units(self, enemy_tag:int, enemy:EnemyEntity) -> None:
+        self.enemy_units.update({enemy_tag: enemy})
+
+        construction_building = unit_construction_building.get(enemy.entity.type_id, None)
+        if construction_building is None:
+            return
+
+        self.inferred_structures[construction_building] = True
+
+
