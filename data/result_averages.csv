@@ -1,0 +1,13 @@
+Army_value_function,End_probability_function,Win,Loss,Tie
+marinePower,a,16.67,82.22,1.11
+minPower,a,16.67,82.22,1.11
+averagePower,a,4.44,95.56,0.0
+scaledPower,a,17.78,82.22,0.0
+marinePower,b,21.11,78.89,0.0
+minPower,b,24.44,75.56,0.0
+averagePower,b,5.56,94.44,0.0
+scaledPower,b,15.56,84.44,0.0
+marinePower,c,2.22,95.56,2.22
+minPower,c,4.44,95.56,0.0
+averagePower,c,1.11,98.89,0.0
+scaledPower,c,4.44,95.56,0.0
