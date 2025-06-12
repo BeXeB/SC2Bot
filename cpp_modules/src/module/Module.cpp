@@ -135,7 +135,8 @@ namespace pymodule {
 		.value("min_power", Sc2::ArmyValueFunction::MinPower)
 		.value("average_power", Sc2::ArmyValueFunction::AveragePower)
 		.value("scaled_power", Sc2::ArmyValueFunction::ScaledPower)
-		.value("marine_power", Sc2::ArmyValueFunction::MarinePower);
+		.value("marine_power", Sc2::ArmyValueFunction::MarinePower)
+		.value("combat_nn", Sc2::ArmyValueFunction::CombatNN);
 
 		py::enum_<RolloutHeuristic>(module, "RolloutHeuristic")
 		.value("random", RolloutHeuristic::Random)
