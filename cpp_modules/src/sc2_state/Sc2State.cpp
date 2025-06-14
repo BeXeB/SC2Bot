@@ -281,9 +281,22 @@ std::vector<float> Sc2::State::getFeatureVector() {
         }
     }
 
-    for (int i = 0; i < static_cast<int>(EnemyUnitType::Last); i++) {
-        auto type = static_cast<EnemyUnitType>(i);
-        features.emplace_back(_enemy.units[type]);
+    switch (_enemy.race) {
+        case EnemyRace::Protoss:
+            for (auto type : ProtossUnits) {
+                features.emplace_back(_enemy.units[type]);
+            }
+            break;
+        case EnemyRace::Zerg:
+            for (auto type : ZergUnits) {
+                features.emplace_back(_enemy.units[type]);
+            }
+            break;
+        case EnemyRace::Terran:
+            for (auto type : TerranUnits) {
+                features.emplace_back(_enemy.units[type]);
+            }
+            break;
     }
 
     // on_creep column always set to 0 in mcts

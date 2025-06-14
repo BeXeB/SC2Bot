@@ -43,6 +43,8 @@ namespace Sc2::Mcts {
 		std::vector<double> _actionWeights = std::vector<double>(10);
 		std::discrete_distribution<int> _weightedDist = std::discrete_distribution<int>();
 
+		EnemyRace _enemyRace = EnemyRace::Terran;
+
 		// Upper confidence bound applied to trees
 		[[nodiscard]] double uct(const std::shared_ptr<Node> &node) const;
 		[[nodiscard]] static double ucb1Normal2(const std::shared_ptr<Node> &node);
@@ -57,7 +59,7 @@ namespace Sc2::Mcts {
 		void threadedSearch();
 		void threadedSearchRollout(int numberOfRollouts);
 
-		[[nodiscard]] static torch::jit::script::Module loadCombatPredictionNN();
+		[[nodiscard]] torch::jit::script::Module loadCombatPredictionNN();
 
 	public:
 		const ArmyValueFunction _armyValueFunction = ArmyValueFunction::MinPower;

@@ -297,15 +297,29 @@ void Mcts::singleSearch() {
 	_numberOfRollouts++;
 }
 
-
 torch::jit::script::Module Mcts::loadCombatPredictionNN() {
-	const std::string path = "../../data/arena_model.pt";
+	std::string path = "../../data/";
+
+	switch (_enemyRace) {
+		case EnemyRace::Protoss:
+			path = path + "protoss_arena_model.pt";
+			break;
+		case EnemyRace::Zerg:
+			path = path + "zerg_arena_model.pt";
+			break;
+		case EnemyRace::Terran:
+			path = path + "terran_arena_model.pt";
+			break;
+	}
+
 	torch::jit::script::Module module;
 	try {
 		module = torch::jit::load(path);
 	}
-	catch (const c10::Error& _) {
-		std::cerr << "Error loading the model" << std::endl;
+	catch (const c10::Error& e) {
+		std::cerr << path << std::endl;
+		std::cerr << "Error loading the model. Race: " << static_cast<int>(_enemyRace) << std::endl;
+		std::cerr << e.what() << std::endl;
 	}
 	return module;
 }
@@ -511,6 +525,12 @@ void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	rootState->setEndProbabilityFunction(END_PROBABILITY_FUNCTION);
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, std::move(rootState)));
 	_numberOfRollouts = 0;
+	auto enemyRace = state->getEnemy().race;
+	if (enemyRace != _enemyRace) {
+		_enemyRace = enemyRace;
+		_model = loadCombatPredictionNN();
+	}
+
 	_mctsMutex.unlock();
 	_mctsRequestsPending = false;
 }

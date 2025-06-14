@@ -422,6 +422,7 @@ namespace Sc2 {
 		double endProbabilityFunction(double successProb) const;
 		double getEndProbability() const;
 		void addEnemyUnit(){_enemy.takeAction(500, EnemyAction::addEnemyUnit);}
+		void setEnemyRace(EnemyRace race){_enemy.race = race;};
 
 		static double softmax(std::vector<double> vector, const int index) {
 			double sum = 0;

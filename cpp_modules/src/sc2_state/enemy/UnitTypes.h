@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 
+
 enum class EnemyUnitType {
     COLOSSUS,
     BANELING,
@@ -145,6 +146,7 @@ static std::map<EnemyUnitType, int> convertToEnemyEnum(const std::map<std::strin
 enum class PlayerUnitType {
     SIEGETANKSIEGED,
     SIEGETANK,
+    VIKINGASSAULT,
     VIKINGFIGHTER,
     SCV,
     MARINE,
@@ -162,6 +164,68 @@ enum class PlayerUnitType {
     LIBERATOR,
     CYCLONE,
     Last
+};
+inline std::vector<EnemyUnitType> TerranUnits {
+    EnemyUnitType::SIEGETANK,
+    EnemyUnitType::VIKINGFIGHTER,
+    EnemyUnitType::SCV,
+    EnemyUnitType::MARINE,
+    EnemyUnitType::REAPER,
+    EnemyUnitType::GHOST,
+    EnemyUnitType::MARAUDER,
+    EnemyUnitType::THOR,
+    EnemyUnitType::HELLION,
+    EnemyUnitType::MEDIVAC,
+    EnemyUnitType::BANSHEE,
+    EnemyUnitType::RAVEN,
+    EnemyUnitType::BATTLECRUISER,
+    EnemyUnitType::HELLIONTANK,
+    EnemyUnitType::WIDOWMINE,
+    EnemyUnitType::LIBERATOR,
+    EnemyUnitType::CYCLONE,
+};
+inline std::vector<EnemyUnitType> ProtossUnits {
+    EnemyUnitType::COLOSSUS,
+    EnemyUnitType::MOTHERSHIP,
+    EnemyUnitType::ZEALOT,
+    EnemyUnitType::STALKER,
+    EnemyUnitType::HIGHTEMPLAR,
+    EnemyUnitType::DARKTEMPLAR,
+    EnemyUnitType::SENTRY,
+    EnemyUnitType::PHOENIX,
+    EnemyUnitType::CARRIER,
+    EnemyUnitType::VOIDRAY,
+    EnemyUnitType::WARPPRISM,
+    EnemyUnitType::OBSERVER,
+    EnemyUnitType::IMMORTAL,
+    EnemyUnitType::PROBE,
+    EnemyUnitType::ARCHON,
+    EnemyUnitType::ADEPT,
+    EnemyUnitType::ORACLE,
+    EnemyUnitType::TEMPEST,
+    EnemyUnitType::DISRUPTOR,
+};
+inline std::vector<EnemyUnitType> ZergUnits {
+    EnemyUnitType::BANELING,
+    EnemyUnitType::CHANGELING,
+    EnemyUnitType::CHANGELINGMARINESHIELD,
+    EnemyUnitType::DRONE,
+    EnemyUnitType::ZERGLING,
+    EnemyUnitType::HYDRALISK,
+    EnemyUnitType::MUTALISK,
+    EnemyUnitType::ULTRALISK,
+    EnemyUnitType::ROACH,
+    EnemyUnitType::INFESTOR,
+    EnemyUnitType::CORRUPTOR,
+    EnemyUnitType::BROODLORD,
+    EnemyUnitType::QUEEN,
+    EnemyUnitType::OVERSEER,
+    EnemyUnitType::LOCUSTMP,
+    EnemyUnitType::SWARMHOSTMP,
+    EnemyUnitType::VIPER,
+    EnemyUnitType::LURKERMP,
+    EnemyUnitType::RAVAGER,
+    EnemyUnitType::LOCUSTMPFLYING,
 };
 
 #endif //UNITTYPES_H
