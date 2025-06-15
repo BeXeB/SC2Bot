@@ -198,6 +198,7 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
+		auto time = state->getCurrentTime();
 
 		if (_armyValueFunction == ArmyValueFunction::CombatNN) {
 			featureVectors.emplace_back(state->getFeatureVector());

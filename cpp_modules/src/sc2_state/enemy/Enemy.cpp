@@ -20,7 +20,7 @@ Sc2::EnemyAction Sc2::Enemy::generateEnemyAction() {
     // Specifies how many times the enemy will attack
     constexpr double attackAction = 0.3;
     // Specifies how many times specific production buildings are added
-    constexpr double productionIncrease = 6;
+    constexpr double productionIncrease = 5;
     // Specifies how many times the enemy will do nothing
     constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease -
                                   groundProductionIncrease - airProductionIncrease - productionIncrease;
@@ -119,6 +119,11 @@ void Sc2::Enemy::addProductionBuilding(const int currentTime) {
         return;
     }
     const auto building = randomChoice(availableBuildings);
+
+    if (productionBuildings[building].amount < 1) {
+        productionBuildings[building].amount = 1;
+        return;
+    }
 
     switch (race) {
         case EnemyRace::Protoss:
