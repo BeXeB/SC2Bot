@@ -299,8 +299,8 @@ void Mcts::singleSearch() {
 }
 
 torch::jit::script::Module Mcts::loadCombatPredictionNN() {
-	std::string path = "../../data/";
-
+	// std::string path = "../../data/";
+	std::string path = "data/";
 	switch (_enemyRace) {
 		case EnemyRace::Protoss:
 			path = path + "protoss_arena_model.pt";

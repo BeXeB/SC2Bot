@@ -84,6 +84,8 @@ namespace Sc2::Mcts {
 			_mctsMutex.unlock();
 		}
 
+		ArmyValueFunction getArmyValueFunction() const {return _armyValueFunction;}
+
 		std::shared_ptr<Node> randomChoice(const std::map<Action, std::shared_ptr<Node> > &nodes);
 
 		template<typename Container>

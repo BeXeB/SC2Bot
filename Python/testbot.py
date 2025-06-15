@@ -84,7 +84,7 @@ class MyBot(BotAI):
                  action_selection: ActionSelection = ActionSelection.BestAction,
                  future_action_queue_length: int = 1,
                  minimum_search_rollouts: int = 5000) -> None:
-        self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics, end_probability_function=1, army_value_function=ArmyValueFunction.min_power)
+        self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics, end_probability_function=1, army_value_function=ArmyValueFunction.combat_nn)
         self.mcts_settings = [
             mcts_seed,
             mcts_rollout_end_time,

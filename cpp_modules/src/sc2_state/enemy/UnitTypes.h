@@ -136,9 +136,14 @@ static std::map<EnemyUnitType, int> convertToEnemyEnum(const std::map<std::strin
         unitMap[static_cast<EnemyUnitType>(i)] = 0;
     }
 
-    for (auto [str, amount]: unitStrings) {
-        auto type = stringToUnitType[str];
-        unitMap[type] = amount;
+    for (const auto& [str, amount]: unitStrings) {
+
+        auto type_pair = stringToUnitType.find(str);
+        if (type_pair != stringToUnitType.end()) {
+            continue;
+        }
+
+        unitMap[type_pair->second] = amount;
     }
     return unitMap;
 };
