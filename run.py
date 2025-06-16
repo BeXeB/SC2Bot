@@ -7,13 +7,13 @@ from sc2.data import Difficulty, Race
 from sc2.main import run_multiple_games, run_game, GameMatch
 from sc2 import maps
 from Python.testbot import MyBot, ActionSelection, PeacefulBot
-from sc2_mcts import ValueHeuristic, RolloutHeuristic
+from sc2_mcts import ValueHeuristic, RolloutHeuristic, ArmyValueFunction
 from __init__ import run_ladder_game  # Import ladder game function
 
 NUMBER_OF_GAMES = 1
 GAME_LENGTH = 480
 
-bot = Bot(Race.Terran, MyBot(
+bot_min = Bot(Race.Terran, MyBot(
     mcts_seed=0,
     mcts_rollout_end_time=GAME_LENGTH,
     mcts_exploration=0.8,
@@ -21,7 +21,19 @@ bot = Bot(Race.Terran, MyBot(
     mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
     action_selection=ActionSelection.MultiBestActionMin,
     future_action_queue_length=2,
-    minimum_search_rollouts=5000
+    minimum_search_rollouts=5000,
+    army_value_function=ArmyValueFunction.min_power
+))
+bot_nn = Bot(Race.Terran, MyBot(
+    mcts_seed=0,
+    mcts_rollout_end_time=GAME_LENGTH,
+    mcts_exploration=0.8,
+    mcts_value_heuristics=ValueHeuristic.EpsilonGreedy,
+    mcts_rollout_heuristics=RolloutHeuristic.weighted_choice,
+    action_selection=ActionSelection.MultiBestActionMin,
+    future_action_queue_length=2,
+    minimum_search_rollouts=5000,
+    army_value_function=ArmyValueFunction.combat_nn
 ))
 
 battle_bot = Bot(Race.Terran, BattleBot())
@@ -30,7 +42,7 @@ if __name__ == "__main__":
 
     if "--LadderServer" in sys.argv:
         print("Starting ladder game...")
-        result, opponentid = run_ladder_game(bot)
+        result, opponentid = run_ladder_game(bot_min)
         print(result, " against opponent ", opponentid)
     else:
         print("Starting local game...")
@@ -38,7 +50,7 @@ if __name__ == "__main__":
         opponent = Bot(Race.Zerg, PeacefulBot())
         match = GameMatch(
             maps.get("KingsCoveLE"),
-            [bot,opponent],
+            [bot_min,bot_nn],
             # maps.get("MicroDataCollectionMap"),
             # [battle_bot, opponent],
             realtime=False,

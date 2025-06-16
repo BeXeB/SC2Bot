@@ -83,8 +83,17 @@ class MyBot(BotAI):
                  time_limit: int = 600,
                  action_selection: ActionSelection = ActionSelection.BestAction,
                  future_action_queue_length: int = 1,
-                 minimum_search_rollouts: int = 5000) -> None:
-        self.mcts = Mcts(State(), mcts_seed, mcts_rollout_end_time, mcts_exploration, mcts_value_heuristics, mcts_rollout_heuristics, end_probability_function=1, army_value_function=ArmyValueFunction.combat_nn)
+                 minimum_search_rollouts: int = 5000,
+                 army_value_function: ArmyValueFunction = ArmyValueFunction.min_power) -> None:
+        self.mcts = Mcts(
+            State(),
+            mcts_seed,
+            mcts_rollout_end_time,
+            mcts_exploration,
+            mcts_value_heuristics,
+            mcts_rollout_heuristics,
+            end_probability_function=1,
+            army_value_function=army_value_function)
         self.mcts_settings = [
             mcts_seed,
             mcts_rollout_end_time,
@@ -118,6 +127,7 @@ class MyBot(BotAI):
         self.viking_builder = VikingFighterBuilder(self)
         self.siege_builder = SiegeTankBuilder(self)
         self.mcts.start_search()
+        await self.chat_send(str(self.mcts.get_army_value_function()))
 
 
     async def on_step(self, iteration: int) -> None:
