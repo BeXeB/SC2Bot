@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 
+
 enum class EnemyUnitType {
     COLOSSUS,
     BANELING,
@@ -128,17 +129,108 @@ inline std::unordered_map<std::string, EnemyUnitType> stringToUnitType = {
     {"enemy:DISRUPTOR", EnemyUnitType::DISRUPTOR},
 };
 
-static std::map<EnemyUnitType, int> convertToEnum(const std::map<std::string, int> & unitStrings) {
+static std::map<EnemyUnitType, int> convertToEnemyEnum(const std::map<std::string, int> & unitStrings) {
     std::map<EnemyUnitType, int>unitMap = {};
     // Initialize all units to 0
     for (int i = static_cast<int>(EnemyUnitType::COLOSSUS); i != static_cast<int>(EnemyUnitType::Last); i++ ) {
         unitMap[static_cast<EnemyUnitType>(i)] = 0;
     }
 
-    for (auto [str, amount]: unitStrings) {
-        auto type = stringToUnitType[str];
-        unitMap[type] = amount;
+    for (const auto& [str, amount]: unitStrings) {
+
+        auto type_pair = stringToUnitType.find(str);
+        if (type_pair != stringToUnitType.end()) {
+            continue;
+        }
+
+        unitMap[type_pair->second] = amount;
     }
     return unitMap;
 };
+
+enum class PlayerUnitType {
+    SIEGETANKSIEGED,
+    SIEGETANK,
+    VIKINGASSAULT,
+    VIKINGFIGHTER,
+    SCV,
+    MARINE,
+    REAPER,
+    GHOST,
+    MARAUDER,
+    THOR,
+    HELLION,
+    MEDIVAC,
+    BANSHEE,
+    RAVEN,
+    BATTLECRUISER,
+    HELLIONTANK,
+    WIDOWMINE,
+    LIBERATOR,
+    CYCLONE,
+    Last
+};
+inline std::vector<EnemyUnitType> TerranUnits {
+    EnemyUnitType::SIEGETANK,
+    EnemyUnitType::VIKINGFIGHTER,
+    EnemyUnitType::SCV,
+    EnemyUnitType::MARINE,
+    EnemyUnitType::REAPER,
+    EnemyUnitType::GHOST,
+    EnemyUnitType::MARAUDER,
+    EnemyUnitType::THOR,
+    EnemyUnitType::HELLION,
+    EnemyUnitType::MEDIVAC,
+    EnemyUnitType::BANSHEE,
+    EnemyUnitType::RAVEN,
+    EnemyUnitType::BATTLECRUISER,
+    EnemyUnitType::HELLIONTANK,
+    EnemyUnitType::WIDOWMINE,
+    EnemyUnitType::LIBERATOR,
+    EnemyUnitType::CYCLONE,
+};
+inline std::vector<EnemyUnitType> ProtossUnits {
+    EnemyUnitType::COLOSSUS,
+    EnemyUnitType::MOTHERSHIP,
+    EnemyUnitType::ZEALOT,
+    EnemyUnitType::STALKER,
+    EnemyUnitType::HIGHTEMPLAR,
+    EnemyUnitType::DARKTEMPLAR,
+    EnemyUnitType::SENTRY,
+    EnemyUnitType::PHOENIX,
+    EnemyUnitType::CARRIER,
+    EnemyUnitType::VOIDRAY,
+    EnemyUnitType::WARPPRISM,
+    EnemyUnitType::OBSERVER,
+    EnemyUnitType::IMMORTAL,
+    EnemyUnitType::PROBE,
+    EnemyUnitType::ARCHON,
+    EnemyUnitType::ADEPT,
+    EnemyUnitType::ORACLE,
+    EnemyUnitType::TEMPEST,
+    EnemyUnitType::DISRUPTOR,
+};
+inline std::vector<EnemyUnitType> ZergUnits {
+    EnemyUnitType::BANELING,
+    EnemyUnitType::CHANGELING,
+    EnemyUnitType::CHANGELINGMARINESHIELD,
+    EnemyUnitType::DRONE,
+    EnemyUnitType::ZERGLING,
+    EnemyUnitType::HYDRALISK,
+    EnemyUnitType::MUTALISK,
+    EnemyUnitType::ULTRALISK,
+    EnemyUnitType::ROACH,
+    EnemyUnitType::INFESTOR,
+    EnemyUnitType::CORRUPTOR,
+    EnemyUnitType::BROODLORD,
+    EnemyUnitType::QUEEN,
+    EnemyUnitType::OVERSEER,
+    EnemyUnitType::LOCUSTMP,
+    EnemyUnitType::SWARMHOSTMP,
+    EnemyUnitType::VIPER,
+    EnemyUnitType::LURKERMP,
+    EnemyUnitType::RAVAGER,
+    EnemyUnitType::LOCUSTMPFLYING,
+};
+
 #endif //UNITTYPES_H

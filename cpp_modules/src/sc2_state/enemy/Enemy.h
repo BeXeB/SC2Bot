@@ -60,10 +60,22 @@ namespace Sc2 {
 		}
 
 
-		Enemy(const EnemyRace race,
+		EnemyRace convertToRace(const std::string & race) {
+			if (race == "Zerg") {
+				return EnemyRace::Zerg;
+			}
+
+			if (race == "Protoss") {
+				return EnemyRace::Protoss;
+			}
+
+			return EnemyRace::Terran;
+		}
+
+		Enemy(const std::string race,
 		      const std::map<std::string, int> &units,
-		      const std::map<ProductionBuildingType, int> &productionBuildings)
-			: race(race), units(convertToEnum(units)), productionBuildings(convertToProductionBuildings(productionBuildings)) {
+		      const std::map<std::string, int> &productionBuildings)
+			: race(convertToRace(race)), units(convertToEnemyEnum(units)), productionBuildings(convertToProductionBuildings(productionBuildings)) {
 			_rng = std::mt19937(std::random_device{}());
 		}
 

@@ -10,43 +10,18 @@ namespace pymodule {
 	PYBIND11_MODULE(sc2_mcts, module) { 
 		module.doc() = "sc2_mcts";
 
-	py::enum_<Sc2::EnemyRace>(module, "Race")
-			.value("terran", Sc2::EnemyRace::Terran)
-			.value("protoss", Sc2::EnemyRace::Protoss)
-			.value("zerg", Sc2::EnemyRace::Zerg);
-
-	py::enum_<Sc2::ProductionBuildingType>(module, "ProductionBuilding")
-		.value("barracks", Sc2::ProductionBuildingType::Barracks)
-		.value("factory", Sc2::ProductionBuildingType::Factory)
-		.value("starport", Sc2::ProductionBuildingType::Starport)
-		.value("hydraliskDen", Sc2::ProductionBuildingType::HydraliskDen)
-		.value("hatchery", Sc2::ProductionBuildingType::Hatchery)
-		.value("lurkerDen", Sc2::ProductionBuildingType::LurkerDen)
-		.value("ultraliskCavern", Sc2::ProductionBuildingType::UltraliskCavern)
-		.value("spawningPool", Sc2::ProductionBuildingType::SpawningPool)
-		.value("roachWarren", Sc2::ProductionBuildingType::RoachWarren)
-		.value("spire", Sc2::ProductionBuildingType::Spire)
-		.value("banelingNest", Sc2::ProductionBuildingType::BanelingNest)
-		.value("infestationPit", Sc2::ProductionBuildingType::InfestationPit)
-		.value("gateway", Sc2::ProductionBuildingType::Gateway)
-		.value("stargate", Sc2::ProductionBuildingType::Stargate)
-		.value("roboticsFacility", Sc2::ProductionBuildingType::RoboticsFacility)
-		.value("none", Sc2::ProductionBuildingType::None);
-
 		py::class_<Sc2::Enemy, std::shared_ptr<Sc2::Enemy>>(module, "Enemy")
 			.def(py::init<const int, const int, const double, const double>(),
 				py::arg("ground_power"),
 				py::arg("air_power"),
 				py::arg("ground_production"),
 				py::arg("air_production"))
-			.def(py::init<const Sc2::EnemyRace,
+			.def(py::init<const std::string,
 						const std::map<std::string, int> &,
-						const std::map<Sc2::ProductionBuildingType, int> &>(),
+						const std::map<std::string, int> &>(),
 					py::arg("race"),
 					py::arg("unit_amounts"),
 					py::arg("production_building_amounts"));
-
-
 
 		module.def("state_builder", &Sc2::State::StateBuilder, "A function that builds a State",
 						 py::arg("minerals"),
@@ -135,7 +110,8 @@ namespace pymodule {
 		.value("min_power", Sc2::ArmyValueFunction::MinPower)
 		.value("average_power", Sc2::ArmyValueFunction::AveragePower)
 		.value("scaled_power", Sc2::ArmyValueFunction::ScaledPower)
-		.value("marine_power", Sc2::ArmyValueFunction::MarinePower);
+		.value("marine_power", Sc2::ArmyValueFunction::MarinePower)
+		.value("combat_nn", Sc2::ArmyValueFunction::CombatNN);
 
 		py::enum_<RolloutHeuristic>(module, "RolloutHeuristic")
 		.value("random", RolloutHeuristic::Random)
@@ -176,6 +152,7 @@ namespace pymodule {
 		.def("get_best_action", &Sc2::Mcts::Mcts::getBestAction)
 		.def("perform_action", &Sc2::Mcts::Mcts::performAction,
 			py::arg("action"))
-		.def("get_number_of_rollouts", &Sc2::Mcts::Mcts::getNumberOfRollouts); 
+		.def("get_number_of_rollouts", &Sc2::Mcts::Mcts::getNumberOfRollouts)
+		.def("get_army_value_function", &Sc2::Mcts::Mcts::getArmyValueFunction);
 	}
 }

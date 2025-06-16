@@ -48,6 +48,7 @@ namespace Sc2 {
 		AveragePower,
 		ScaledPower,
 		MarinePower,
+		CombatNN,
 		None
 	};
 
@@ -416,9 +417,12 @@ namespace Sc2 {
 
 		std::tuple<double, double, double> getWinProbabilities();
 
+		std::vector<float> getFeatureVector();
 		double getCombatSuccessProbability() const;
+		double endProbabilityFunction(double successProb) const;
 		double getEndProbability() const;
 		void addEnemyUnit(){_enemy.takeAction(500, EnemyAction::addEnemyUnit);}
+		void setEnemyRace(EnemyRace race){_enemy.race = race;};
 
 		static double softmax(std::vector<double> vector, const int index) {
 			double sum = 0;
@@ -436,7 +440,7 @@ namespace Sc2 {
 		}
 
 		bool GameOver() const {
-			return endTimeReached() || getEndProbability() > 0.90;
+			return endTimeReached(); //|| getEndProbability() > 0.90;
 		}
 
 		int getCurrentTime() const { return _currentTime; }

@@ -60,7 +60,7 @@ namespace Sc2 {
     struct BarracksProductionBuilding : public ProductionBuilding {
         explicit BarracksProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Barracks ,
             amount,
-            130,
+            120,
             ProductionBuildingType::None,
             std::vector<EnemyUnitType> {EnemyUnitType::MARINE,
                                         EnemyUnitType::MARAUDER,
@@ -74,7 +74,7 @@ namespace Sc2 {
     struct FactoryProductionBuilding : public ProductionBuilding {
         explicit FactoryProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Factory ,
             amount,
-            0,
+            210,
             ProductionBuildingType::Barracks ,
             std::vector<EnemyUnitType> {EnemyUnitType::HELLION,
                                         EnemyUnitType::SIEGETANK,
@@ -89,7 +89,7 @@ namespace Sc2 {
     struct StarportProductionBuilding : public ProductionBuilding {
         explicit StarportProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Starport ,
             amount,
-            0,
+            250,
             ProductionBuildingType::Factory,
             std::vector<EnemyUnitType> {EnemyUnitType::VIKINGFIGHTER,
                                         EnemyUnitType::MEDIVAC,
@@ -112,7 +112,7 @@ namespace Sc2 {
     struct SpawningPoolProductionBuilding : public ProductionBuilding {
         explicit SpawningPoolProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::SpawningPool,
             amount,
-            0,
+            50,
             ProductionBuildingType::None,
             std::vector<EnemyUnitType>{ EnemyUnitType::ZERGLING, EnemyUnitType::QUEEN,})
         {}
@@ -120,49 +120,49 @@ namespace Sc2 {
     struct BanelingNestProductionBuilding : public ProductionBuilding {
         explicit BanelingNestProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::BanelingNest,
             amount,
-            0,
+            100,
             ProductionBuildingType::SpawningPool,
             std::vector<EnemyUnitType>{EnemyUnitType::BANELING}){}
     };
     struct RoachWarrenProductionBuilding : public ProductionBuilding {
         explicit RoachWarrenProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::RoachWarren,
             amount,
-            0,
+            90,
             ProductionBuildingType::SpawningPool,
             std::vector<EnemyUnitType>{EnemyUnitType::ROACH }){}
     };
     struct HydraliskProductionBuilding : public ProductionBuilding {
         explicit HydraliskProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::HydraliskDen,
             amount,
-            0,
+            100,
             ProductionBuildingType::SpawningPool,
             std::vector<EnemyUnitType>{EnemyUnitType::HYDRALISK}){}
     };
     struct LurkerDenProductionBuilding : public ProductionBuilding {
         explicit LurkerDenProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::RoachWarren,
             amount,
-            0,
+            160,
             ProductionBuildingType::HydraliskDen,
             std::vector<EnemyUnitType>{EnemyUnitType::LURKERMP }){}
     };
     struct InfestationPitProductionBuilding : public ProductionBuilding {
         explicit InfestationPitProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::InfestationPit,
             amount,
-            0,
+            190,
             ProductionBuildingType::SpawningPool,
             std::vector<EnemyUnitType>{EnemyUnitType::INFESTOR,EnemyUnitType::SWARMHOSTMP}){}
     };
     struct SpireProductionBuilding : public ProductionBuilding {
         explicit SpireProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Spire,
             amount,
-            0,
+            400,
             ProductionBuildingType::InfestationPit,
             std::vector<EnemyUnitType>{EnemyUnitType::MUTALISK,EnemyUnitType::CORRUPTOR, EnemyUnitType::BROODLORD}){}
     };
     struct UltraliskCavernProductionBuilding : public ProductionBuilding {
         explicit UltraliskCavernProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::UltraliskCavern,
             amount,
-            0,
+            310,
             ProductionBuildingType::InfestationPit,
             std::vector<EnemyUnitType>{EnemyUnitType::ULTRALISK}){}
     };
@@ -170,7 +170,7 @@ namespace Sc2 {
     struct GatewayProductionBuilding : public ProductionBuilding {
         explicit GatewayProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Gateway,
             amount,
-            0,
+            70,
             ProductionBuildingType::None,
             std::vector<EnemyUnitType>{ EnemyUnitType::ZEALOT,
                                         EnemyUnitType::STALKER,
@@ -182,7 +182,7 @@ namespace Sc2 {
     struct StargateProductionBuilding : public ProductionBuilding {
         explicit StargateProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::Stargate,
             amount,
-            0,
+            170,
             ProductionBuildingType::Gateway,
             std::vector<EnemyUnitType>{ EnemyUnitType::PHOENIX,
                                         EnemyUnitType::VOIDRAY,
@@ -193,7 +193,7 @@ namespace Sc2 {
     struct RoboticsFacilityProductionBuilding : public ProductionBuilding {
         explicit RoboticsFacilityProductionBuilding(const float amount) : ProductionBuilding(ProductionBuildingType::RoboticsFacility,
             amount,
-            0,
+            200,
             ProductionBuildingType::Gateway,
             std::vector<EnemyUnitType>{ EnemyUnitType::WARPPRISM,
                                         EnemyUnitType::OBSERVER,
@@ -202,54 +202,107 @@ namespace Sc2 {
                                         EnemyUnitType::DISRUPTOR}){}
     };
 
+    inline ProductionBuildingType convertToBuildingType(const std::string& typeStr) {
+        if (typeStr == "BARRACKS") {
+            return ProductionBuildingType::Barracks;
+        }
+        if (typeStr == "FACTORY") {
+            return ProductionBuildingType::Factory;
+        }
+        if (typeStr == "STARPORT") {
+            return ProductionBuildingType::Starport;
+        }
+
+        if (typeStr == "HATCHERY") {
+            return ProductionBuildingType::Hatchery;
+        }
+        if (typeStr == "HYDRALISKDEN") {
+            return ProductionBuildingType::HydraliskDen;
+        }
+        if (typeStr == "LURKERDENMP") {
+            return ProductionBuildingType::LurkerDen;
+        }
+        if (typeStr == "ULTRALISKCAVERN") {
+            return ProductionBuildingType::UltraliskCavern;
+        }
+        if (typeStr == "SPAWNINGPOOL") {
+            return ProductionBuildingType::SpawningPool;
+        }
+        if (typeStr == "ROACHWARREN") {
+            return ProductionBuildingType::RoachWarren;
+        }
+        if (typeStr == "GREATERSPIRE" || typeStr == "SPIRE") {
+            return ProductionBuildingType::Spire;
+        }
+        if (typeStr == "BANELINGNEST") {
+            return ProductionBuildingType::BanelingNest;
+        }
+        if (typeStr == "INFESTATIONPIT") {
+        return ProductionBuildingType::InfestationPit;
+        }
+
+        if (typeStr == "ROBOTICSFACILITY") {
+            return ProductionBuildingType::RoboticsFacility;
+        }
+        if (typeStr == "GATEWAY") {
+            return ProductionBuildingType::Gateway;
+        }
+        if (typeStr == "STARGATE") {
+            return ProductionBuildingType::Stargate;
+        }
+
+        return ProductionBuildingType::None;
+    }
+
     inline std::unordered_map<ProductionBuildingType, ProductionBuilding> convertToProductionBuildings(
-        const std::map<ProductionBuildingType, int> & buildingAmounts) {
+        const std::map<std::string, int> & buildingAmounts) {
+
         std::unordered_map<ProductionBuildingType, ProductionBuilding> buildings;
-        for (auto [type, amount]: buildingAmounts) {
-            switch (type) {
+        for (const auto& [typeStr, amount]: buildingAmounts) {
+            switch (ProductionBuildingType type = convertToBuildingType(typeStr)) {
                 case ProductionBuildingType::Barracks:
-                    buildings[type] = BarracksProductionBuilding(amount);
+                    buildings[type] = BarracksProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::Factory:
-                    buildings[type] = FactoryProductionBuilding(amount);
+                    buildings[type] = FactoryProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::Starport:
-                    buildings[type] = StarportProductionBuilding(amount);
+                    buildings[type] = StarportProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::Hatchery:
-                    buildings[type] = HatcheryProductionBuilding(amount);
+                    buildings[type] = HatcheryProductionBuilding(static_cast<float>(amount));
                 case ProductionBuildingType::HydraliskDen:
-                    buildings[type] = HydraliskProductionBuilding(amount);
+                    buildings[type] = HydraliskProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::LurkerDen:
-                    buildings[type] = LurkerDenProductionBuilding(amount);
+                    buildings[type] = LurkerDenProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::UltraliskCavern:
-                    buildings[type] = UltraliskCavernProductionBuilding(amount);
+                    buildings[type] = UltraliskCavernProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::SpawningPool:
-                    buildings[type] = SpawningPoolProductionBuilding(amount);
+                    buildings[type] = SpawningPoolProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::RoachWarren:
-                    buildings[type] = RoachWarrenProductionBuilding(amount);
+                    buildings[type] = RoachWarrenProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::Spire:
-                    buildings[type] = SpireProductionBuilding(amount);
+                    buildings[type] = SpireProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::BanelingNest:
-                    buildings[type] = BanelingNestProductionBuilding(amount);
+                    buildings[type] = BanelingNestProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::InfestationPit:
-                    buildings[type] = InfestationPitProductionBuilding(amount);
+                    buildings[type] = InfestationPitProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::RoboticsFacility:
-                    buildings[type] = RoboticsFacilityProductionBuilding(amount);
+                    buildings[type] = RoboticsFacilityProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::Gateway:
-                    buildings[type] = GatewayProductionBuilding(amount);
+                    buildings[type] = GatewayProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::Stargate:
-                    buildings[type] = StargateProductionBuilding(amount);
+                    buildings[type] = StargateProductionBuilding(static_cast<float>(amount));
                     break;
                 case ProductionBuildingType::None:
                     break;

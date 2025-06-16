@@ -1,6 +1,8 @@
 from __future__ import annotations
 import typing
 
+import sc2.data
+
 if typing.TYPE_CHECKING:
     from Python.testbot import MyBot
 
@@ -186,15 +188,65 @@ def get_pending_house_constructions(bot: 'MyBot') -> list[Construction]:
     return constructions
 
 
+def get_units(bot: 'MyBot') -> dict[str, int]:
+    units: dict[str, int] = {}
+    for enemy_entity in bot.information_manager.enemy_units.values():
+        unit_type = enemy_entity.entity.type_id
+        unit_str = "enemy:" + str(unit_type)
+        units[unit_str] = units[unit_str] + 1 if unit_str in units else 1
+
+    return units
+
+
+def get_structures(bot:'MyBot') -> dict[str, int]:
+    structures: dict[str, int] = {}
+    enemy_structures = bot.information_manager.enemy_structures
+    inferred_structures = bot.information_manager.inferred_structures
+
+    for structure in enemy_structures.values():
+        s = str(structure.entity.type_id)
+        structures[s] = structures[s] + 1 if s in structures else 1
+
+    for structure_type, is_inferred in inferred_structures.items():
+
+        if is_inferred and str(structure_type) not in structures:
+            structures[str(structure_type)] = 1
+
+    return structures
+
+
+def get_race(bot: 'MyBot') -> str:
+    match bot.enemy_race:
+        case sc2.data.Race.Zerg:
+            race = "Zerg"
+        case sc2.data.Race.Protoss:
+            race = "Protoss"
+        case sc2.data.Race.Terran:
+            race = "Terran"
+        case _:
+            race = "Unknown"
+            print(bot.enemy_race)
+    return race
+
+
 def get_enemy(bot: 'MyBot') -> Enemy:
-    enemy_air_power, enemy_ground_power = get_enemy_power(bot)
+    if(bot.mcts.get_army_value_function() == ArmyValueFunction.combat_nn):
+        race = get_race(bot)
+        print(race)
+        units = get_units(bot)
+        print(units)
+        structures = get_structures(bot)
+        print(structures)
+        enemy = Enemy(race=race, unit_amounts=units, production_building_amounts=structures)
+    else:
+        enemy_air_power, enemy_ground_power = get_enemy_power(bot)
 
-    enemy_air_production, enemy_ground_production = get_enemy_production(bot)
+        enemy_air_production, enemy_ground_production = get_enemy_production(bot)
 
-    enemy = Enemy(math.floor(enemy_ground_power),
-                  math.floor(enemy_air_power),
-                  enemy_ground_production,
-                  enemy_air_production)
+        enemy = Enemy(math.floor(enemy_ground_power),
+                      math.floor(enemy_air_power),
+                      enemy_ground_production,
+                      enemy_air_production)
     return enemy
 
 

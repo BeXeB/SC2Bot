@@ -172,6 +172,7 @@ std::shared_ptr<Node> Mcts::selectNode() {
 
 double Mcts::rollout(const std::shared_ptr<Node> &node) {
 	const auto state = State::DeepCopy(*node->getState(), true);
+	std::vector<std::vector<float>> featureVectors = {};
 	std::vector<double> winProbabilities;
 	// std::vector<double> lossProbabilities;
 	std::vector<double> continueProbabilities;
@@ -197,10 +198,30 @@ double Mcts::rollout(const std::shared_ptr<Node> &node) {
 		}
 
 		state->performAction(action);
+		auto time = state->getCurrentTime();
 
-		const auto [winProb, _, continueProb] = state->getWinProbabilities();
-		winProbabilities.emplace_back(winProb);
-		continueProbabilities.emplace_back(continueProb);
+		if (_armyValueFunction == ArmyValueFunction::CombatNN) {
+			featureVectors.emplace_back(state->getFeatureVector());
+		}
+		else {
+			const auto [winProb, _, continueProb] = state->getWinProbabilities();
+			winProbabilities.emplace_back(winProb);
+			continueProbabilities.emplace_back(continueProb);
+		}
+
+	}
+
+	if (_armyValueFunction == ArmyValueFunction::CombatNN) {
+		if (featureVectors.empty()) {
+			featureVectors.emplace_back(state->getFeatureVector());
+		}
+
+		winProbabilities = predictWinProbabilities(featureVectors);
+
+		for (auto probability: winProbabilities) {
+			auto continueProb = 1 - state->endProbabilityFunction(probability);
+			continueProbabilities.emplace_back(continueProb);
+		}
 	}
 
 	if (!winProbabilities.empty() && !continueProbabilities.empty()) {
@@ -232,11 +253,76 @@ void Mcts::backPropagate(std::shared_ptr<Node> node, double outcome) {
 	}
 }
 
+std::vector<double> Mcts::predictWinProbabilities(const std::vector<std::vector<float>> &features) {
+	int featureSize = static_cast<int>(features[0].size());
+	int batchSize = static_cast<int>(features.size());
+
+	std::vector<float> flatFeatures = {};
+	for (auto feature: features) {
+		flatFeatures.insert(flatFeatures.end(), feature.begin(), feature.end());
+	}
+
+	const torch::Tensor input = torch::from_blob(flatFeatures.data(), {batchSize, featureSize}, torch::kFloat);
+
+	std::vector<torch::jit::IValue> inputs{input};
+
+	torch::Tensor output = _model.forward(inputs).toTensor();
+	output = torch::exp(output);
+	output = output.to(torch::kCPU).contiguous();
+
+	auto ptr = output.data_ptr<float>();
+
+	auto rows = output.size(0);
+	auto cols = output.size(1);
+
+	if (cols != 3) {
+		throw std::runtime_error("Expected output with 3 columns.");
+	}
+
+	std::vector<double> results;
+
+	for (auto i = 0; i < rows; ++i) {
+		float loss = ptr[i * cols + 0];
+		float tie = ptr[i * cols + 1];
+		float win = ptr[i * cols + 2];
+		results.emplace_back(win);
+	}
+
+	return results;
+}
+
 void Mcts::singleSearch() {
 	const auto node = selectNode();
 	const auto outcome = rollout(node);
 	backPropagate(node, outcome);
 	_numberOfRollouts++;
+}
+
+torch::jit::script::Module Mcts::loadCombatPredictionNN() {
+	// std::string path = "../../data/";
+	std::string path = "data/";
+	switch (_enemyRace) {
+		case EnemyRace::Protoss:
+			path = path + "protoss_arena_model.pt";
+			break;
+		case EnemyRace::Zerg:
+			path = path + "zerg_arena_model.pt";
+			break;
+		case EnemyRace::Terran:
+			path = path + "terran_arena_model.pt";
+			break;
+	}
+
+	torch::jit::script::Module module;
+	try {
+		module = torch::jit::load(path);
+	}
+	catch (const c10::Error& e) {
+		std::cerr << path << std::endl;
+		std::cerr << "Error loading the model. Race: " << static_cast<int>(_enemyRace) << std::endl;
+		std::cerr << e.what() << std::endl;
+	}
+	return module;
 }
 
 void Mcts::threadedSearch() {
@@ -440,6 +526,12 @@ void Mcts::updateRootState(const std::shared_ptr<State> &state) {
 	rootState->setEndProbabilityFunction(END_PROBABILITY_FUNCTION);
 	_rootNode = std::make_shared<Node>(Node(Action::none, nullptr, std::move(rootState)));
 	_numberOfRollouts = 0;
+	auto enemyRace = state->getEnemy().race;
+	if (enemyRace != _enemyRace) {
+		_enemyRace = enemyRace;
+		_model = loadCombatPredictionNN();
+	}
+
 	_mctsMutex.unlock();
 	_mctsRequestsPending = false;
 }

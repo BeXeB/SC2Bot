@@ -19,13 +19,15 @@ Sc2::EnemyAction Sc2::Enemy::generateEnemyAction() {
     constexpr double airProductionIncrease = 3;
     // Specifies how many times the enemy will attack
     constexpr double attackAction = 0.3;
+    // Specifies how many times specific production buildings are added
+    constexpr double productionIncrease = 5;
     // Specifies how many times the enemy will do nothing
     constexpr double noneAction = 60 - buildUnitAction - attackAction - groundPowerIncrease - airPowerIncrease -
-                                  groundProductionIncrease - airProductionIncrease;
+                                  groundProductionIncrease - airProductionIncrease - productionIncrease;
 
     const auto actionWeights = {
         noneAction, buildUnitAction, attackAction, groundPowerIncrease, airPowerIncrease,
-        groundProductionIncrease, airProductionIncrease
+        groundProductionIncrease, airProductionIncrease, productionIncrease
     };
     std::discrete_distribution<int> dist(actionWeights.begin(), actionWeights.end());
     // 0: None, 1: Build unit, 2: Attack, 3: GroundPowerIncrease, 4: AirPowerIncrease, 5: Ground Production, 6: Air Production
@@ -42,6 +44,8 @@ Sc2::EnemyAction Sc2::Enemy::generateEnemyAction() {
             return EnemyAction::addEnemyGroundProduction;
         case 6:
             return EnemyAction::addEnemyAirProduction;
+        case 7:
+            return EnemyAction::addEnemyProduction;
         default:
             return EnemyAction::none;
     }
@@ -103,18 +107,35 @@ void Sc2::Enemy::addProductionBuilding(const int currentTime) {
             continue;
 
         auto requiredBuilding = building.buildingRequirement;
-        if (requiredBuilding!= ProductionBuildingType::None && productionBuildings[requiredBuilding].amount < 1 ) {
+        if (requiredBuilding!= ProductionBuildingType::None &&
+            productionBuildings[requiredBuilding].amount < 1 ) {
             continue;
         }
 
         availableBuildings.emplace_back(type);
     }
+
     if (availableBuildings.empty()) {
         return;
     }
     const auto building = randomChoice(availableBuildings);
 
-    productionBuildings[building].amount += 0.1;
+    if (productionBuildings[building].amount < 1) {
+        productionBuildings[building].amount = 1;
+        return;
+    }
+
+    switch (race) {
+        case EnemyRace::Protoss:
+            productionBuildings[building].amount += 0.05;
+            break;
+        case EnemyRace::Terran:
+            productionBuildings[building].amount += 0.1;
+            break;
+        case EnemyRace::Zerg:
+            productionBuildings[building].amount += 0.15;
+            break;
+    }
 }
 
 void Sc2::Enemy::addUnits() {
@@ -135,8 +156,13 @@ void Sc2::Enemy::addUnits() {
         return;
     }
     const auto unit = randomChoice(availableUnits);
-    const auto building = unitBuildings[unit];
-    const auto buildingAmount = productionBuildings[building].amount;
+    float buildingAmount = 0;
+    if (race == EnemyRace::Zerg) {
+        buildingAmount = productionBuildings[ProductionBuildingType::Hatchery].amount;
+    }else {
+        const auto building = unitBuildings[unit];
+        buildingAmount = productionBuildings[building].amount;
+    }
 
     units[unit] += std::floor(buildingAmount);
 }
